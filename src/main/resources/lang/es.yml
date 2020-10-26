@@ -1,0 +1,22 @@
+
+Command:
+  Reload:
+    Settings: ''
+    Messages:
+      Success: ''
+      Saved: ''
+      Error: ''
+  CheckData:
+
+
+Debug:
+  MySQL:
+    asd:
+  WebData:
+    Empty-URL: 'La URL está vacia'
+    Empty-Key: 'La Key está vacia'
+    Check-URL: 'Revisando data de compras...'
+    Invalid-URL: 'La URL es inválida'
+    Empty-Page: 'La página con ordenes de compra está vacia'
+    Check-Data: 'Revisando las ordenes de compra pendientes...'
+    Empty-Orders: 'No hay ordenes de compra por procesar :)'

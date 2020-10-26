@@ -1,0 +1,22 @@
+
+Command:
+  Reload:
+    Settings: ''
+    Messages:
+      Success: ''
+      Saved: ''
+      Error: ''
+  CheckData:
+
+
+Debug:
+  MySQL:
+    asd:
+  WebData:
+    Empty-URL: ''
+    Empty-Key: ''
+    Check-URL: ''
+    Invalid-URL: ''
+    Empty-Page: ''
+    Check-Data: ''
+    Empty-Orders: ''

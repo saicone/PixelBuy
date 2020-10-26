@@ -1,0 +1,45 @@
+
+# Available languages: en, es
+# If you want to use other language go to "lang" folder and create new file
+Language: 'en'
+
+# Edit this if you are using MySQL database type and have the plugin in
+# multiple hosts because is very useful to get the data separately by servers
+Server-Name: 'global'
+
+# Configuration about player data
+Database:
+  # If false the data will be saved using player names (Recommended for No-Premium servers)
+  UUID: true
+  # Available types: JSON, MYSQL
+  # JSON: Data will be saved on json files in "playerdata" folder
+  # MYSQL: Data will be saved on external database
+  Type: JSON
+  # Configuration about MySQL database
+  # Don't edit this if you are using JSON database type
+  Host: 'localhost:3306'
+  Database: 'database'
+  User: 'user'
+  Password: 'pass'
+  Flags: '?autoReconnect=true&verifyServerCertificate=false&useSSL=false'
+  # Set to true if you want to see more info in console about connections
+  # with database
+  Debug: false
+
+# Configuration about WooCommerce connection
+Web-Data:
+  # Interval in seconds to check if exists new orders
+  # In a future this will not be necessary (Real time payments)
+  Check-Interval: 600
+  # URL of your site WITHOUT "/" at final
+  # For example http://shop.mysite.com
+  URL: ''
+  # This is a key that YOU set, both needing to be identical
+  # in the WooCommerce configuration and in this config file
+  Key: ''
+  # Set to true if you want to see more info in console about processed orders
+  # and errors about miss configured things
+  Debug: false
+
+# Configuration about Orders
+Order:
