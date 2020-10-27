@@ -6,6 +6,7 @@ import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.order.objects.Order;
 import com.minelatino.pixelbuy.managers.order.objects.SavedOrders;
 import com.minelatino.pixelbuy.managers.order.objects.WebString;
+import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
 import okhttp3.*;
 import org.bukkit.Bukkit;
@@ -137,7 +138,9 @@ public class OrderManager {
                     Bukkit.getScheduler().runTaskAsynchronously(pl, () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
                 }
             } else {
-
+                String p = (settings().getBoolean("Database.UUID") ? String.valueOf(Bukkit.getOfflinePlayer(order.getPlayer()).getUniqueId()) : order.getPlayer());
+                PlayerData playerData = new PlayerData(p, order.getOrderId(), order.getCommands());
+                pl.getDatabase().saveData(playerData);
             }
             savedOrders.add(order.getOrderId());
         }

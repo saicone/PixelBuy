@@ -1,32 +1,21 @@
 package com.minelatino.pixelbuy.managers.player;
 
+import com.minelatino.pixelbuy.PixelBuy;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class PlayerManager {
 
-    private final Map<Player, PlayerData> players = new HashMap<>();
+    private final PixelBuy pl = PixelBuy.get();
 
-    public PlayerManager() {
-        reload(Bukkit.getConsoleSender());
-    }
-
-    public void reload(CommandSender sender) {
-        players.clear();
+    public void processPlayers() {
         for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            loadPlayer(p);
+            if (pl.getDatabase().getData(p.getName()) != null) {
+                for (String cmd : pl.getDatabase().getData(p.getName()).getCommands()) {
+                    Bukkit.getScheduler().runTaskAsynchronously(pl, () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+                }
+                pl.getDatabase().deleteData(p.getName());
+            }
         }
-    }
-
-    public static void loadPlayer(Player player) {
-
-    }
-
-    public static void unloadPlayer(Player player) {
-
     }
 }

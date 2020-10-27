@@ -10,7 +10,7 @@ Server-Name: 'global'
 # Configuration about player data
 Database:
   # If false the data will be saved using player names (Recommended for No-Premium servers)
-  UUID: true
+  UUID: false
   # Available types: JSON, MYSQL
   # JSON: Data will be saved on json files in "playerdata" folder
   # MYSQL: Data will be saved on external database

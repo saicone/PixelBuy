@@ -1,17 +1,16 @@
 package com.minelatino.pixelbuy.managers.database;
 
 import com.minelatino.pixelbuy.managers.player.PlayerData;
-import org.bukkit.command.CommandSender;
 
 public interface DatabaseType {
 
-    void setup(CommandSender sender);
+    boolean setup();
 
     String getType();
 
-    void saveData(CommandSender sender, PlayerData data);
+    void saveData(PlayerData data);
 
-    PlayerData getData(CommandSender sender, String player);
+    PlayerData getData(String player);
 
-    void deleteData(CommandSender sender, String player);
+    void deleteData(String player);
 }
