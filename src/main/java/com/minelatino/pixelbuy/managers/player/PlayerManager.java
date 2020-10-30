@@ -9,13 +9,24 @@ public class PlayerManager {
     private final PixelBuy pl = PixelBuy.get();
 
     public void processPlayers() {
-        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            if (pl.getDatabase().getData(p.getName()) != null) {
-                for (String cmd : pl.getDatabase().getData(p.getName()).getCommands()) {
-                    Bukkit.getScheduler().runTaskAsynchronously(pl, () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+        Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                PlayerData data = pl.getDatabase().getData(p.getName());
+                if (data != null) {
+                    data.getCommands().forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+                    pl.getDatabase().deleteData(p.getName());
                 }
-                pl.getDatabase().deleteData(p.getName());
             }
-        }
+        });
+    }
+
+    public void processPlayer(Player player) {
+        Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
+            PlayerData data = pl.getDatabase().getData(player.getName());
+            if (data != null) {
+                data.getCommands().forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+                pl.getDatabase().deleteData(player.getName());
+            }
+        });
     }
 }

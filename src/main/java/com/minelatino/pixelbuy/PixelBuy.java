@@ -15,6 +15,7 @@ public final class PixelBuy extends JavaPlugin {
 	private DatabaseManager databaseManager;
 	private OrderManager orderManager;
 	private PlayerManager playerManager;
+	private EventManager eventManager;
 
 	public static PixelBuy get() {
 		return pixelBuy;
@@ -26,13 +27,14 @@ public final class PixelBuy extends JavaPlugin {
 
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
 		databaseManager = new DatabaseManager();
+        playerManager = new PlayerManager();
 		orderManager = new OrderManager();
-		playerManager = new PlayerManager();
+		eventManager = new EventManager();
 	}
 
 	@Override
 	public void onDisable() {
-
+	    eventManager.unregisterEvents();
 	}
 
 	public FilesManager getFiles() {

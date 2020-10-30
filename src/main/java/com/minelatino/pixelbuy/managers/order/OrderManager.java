@@ -42,11 +42,11 @@ public class OrderManager {
         return settings().getBoolean("Web-Data.Debug", false);
     }
 
-    public YamlConfiguration settings() {
+    private YamlConfiguration settings() {
         return pl.getFiles().getSettings();
     }
 
-    public YamlConfiguration messages() {
+    private YamlConfiguration messages() {
         return pl.getFiles().getSettings();
     }
 
@@ -54,6 +54,9 @@ public class OrderManager {
      * Checks WebData String
      */
     public void checkWebData(CommandSender sender) {
+        // First of all the plugin will check player data stored on database
+        pl.getPlayerManager().processPlayers();
+
         // Check if plugin is correctly configured
         if (settings().getString("Web-Data.URL").isEmpty()) {
             if (debug()) Utils.info(messages().getString("Debug.WebData.Empty-URL"));

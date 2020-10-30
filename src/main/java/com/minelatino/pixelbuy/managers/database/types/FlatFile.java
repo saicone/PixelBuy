@@ -28,7 +28,10 @@ public class FlatFile implements DatabaseType {
     }
 
     public void saveData(PlayerData data) {
-        File dataFile = new File(dataFolder, data.getPlayer() + ".json");
+        String player = data.getPlayer();
+        PlayerData oldData = getData(player);
+        if (oldData != null) data.addCommands(oldData.getCommands());
+        File dataFile = new File(dataFolder, player + ".json");
         try {
             Gson gson = new Gson();
             gson.toJson(data, new FileWriter(dataFile));

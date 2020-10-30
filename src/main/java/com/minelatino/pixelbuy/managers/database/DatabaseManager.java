@@ -30,8 +30,12 @@ public class DatabaseManager {
             sender.sendMessage(pl.getFiles().getMessages().getString("").replace("%type%", database.getType()));
         } else {
             sender.sendMessage(pl.getFiles().getMessages().getString(""));
-            database = new FlatFile();
+            setDefault();
         }
+    }
+
+    public void setDefault() {
+        database = new FlatFile();
     }
 
     public String getCurrentType() {

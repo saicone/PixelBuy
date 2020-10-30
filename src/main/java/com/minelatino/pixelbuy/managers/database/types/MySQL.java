@@ -6,6 +6,7 @@ import com.minelatino.pixelbuy.managers.database.DatabaseType;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.sql.*;
 
@@ -25,16 +26,17 @@ public class MySQL implements DatabaseType {
 
     public boolean setup() {
         if (enabled) disable(false);
-        debug = pl.getFiles().getSettings().getBoolean("Database.Debug");
+        YamlConfiguration SETTINGS = pl.getFiles().getSettings();
+        debug = SETTINGS.getBoolean("Database.Debug");
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
 
             con = DriverManager.getConnection("jdbc:mysql://" +
-                    pl.getFiles().getSettings().getString("Database.Host") + "/" +
-                    pl.getFiles().getSettings().getString("Database.Database") +
-                    pl.getFiles().getSettings().getString("Database.Flags"),
-                    pl.getFiles().getSettings().getString("Database.User"),
-                    pl.getFiles().getSettings().getString("Database.Password"));
+                            SETTINGS.getString("Database.Host") + "/" +
+                            SETTINGS.getString("Database.Database") +
+                            SETTINGS.getString("Database.Flags"),
+                            SETTINGS.getString("Database.User"),
+                            SETTINGS.getString("Database.Password"));
 
         } catch (ClassNotFoundException e) {
             if (debug) Utils.info(pl.getFiles().getMessages().getString("asd"));
@@ -53,7 +55,8 @@ public class MySQL implements DatabaseType {
 
     public void saveData(PlayerData data) {
         String player = data.getPlayer();
-        if (getData(player) != null) data.addCommands(getData(player).getCommands());
+        PlayerData oldData = getData(player);
+        if (oldData != null) data.addCommands(oldData.getCommands());
         Gson gson = new Gson();
         String json = gson.toJson(data);
         query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';");
@@ -112,6 +115,8 @@ public class MySQL implements DatabaseType {
                 Utils.info(e.getMessage());
             }
         }
-        if (reconnect) setup();
+        if (reconnect) {
+            if (!setup()) pl.getDatabase().setDefault();
+        }
     }
 }
