@@ -26,14 +26,20 @@ public final class PixelBuy extends JavaPlugin {
 		pixelBuy = this;
 
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
+		getLogger().info(filesManager.getMessages().getString("Plugin.Init.FilesManager"));
 		databaseManager = new DatabaseManager();
+        getLogger().info(filesManager.getMessages().getString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
+        getLogger().info(filesManager.getMessages().getString("Plugin.Init.PlayerManager"));
 		orderManager = new OrderManager();
+        getLogger().info(filesManager.getMessages().getString("Plugin.Init.OrderManager"));
 		eventManager = new EventManager();
+        getLogger().info(filesManager.getMessages().getString("Plugin.Init.EventManager"));
 	}
 
 	@Override
 	public void onDisable() {
+        getLogger().info(filesManager.getMessages().getString("Plugin.Shut"));
 	    eventManager.unregisterEvents();
 	}
 

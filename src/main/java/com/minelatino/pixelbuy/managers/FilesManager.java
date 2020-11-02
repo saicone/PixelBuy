@@ -17,14 +17,14 @@ public class FilesManager {
     private YamlConfiguration messages;
 
     public FilesManager(CommandSender sender) {
-        reloadSettings(sender);
         reloadLang(sender);
     }
 
-    public void reloadSettings(CommandSender sender) {
+    public void reloadSettings(CommandSender sender, boolean init) {
         File cF = new File(pl.getDataFolder(), "settings.yml");
         if (!cF.exists()) pl.saveResource("settings.yml", false);
         settings = YamlConfiguration.loadConfiguration(cF);
+        if (!init) sender.sendMessage(Utils.color(getMessages().getString("Command.Reload.Settings")));
     }
 
     public void reloadLang(CommandSender sender) {
@@ -32,6 +32,7 @@ public class FilesManager {
             pl.saveResource("lang/en.yml", false);
             pl.saveResource("lang/es.yml", false);
         }
+        if (settings == null) reloadSettings(sender, true);
         String lang = getSettings().getString("Language", "en");
         File cF = new File(langFolder, lang + ".yml");
         if (cF.exists()) {

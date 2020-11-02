@@ -1,22 +1,47 @@
 
+Plugin:
+  Init:
+    FilesManager: 'FilesManager loaded'
+    DatabaseManager: 'DatabaseManager loaded'
+    PlayerManager: 'PlayerManager loaded'
+    OrderManager: 'OrderManager loaded'
+    EventManager: 'EventManager loaded'
+  Shut: 'Disabling plugin...'
+
 Command:
   Reload:
-    Settings: ''
+    Settings: '&aConfiguration reloaded!'
     Messages:
-      Success: ''
-      Saved: ''
-      Error: ''
+      Success: '&aLanguage file reloaded!'
+      Saved: '&6Language file doesn''t exist, the plugin saved a new one'
+      Error: '&cLanguage file doesn''t exist and plugin doesn''t have this, the plugin will use default language file'
+    Database:
+      Default: '&6JSON database type will used because the specified type in configuration doesn''t exists'
+      Success: '&aDatabase type %type% has been loaded successfully'
+      Error: '&6Database type %type% has a error when load, the plugin will use JSON type'
+  Convert:
+    Same-Type: '&cYou cant convert data from the current database type'
+    No-Exist: '&cDatabase type %type% doesn''t exist!'
+    Cant-Setup: '&6Database type &e%type% &6has a error whit connection, enable debug messages and try again'
   CheckData:
 
 
 Debug:
   MySQL:
-    asd:
+    Not-Found: 'The MySQL driver was not found'
+    Cant-Connect: 'Unable to connect to database, check configuration'
+    Unknown: 'There was an unknown error:'
+    No-Data: 'The data of player% player% does not exist'
+    Query-Error: 'There was an error trying to do the Query:% query%'
+    Shutdown: 'Disconnecting database ...'
+    Shut-Error: 'There was an error trying to disconnect from the database:'
+    Reconnect: 'Reconnecting with the database ...'
+    Reco-Error: 'Could not reconnect to database, JSON will be used as change'
   WebData:
-    Empty-URL: ''
-    Empty-Key: ''
-    Check-URL: ''
-    Invalid-URL: ''
-    Empty-Page: ''
-    Check-Data: ''
-    Empty-Orders: ''
+    Empty-URL: 'The URL is empty'
+    Empty-Key: 'The Key is empty'
+    Check-URL: 'Checking purchase data ...'
+    Invalid-URL: 'The URL is invalid'
+    Empty-Page: 'The page with purchase orders is empty'
+    Check-Data: 'Reviewing pending purchase orders ...'
+    Empty-Orders: 'There are no purchase orders to process :)'

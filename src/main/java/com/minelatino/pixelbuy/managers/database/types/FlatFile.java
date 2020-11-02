@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class FlatFile implements DatabaseType {
 
@@ -28,7 +31,7 @@ public class FlatFile implements DatabaseType {
     }
 
     public void saveData(PlayerData data) {
-        String player = data.getPlayer();
+        String player = data.getPlayer().toLowerCase();
         PlayerData oldData = getData(player);
         if (oldData != null) data.addCommands(oldData.getCommands());
         File dataFile = new File(dataFolder, player + ".json");
@@ -49,6 +52,17 @@ public class FlatFile implements DatabaseType {
             reader.close();
         } catch (IOException ignored) { }
         return data;
+    }
+
+    public List<PlayerData> getAllData() {
+        List<PlayerData> datas = new ArrayList<>();
+        if (dataFolder.exists()) {
+            for (File file : Objects.requireNonNull(dataFolder.listFiles())) {
+                String name = file.getName().toLowerCase();
+                if (name.endsWith(".json")) datas.add(getData(name.replace(".json", "")));
+            }
+        }
+        return datas;
     }
 
     public void deleteData(String player) {

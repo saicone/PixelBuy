@@ -4,6 +4,7 @@ import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.database.types.FlatFile;
 import com.minelatino.pixelbuy.managers.database.types.MySQL;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
+import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -25,17 +26,53 @@ public class DatabaseManager {
             case "MYSQL":
                 database = new MySQL();
                 break;
+            default:
+                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Default")));
+                database = new FlatFile();
+                break;
         }
         if (database.setup()) {
-            sender.sendMessage(pl.getFiles().getMessages().getString("").replace("%type%", database.getType()));
+            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
         } else {
-            sender.sendMessage(pl.getFiles().getMessages().getString(""));
+            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
             setDefault();
         }
+        if (pl.getFiles().getSettings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
     }
 
     public void setDefault() {
         database = new FlatFile();
+        database.setup();
+    }
+
+    public void convertData(CommandSender sender, String from, boolean delete) {
+        from = from.toUpperCase();
+        if (getCurrentType().equals(from)) {
+            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.Same-Type")));
+            return;
+        }
+        DatabaseType base;
+        switch (from) {
+            case "JSON":
+                base = new FlatFile();
+                break;
+            case "MYSQL":
+                base = new MySQL();
+                break;
+            default:
+                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.No-Exist")));
+                return;
+        }
+        if (!from.equals("JSON")) {
+            if (!base.setup()) {
+                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.Cant-Setup")));
+                return;
+            }
+        }
+        for (PlayerData data : base.getAllData()) {
+            database.saveData(data);
+            if (delete) base.deleteData(data.getPlayer().toLowerCase());
+        }
     }
 
     public String getCurrentType() {
@@ -47,10 +84,12 @@ public class DatabaseManager {
     }
 
     public PlayerData getData(String player) {
+        player = player.toLowerCase();
         return database.getData(player);
     }
 
     public void deleteData(String player) {
+        player = player.toLowerCase();
         database.deleteData(player);
     }
 }

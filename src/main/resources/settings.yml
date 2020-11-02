@@ -25,7 +25,7 @@ Database:
   # Set to true if you want to see more info in console about connections
   # with database
   Debug: false
-  # Set to true to convert json files data to external database data if you change
+  # Set to true to convert JSON files data automatically to external database data if you change
   # database type or the external database has an error who changes the database type to json
   Convert-Data: true
 
