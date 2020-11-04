@@ -19,7 +19,7 @@ public class DatabaseManager {
     }
 
     public void reload(CommandSender sender) {
-        switch (pl.getFiles().getSettings().getString("Database.Type", "JSON").toUpperCase()) {
+        switch (pl.SETTINGS.getString("Database.Type", "JSON").toUpperCase()) {
             case "JSON":
                 database = new FlatFile();
                 break;
@@ -27,17 +27,17 @@ public class DatabaseManager {
                 database = new MySQL();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Default")));
+                sender.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Database.Default")));
                 database = new FlatFile();
                 break;
         }
         if (database.setup()) {
-            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
+            sender.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
         } else {
-            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
+            sender.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
             setDefault();
         }
-        if (pl.getFiles().getSettings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
+        if (pl.SETTINGS.getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
     }
 
     public void setDefault() {
@@ -48,7 +48,7 @@ public class DatabaseManager {
     public void convertData(CommandSender sender, String from, boolean delete) {
         from = from.toUpperCase();
         if (getCurrentType().equals(from)) {
-            sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.Same-Type")));
+            sender.sendMessage(Utils.color(pl.LANG.getString("Command.Database.Convert.Same-Type")));
             return;
         }
         DatabaseType base;
@@ -60,12 +60,12 @@ public class DatabaseManager {
                 base = new MySQL();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.No-Exist")));
+                sender.sendMessage(Utils.color(pl.LANG.getString("Command.Database.Convert.No-Exist")));
                 return;
         }
         if (!from.equals("JSON")) {
             if (!base.setup()) {
-                sender.sendMessage(Utils.color(pl.getFiles().getMessages().getString("Command.Convert.Cant-Setup")));
+                sender.sendMessage(Utils.color(pl.LANG.getString("Command.Database.Convert.Cant-Setup")));
                 return;
             }
         }

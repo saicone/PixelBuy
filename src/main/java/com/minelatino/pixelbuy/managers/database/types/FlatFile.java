@@ -26,7 +26,7 @@ public class FlatFile implements DatabaseType {
     }
 
     public boolean setup() {
-        if (dataFolder.mkdir()) Utils.info(pl.getFiles().getMessages().getString(""));
+        if (dataFolder.mkdir()) Utils.info(pl.LANG.getString(""));
         return true;
     }
 

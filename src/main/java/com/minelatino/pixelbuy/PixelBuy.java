@@ -1,11 +1,13 @@
 package com.minelatino.pixelbuy;
 
+import com.minelatino.pixelbuy.command.MainCommand;
 import com.minelatino.pixelbuy.managers.FilesManager;
 import com.minelatino.pixelbuy.managers.database.DatabaseManager;
 import com.minelatino.pixelbuy.managers.listener.EventManager;
 import com.minelatino.pixelbuy.managers.order.OrderManager;
 import com.minelatino.pixelbuy.managers.player.PlayerManager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class PixelBuy extends JavaPlugin {
@@ -17,6 +19,9 @@ public final class PixelBuy extends JavaPlugin {
 	private PlayerManager playerManager;
 	private EventManager eventManager;
 
+	public YamlConfiguration SETTINGS;
+	public YamlConfiguration LANG;
+
 	public static PixelBuy get() {
 		return pixelBuy;
 	}
@@ -26,22 +31,31 @@ public final class PixelBuy extends JavaPlugin {
 		pixelBuy = this;
 
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
-		getLogger().info(filesManager.getMessages().getString("Plugin.Init.FilesManager"));
+		getLogger().info(LANG.getString("Plugin.Init.FilesManager"));
 		databaseManager = new DatabaseManager();
-        getLogger().info(filesManager.getMessages().getString("Plugin.Init.DatabaseManager"));
+        getLogger().info(LANG.getString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
-        getLogger().info(filesManager.getMessages().getString("Plugin.Init.PlayerManager"));
+        getLogger().info(LANG.getString("Plugin.Init.PlayerManager"));
 		orderManager = new OrderManager();
-        getLogger().info(filesManager.getMessages().getString("Plugin.Init.OrderManager"));
+        getLogger().info(LANG.getString("Plugin.Init.OrderManager"));
 		eventManager = new EventManager();
-        getLogger().info(filesManager.getMessages().getString("Plugin.Init.EventManager"));
+        getLogger().info(LANG.getString("Plugin.Init.EventManager"));
+        getCommand("pixelbuy").setExecutor(new MainCommand());
 	}
 
 	@Override
 	public void onDisable() {
-        getLogger().info(filesManager.getMessages().getString("Plugin.Shut"));
+        getLogger().info(LANG.getString("Plugin.Shut"));
 	    eventManager.unregisterEvents();
 	}
+
+	public void setConfig(YamlConfiguration file) {
+	    SETTINGS = file;
+    }
+
+    public void setLang(YamlConfiguration file) {
+	    LANG = file;
+    }
 
 	public FilesManager getFiles() {
 		return filesManager;

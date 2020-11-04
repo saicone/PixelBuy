@@ -44,5 +44,15 @@ Web-Data:
   # and errors about miss configured things
   Debug: false
 
+# Permissions configuration
+Perms:
+  # All permissions
+  All: 'pixelbuy.*'
+  # Commands permissions
+  Main: 'pixelbuy.use'
+  Database: 'pixelbuy.database'
+  Reload: 'pixelbuy.reload'
+  Webdata: 'pixelbuy.webdata'
+
 # Configuration about Orders
 Order:
