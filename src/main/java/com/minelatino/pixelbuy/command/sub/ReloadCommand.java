@@ -14,7 +14,7 @@ public class ReloadCommand {
 
     public boolean execute(CommandSender s, String[] args) {
         if (args.length == 1) {
-            pl.LANG.getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+            pl.getFiles().getLang().getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
             return true;
         }
         switch (args[1].toLowerCase()) {
@@ -25,28 +25,31 @@ public class ReloadCommand {
                         return true;
                     }
                     if (args[2].toLowerCase().equals("messages")) {
-                        pl.getFiles().reloadLang(s);
+                        pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                         return true;
                     }
-                    s.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Files.Use")));
+                    s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Files.Use")));
                     return true;
                 }
+                pl.getFiles().reloadSettings(s, false);
+                pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
+                return true;
             case "database":
                 pl.getDatabase().reload(s);
                 return true;
             case "webdata":
                 pl.getOrderManager().reload(false);
-                s.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Webdata.Success")));
+                s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Webdata.Success")));
                 return true;
             case "all":
                 pl.getFiles().reloadSettings(s, false);
-                pl.getFiles().reloadLang(s);
+                pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                 pl.getDatabase().reload(s);
                 pl.getOrderManager().reload(false);
-                s.sendMessage(Utils.color(pl.LANG.getString("Command.Reload.Webdata.Success")));
+                s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Webdata.Success")));
                 return true;
             default:
-                pl.LANG.getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+                pl.getFiles().getLang().getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
                 return true;
         }
     }

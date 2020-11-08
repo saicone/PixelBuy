@@ -27,26 +27,26 @@ public class MySQL implements DatabaseType {
 
     public boolean setup() {
         if (enabled) disable(false);
-        debug = pl.SETTINGS.getBoolean("Database.Debug");
+        debug = pl.getFiles().getConfig().getBoolean("Database.Debug");
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
 
             con = DriverManager.getConnection("jdbc:mysql://" +
-                            pl.SETTINGS.getString("Database.Host") + "/" +
-                            pl.SETTINGS.getString("Database.Database") +
-                            pl.SETTINGS.getString("Database.Flags"),
-                            pl.SETTINGS.getString("Database.User"),
-                            pl.SETTINGS.getString("Database.Password"));
+                            pl.getFiles().getConfig().getString("Database.Host") + "/" +
+                            pl.getFiles().getConfig().getString("Database.Database") +
+                            pl.getFiles().getConfig().getString("Database.Flags"),
+                            pl.getFiles().getConfig().getString("Database.User"),
+                            pl.getFiles().getConfig().getString("Database.Password"));
 
         } catch (ClassNotFoundException e) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.MySQL.Not-Found"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Not-Found"));
             return false;
         } catch (SQLException e) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.MySQL.Cant-Connect"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Cant-Connect"));
             return false;
         } catch (Exception e) {
             if (debug) {
-                Utils.info(pl.LANG.getString("Debug.MySQL.Unknown"));
+                Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Unknown"));
                 Utils.info(e.getMessage());
             }
             return false;
@@ -77,7 +77,7 @@ public class MySQL implements DatabaseType {
             rS.close();
         } catch (SQLException | NullPointerException e) {
             if (debug) {
-                Utils.info(pl.LANG.getString("Debug.MySQL.No-Data").replace("%player%", player));
+                Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.No-Data").replace("%player%", player));
             }
         }
         return data;
@@ -108,7 +108,7 @@ public class MySQL implements DatabaseType {
                 stmt.close();
             } catch (SQLException e) {
                 if (debug) {
-                    Utils.info(pl.LANG.getString("Debug.MySQL.Query-Error"));
+                    Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Query-Error"));
                     Utils.info(e.getMessage());
                 }
                 disable(true);
@@ -119,19 +119,19 @@ public class MySQL implements DatabaseType {
     }
 
     public void disable(boolean reconnect) {
-        if (debug) Utils.info(pl.LANG.getString("Debug.MySQL.Shutdown"));
+        if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Shutdown"));
         try {
             con.close();
         } catch (SQLException e) {
             if (debug) {
-                Utils.info(pl.LANG.getString("Debug.MySQL.Shut-Error"));
+                Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Shut-Error"));
                 Utils.info(e.getMessage());
             }
         }
         if (reconnect) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.MySQL.Reconnect"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Reconnect"));
             if (!setup()) {
-                if (debug) Utils.info(pl.LANG.getString("Debug.MySQL.Reco-Error"));
+                if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Reco-Error"));
                 pl.getDatabase().setDefault();
             }
         }

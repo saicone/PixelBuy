@@ -1,4 +1,3 @@
-
 Plugin:
   Init:
     FilesManager: 'FilesManager loaded'
@@ -15,33 +14,33 @@ Command:
     - '&6> &e/pbuy database'
     - '&6> &e/pbuy reload'
     - '&6> &e/pbuy webdata'
-    Database:
-      Help:
-        - '&6Database related commands &f(&e/pbuy database ...&f)'
-        - '&6> &econvert <from> [true/false]'
-        - '&6> &edelete <player>'
-      Convert:
-        Use: '&6Use &e/pbuy database convert <from> [true/false]'
-        Same-Type: '&cYou can''t convert data from the current database type!'
-        No-Exist: '&cSpecified type doesn''t exist!'
-        Cant-Setup: '&6Database &e%type% &6can''t connect, enable debug and try again'
-      Delete:
-        Use: '&6Use &e/pbuy database delete <player>'
-        Success: '&aData from %player% has been deleted'
-    Reload:
-      Help:
-        - '&6Reload related commands &f(&e/pbuy reload ...&f)'
-        - '&6> &efiles [settings, messages]'
-        - '&6> &edatabase'
-        - '&6> &ewebdata'
-        - '&6> &eall'
-      Files:
-        Use: '&6Use &e/pbuy reload files [settings, messages]'
-        Settings: '&aConfiguration reloaded!'
-        Messages:
-          Success: '&aLanguage file reloaded!'
-          Saved: '&6Language file doesn''t exist, the plugin saved a new one'
-          Error: '&cLanguage file doesn''t exist and plugin doesn''t have this, the plugin will use default language file'
+  Database:
+    Help:
+      - '&6Database related commands &f(&e/pbuy database ...&f)'
+      - '&6> &econvert <from> [true/false]'
+      - '&6> &edelete <player>'
+    Convert:
+      Use: '&6Use &e/pbuy database convert <from> [true/false]'
+      Same-Type: '&cYou can''t convert data from the current database type!'
+      No-Exist: '&cSpecified type doesn''t exist!'
+      Cant-Setup: '&6Database &e%type% &6can''t connect, enable debug and try again'
+    Delete:
+      Use: '&6Use &e/pbuy database delete <player>'
+      Success: '&aData from %player% has been deleted'
+  Reload:
+    Help:
+      - '&6Reload related commands &f(&e/pbuy reload ...&f)'
+      - '&6> &efiles [settings, messages]'
+      - '&6> &edatabase'
+      - '&6> &ewebdata'
+      - '&6> &eall'
+    Files:
+      Use: '&6Use &e/pbuy reload files [settings, messages]'
+      Settings: '&aConfiguration reloaded!'
+      Messages:
+        Success: '&aLanguage file reloaded!'
+        Saved: '&6Language file doesn''t exist, the plugin saved a new one'
+        Error: '&cLanguage file doesn''t exist and plugin doesn''t have this, the plugin will use default language file'
     Database:
       Default: '&6JSON database type will used because the specified type in configuration doesn''t exists'
       Success: '&aDatabase type %type% has been loaded successfully'
@@ -55,7 +54,7 @@ Command:
       - '&6> &einfo <player>'
     Info:
       Use: '&6Use &e/pbuy webdata info <player>'
-      Null: '&cPlayer &6%player% &cdon''t have orders'
+      Not-Have: '&cPlayer &6%player% &cdon''t have orders'
       Player: '&ePlayer: &f%player%'
       Cmds: '&e- &f%cmd%'
 

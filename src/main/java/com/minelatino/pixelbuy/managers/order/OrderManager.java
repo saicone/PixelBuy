@@ -35,12 +35,12 @@ public class OrderManager {
 
     public void reload(boolean init) {
         if (!init) Bukkit.getScheduler().cancelTask(checker);
-        debug = pl.SETTINGS.getBoolean("Web-Data.Debug");
-        checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> checkWebData(null), pl.SETTINGS.getInt("Web-Data.Check-Interval") * 20, pl.SETTINGS.getInt("Web-Data.Check-Interval") * 20).getTaskId();
+        debug = pl.getFiles().getConfig().getBoolean("Web-Data.Debug");
+        checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> checkWebData(null), pl.getFiles().getConfig().getInt("Web-Data.Check-Interval") * 20, pl.getFiles().getConfig().getInt("Web-Data.Check-Interval") * 20).getTaskId();
     }
 
     public URL getURL() throws Exception {
-        return new URL(pl.SETTINGS.getString("Web-Data.URL") + "/wp-json/wmc/v1/server/" + pl.SETTINGS.getString("Web-Data.Key"));
+        return new URL(pl.getFiles().getConfig().getString("Web-Data.URL") + "/wp-json/wmc/v1/server/" + pl.getFiles().getConfig().getString("Web-Data.Key"));
     }
 
     /**
@@ -51,17 +51,17 @@ public class OrderManager {
         pl.getPlayerManager().processPlayers();
 
         // Check if plugin is correctly configured
-        if (pl.SETTINGS.getString("Web-Data.URL").isEmpty()) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Empty-URL"));
+        if (pl.getFiles().getConfig().getString("Web-Data.URL").isEmpty()) {
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Empty-URL"));
             return;
         }
-        if (pl.SETTINGS.getString("Web-Data.Key").isEmpty()) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Empty-Key"));
+        if (pl.getFiles().getConfig().getString("Web-Data.Key").isEmpty()) {
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Empty-Key"));
             return;
         }
 
         // First debug message
-        if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Check"));
+        if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Check"));
 
         // Check URL connection
         BufferedReader in;
@@ -69,11 +69,11 @@ public class OrderManager {
             in = new BufferedReader(new InputStreamReader(getURL().openStream()));
         } catch (FileNotFoundException e) {
             // Error about connection
-            if (debug) Utils.info(e.getMessage().replace(pl.SETTINGS.getString( "Web-Data.Key"), "privateKey"));
+            if (debug) Utils.info(e.getMessage().replace(pl.getFiles().getConfig().getString( "Web-Data.Key"), "privateKey"));
             return;
         } catch (Exception e) {
             // Error about bad configured URL
-            if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Invalid-URL"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Invalid-URL"));
             return;
         }
 
@@ -92,7 +92,7 @@ public class OrderManager {
 
         // Final checker
         if (buffer.toString().isEmpty()) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Empty-Page"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Empty-Page"));
         } else {
             processData(sender, buffer.toString());
         }
@@ -103,7 +103,7 @@ public class OrderManager {
      */
     public void processData(CommandSender sender, String webData) {
         // First debug message
-        if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Check-Data"));
+        if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Check-Data"));
 
         // Read web data
         Gson gson = new GsonBuilder().create();
@@ -120,7 +120,7 @@ public class OrderManager {
 
         // Check if order list have orders
         if (orderList == null || orderList.isEmpty()) {
-            if (debug) Utils.info(pl.LANG.getString("Debug.WebData.Empty-Orders"));
+            if (debug) Utils.info(pl.getFiles().getLang().getString("Debug.WebData.Empty-Orders"));
             return;
         }
 
@@ -134,7 +134,7 @@ public class OrderManager {
                     Bukkit.getScheduler().runTaskAsynchronously(pl, () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
                 }
             } else {
-                String p = (pl.SETTINGS.getBoolean("Database.UUID") ? String.valueOf(Bukkit.getOfflinePlayer(order.getPlayer()).getUniqueId()) : order.getPlayer());
+                String p = (pl.getFiles().getConfig().getBoolean("Database.UUID") ? String.valueOf(Bukkit.getOfflinePlayer(order.getPlayer()).getUniqueId()) : order.getPlayer());
                 PlayerData playerData = new PlayerData(p, order.getOrderId(), order.getCommands());
                 pl.getDatabase().saveData(playerData);
             }

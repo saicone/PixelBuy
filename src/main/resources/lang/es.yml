@@ -55,7 +55,7 @@ Command:
       - '&6> &einfo <jugador>'
     Info:
       Use: '&6Debes usar &e/pbuy webdata info <jugador>'
-      Null: '&cEl jugador &6%player% &cno tiene comandos pendientes'
+      Not-Have: '&cEl jugador &6%player% &cno tiene comandos pendientes'
       Player: '&eJugador: &f%player%'
       Cmds: '&e- &f%cmd%'
 
