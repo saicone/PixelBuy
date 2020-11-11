@@ -195,10 +195,10 @@ public class OrderManager {
         }
 
         // Check any existing errors from Wordpress
-        WebString webString = gson.fromJson(Objects.requireNonNull(response.body()).toString(), WebString.class);
-        if (webString.getCode() != null) {
-            if (debug) Utils.info("Received error when trying to send post data:" + webString.getCode());
-        }
+        //WebString webString = gson.fromJson(Objects.requireNonNull(response.body()).toString(), WebString.class);
+        //if (webString.getCode() != null) {
+        //    if (debug) Utils.info("Received error when trying to send post data:" + webString.getCode());
+        //}
         on = false;
     }
 }

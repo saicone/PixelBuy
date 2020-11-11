@@ -61,7 +61,7 @@ Command:
         - '&eLista de ordenes:'
       Order:
         - '&6%num%- &eID de la orden: &f%id%'
-        - '  &eLista de comandos:'
+        - '&e  Lista de comandos:'
       Cmds: '&6    %num%- &f%cmd%'
 
 

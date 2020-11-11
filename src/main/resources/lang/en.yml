@@ -60,7 +60,7 @@ Command:
         - '&eOrders list:'
       Order:
         - '&6%num%- &eOrder ID: &f%id%'
-        - '  &eCommands list:'
+        - '&e  Commands list:'
       Cmds: '&6    %num%- &f%cmd%'
 
 

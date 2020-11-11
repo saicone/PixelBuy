@@ -3,10 +3,6 @@
 # If you want to use other language go to "lang" folder and create new file
 Language: 'en'
 
-# Edit this if you are using MySQL database type and have the plugin in
-# multiple hosts because is very useful to get the data separately by servers
-Server-Name: 'global'
-
 # Configuration about player data
 Database:
   # If false the data will be saved using player names (Recommended for No-Premium servers)
@@ -54,5 +50,3 @@ Perms:
   Reload: 'pixelbuy.reload'
   Webdata: 'pixelbuy.webdata'
 
-# Configuration about Orders
-Order:

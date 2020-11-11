@@ -10,7 +10,8 @@ shadowJar {
     dependencies {
         [
                 'com.google.code.gson:gson:2.8.5',
-                'com.squareup.okhttp3:okhttp:3.14.6'
+                'com.squareup.okhttp3:okhttp:3.14.6',
+                'com.squareup.okio:okio:1.17.2'
         ].forEach {
             include(dependency(it))
         }
@@ -38,6 +39,7 @@ dependencies {
     compile 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.squareup.okhttp3:okhttp:3.14.6'
+    compile 'com.squareup.okio:okio:1.17.2'
 
     compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
 }
