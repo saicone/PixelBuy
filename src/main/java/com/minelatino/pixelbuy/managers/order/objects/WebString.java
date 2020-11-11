@@ -18,7 +18,7 @@ public class WebString {
     private Data data;
     @SerializedName("orders")
     @Expose
-    private List<Order> orders = null;
+    private List<WebOrder> webOrders = null;
 
     public String getCode() {
         return code;
@@ -59,22 +59,22 @@ public class WebString {
         return this;
     }
 
-    public List<Order> getOrders() {
-        return orders;
+    public List<WebOrder> getOrders() {
+        return webOrders;
     }
 
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
+    public void setOrders(List<WebOrder> webOrders) {
+        this.webOrders = webOrders;
     }
 
-    public WebString withOrders(List<Order> orders) {
-        this.orders = orders;
+    public WebString withOrders(List<WebOrder> webOrders) {
+        this.webOrders = webOrders;
         return this;
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this).append("code", code).append("message", message).append("data", data).append("orders", orders).toString();
+        return new ToStringBuilder(this).append("code", code).append("message", message).append("data", data).append("orders", webOrders).toString();
     }
 
 }

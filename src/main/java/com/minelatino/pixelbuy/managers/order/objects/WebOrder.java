@@ -5,7 +5,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
-public class Order {
+public class WebOrder {
 
     @SerializedName("player")
     @Expose
@@ -25,7 +25,7 @@ public class Order {
         this.player = player;
     }
 
-    public Order withPlayer(String player) {
+    public WebOrder withPlayer(String player) {
         this.player = player;
         return this;
     }
@@ -38,7 +38,7 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Order withOrderId(Integer orderId) {
+    public WebOrder withOrderId(Integer orderId) {
         this.orderId = orderId;
         return this;
     }
@@ -51,7 +51,7 @@ public class Order {
         this.commands = commands;
     }
 
-    public Order withCommands(List<String> commands) {
+    public WebOrder withCommands(List<String> commands) {
         this.commands = commands;
         return this;
     }

@@ -56,8 +56,13 @@ Command:
     Info:
       Use: '&6Debes usar &e/pbuy webdata info <jugador>'
       Not-Have: '&cEl jugador &6%player% &cno tiene comandos pendientes'
-      Player: '&eJugador: &f%player%'
-      Cmds: '&e- &f%cmd%'
+      Player:
+        - '&eJugador: &f%player%'
+        - '&eLista de ordenes:'
+      Order:
+        - '&6%num%- &eID de la orden: &f%id%'
+        - '  &eLista de comandos:'
+      Cmds: '&6    %num%- &f%cmd%'
 
 
 Debug:
@@ -71,6 +76,9 @@ Debug:
     Shut-Error: 'Hubo un error el tratar de desconectarse de la base de datos:'
     Reconnect: 'Reconectando con la base de datos...'
     Reco-Error: 'No se pudo reconectar con la base de datos, se usará JSON como cambio'
+  FlatFile:
+    Folder: 'Se creó la carpeta playerdata porque no existía'
+    File: 'Se creó el archivo de datos del jugador %player% porque no existía'
   WebData:
     Empty-URL: 'La URL está vacia'
     Empty-Key: 'La Key está vacia'

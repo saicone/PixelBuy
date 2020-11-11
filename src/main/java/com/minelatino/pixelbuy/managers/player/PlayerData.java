@@ -1,17 +1,16 @@
 package com.minelatino.pixelbuy.managers.player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PlayerData {
 
     private String player;
-    private Integer orderId;
-    private List<String> commands;
+    private List<Order> orders;
 
-    public PlayerData(String player, Integer orderId, List<String> commands) {
+    public PlayerData(String player, List<Order> orders) {
         this.player = player;
-        this.orderId = orderId;
-        this.commands = commands;
+        this.orders = orders;
     }
 
     public String getPlayer() {
@@ -22,23 +21,17 @@ public class PlayerData {
         this.player = player;
     }
 
-    public Integer getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
+    public List<Order> getOrders() {
+        return orders;
     }
 
     public List<String> getCommands() {
-        return commands;
+        List<String> cmds = new ArrayList<>();
+        orders.forEach(order -> cmds.addAll(order.getCmds()));
+        return cmds;
     }
 
-    public void setCommands(List<String> commands) {
-        this.commands = commands;
-    }
-
-    public void addCommands(List<String> commands) {
-        this.commands.addAll(commands);
+    public void addOrders(List<Order> orders) {
+        this.orders.addAll(orders);
     }
 }

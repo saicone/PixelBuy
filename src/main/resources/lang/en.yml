@@ -55,8 +55,13 @@ Command:
     Info:
       Use: '&6Use &e/pbuy webdata info <player>'
       Not-Have: '&cPlayer &6%player% &cdon''t have orders'
-      Player: '&ePlayer: &f%player%'
-      Cmds: '&e- &f%cmd%'
+      Player:
+        - '&ePlayer: &f%player%'
+        - '&eOrders list:'
+      Order:
+        - '&6%num%- &eOrder ID: &f%id%'
+        - '  &eCommands list:'
+      Cmds: '&6    %num%- &f%cmd%'
 
 
 Debug:

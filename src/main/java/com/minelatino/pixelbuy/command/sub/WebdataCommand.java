@@ -1,6 +1,7 @@
 package com.minelatino.pixelbuy.command.sub;
 
 import com.minelatino.pixelbuy.PixelBuy;
+import com.minelatino.pixelbuy.managers.player.Order;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.command.CommandSender;
@@ -32,8 +33,19 @@ public class WebdataCommand {
                         return true;
                     }
                     s.sendMessage(" ");
-                    s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Webdata.Info.Player").replace("%player%", data.getPlayer())));
-                    data.getCommands().forEach(cmd -> s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Webdata.Info.Cmds").replace("%cmd%", cmd))));
+                    pl.langStringList("Command.Webdata.Info.Player").forEach(string -> s.sendMessage(Utils.color(string).replace("%player%", data.getPlayer())));
+                    int orderNum = 1;
+                    for (Order order : data.getOrders()) {
+                        for (String string : pl.langStringList("Command.Webdata.Info.Order")) {
+                            s.sendMessage(Utils.color(string).replace("%num%", String.valueOf(orderNum)).replace("%id%", String.valueOf(order.getId())));
+                        }
+                        int cmdNum = 1;
+                        for (String cmd : order.getCmds()) {
+                            s.sendMessage(Utils.color(pl.langString("Command.Webdata.Info.Cmds").replace("%num%", String.valueOf(cmdNum)).replace("%cmd%", String.valueOf(cmd))));
+                            cmdNum++;
+                        }
+                        orderNum++;
+                    }
                     s.sendMessage(" ");
                     return true;
                 }

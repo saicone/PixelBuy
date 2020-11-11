@@ -9,6 +9,9 @@ import com.minelatino.pixelbuy.managers.player.PlayerManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Collections;
+import java.util.List;
+
 public final class PixelBuy extends JavaPlugin {
 
 	private static PixelBuy pixelBuy;
@@ -43,6 +46,26 @@ public final class PixelBuy extends JavaPlugin {
 	public void onDisable() {
         getLogger().info(filesManager.getLang().getString("Plugin.Shut"));
 	    eventManager.unregisterEvents();
+	}
+
+	public String configString(String path) {
+	    return filesManager.getConfig().getString(path, "");
+    }
+
+	public int configInt(String path) {
+	    return filesManager.getConfig().getInt(path, 1000);
+    }
+
+    public boolean configBoolean(String path) {
+	    return filesManager.getConfig().getBoolean(path, false);
+    }
+
+    public String langString(String path) {
+	    return filesManager.getLang().getString(path, "");
+    }
+
+	public List<String> langStringList(String path) {
+		return filesManager.getLang().getStringList(path);
 	}
 
 	public FilesManager getFiles() {

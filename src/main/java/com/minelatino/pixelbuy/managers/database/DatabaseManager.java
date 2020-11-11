@@ -8,15 +8,23 @@ import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DatabaseManager {
 
     private final PixelBuy pl;
 
     private DatabaseType database;
 
+    private final List<PlayerData> cachedData = new ArrayList<>();
+
     public DatabaseManager(PixelBuy pl) {
         this.pl = pl;
         reload(Bukkit.getConsoleSender());
+        Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
+            if (!cachedData.isEmpty()) saveCachedData();
+        }, 12000, 12000);
     }
 
     public void reload(CommandSender sender) {
@@ -28,14 +36,14 @@ public class DatabaseManager {
                 database = new MySQL();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Database.Default")));
+                sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Default")));
                 database = new FlatFile();
                 break;
         }
         if (database.setup()) {
-            sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
+            sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
         } else {
-            sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
+            sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
             setDefault();
         }
         if (pl.getFiles().getConfig().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
@@ -49,7 +57,7 @@ public class DatabaseManager {
     public void convertData(CommandSender sender, String from, boolean delete) {
         from = from.toUpperCase();
         if (getCurrentType().equals(from)) {
-            sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Database.Convert.Same-Type")));
+            sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Same-Type")));
             return;
         }
         DatabaseType base;
@@ -61,12 +69,12 @@ public class DatabaseManager {
                 base = new MySQL();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Database.Convert.No-Exist")));
+                sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.No-Exist")));
                 return;
         }
         if (!from.equals("JSON")) {
             if (!base.setup()) {
-                sender.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Database.Convert.Cant-Setup")));
+                sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Cant-Setup")));
                 return;
             }
         }
@@ -92,5 +100,14 @@ public class DatabaseManager {
     public void deleteData(String player) {
         player = player.toLowerCase();
         database.deleteData(player);
+    }
+
+    public void addCachedData(PlayerData data) {
+        cachedData.add(data);
+    }
+
+    public void saveCachedData() {
+        cachedData.forEach(this::saveData);
+        cachedData.clear();
     }
 }

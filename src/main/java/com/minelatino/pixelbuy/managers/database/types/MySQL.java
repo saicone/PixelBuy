@@ -52,17 +52,17 @@ public class MySQL implements DatabaseType {
             return false;
         }
         enabled = true;
-        query("CREATE TABLE IF NOT EXISTS `PlayerOrders` (`PLAYER` varchar(255) NOT NULL,`DATA` TEXT, PRIMARY KEY (`PLAYER`));");
+        query("CREATE TABLE IF NOT EXISTS `PlayerOrders` (`PLAYER` varchar(255) NOT NULL,`DATA` TEXT, PRIMARY KEY (`PLAYER`));", null);
         return true;
     }
 
     public void saveData(PlayerData data) {
         String player = data.getPlayer().toLowerCase();
         PlayerData oldData = getData(player);
-        if (oldData != null) data.addCommands(oldData.getCommands());
+        if (oldData != null) data.addOrders(oldData.getOrders());
         Gson gson = new Gson();
         String json = gson.toJson(data);
-        query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';");
+        query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';", data);
     }
 
     public PlayerData getData(String player) {
@@ -97,10 +97,10 @@ public class MySQL implements DatabaseType {
     }
 
     public void deleteData(String player) {
-        query("DELETE FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';");
+        query("DELETE FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';", null);
     }
 
-    public void query(String sql) {
+    public void query(String sql, PlayerData data) {
         Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
             try {
                 Statement stmt = con.createStatement();
@@ -111,9 +111,11 @@ public class MySQL implements DatabaseType {
                     Utils.info(pl.getFiles().getLang().getString("Debug.MySQL.Query-Error"));
                     Utils.info(e.getMessage());
                 }
+                if (data != null) pl.getDatabase().addCachedData(data);
                 disable(true);
             } catch (NullPointerException e) {
                 if (debug) Utils.info(e.getMessage());
+                if (data != null) pl.getDatabase().addCachedData(data);
             }
         });
     }
