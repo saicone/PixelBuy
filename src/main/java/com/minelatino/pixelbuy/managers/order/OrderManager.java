@@ -1,7 +1,5 @@
 package com.minelatino.pixelbuy.managers.order;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.order.objects.WebOrder;
 import com.minelatino.pixelbuy.managers.order.objects.SavedOrders;
@@ -9,6 +7,9 @@ import com.minelatino.pixelbuy.managers.order.objects.WebString;
 import com.minelatino.pixelbuy.managers.player.Order;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -22,7 +23,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class OrderManager {
 

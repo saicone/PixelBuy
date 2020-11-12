@@ -2,6 +2,7 @@ package com.minelatino.pixelbuy.command.sub;
 
 import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.util.Utils;
+
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand {
@@ -14,7 +15,7 @@ public class ReloadCommand {
 
     public boolean execute(CommandSender s, String[] args) {
         if (args.length == 1) {
-            pl.getFiles().getLang().getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+            pl.langStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
             return true;
         }
         switch (args[1].toLowerCase()) {
@@ -28,7 +29,7 @@ public class ReloadCommand {
                         pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                         return true;
                     }
-                    s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Files.Use")));
+                    s.sendMessage(Utils.color(pl.langString("Command.Reload.Files.Use")));
                     return true;
                 }
                 pl.getFiles().reloadSettings(s, false);
@@ -39,17 +40,17 @@ public class ReloadCommand {
                 return true;
             case "webdata":
                 pl.getOrderManager().reload(false);
-                s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Webdata.Success")));
+                s.sendMessage(Utils.color(pl.langString("Command.Reload.Webdata.Success")));
                 return true;
             case "all":
                 pl.getFiles().reloadSettings(s, false);
                 pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                 pl.getDatabase().reload(s);
                 pl.getOrderManager().reload(false);
-                s.sendMessage(Utils.color(pl.getFiles().getLang().getString("Command.Reload.Webdata.Success")));
+                s.sendMessage(Utils.color(pl.langString("Command.Reload.Webdata.Success")));
                 return true;
             default:
-                pl.getFiles().getLang().getStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+                pl.langStringList("Command.Reload.Help").forEach(string -> s.sendMessage(Utils.color(string)));
                 return true;
         }
     }

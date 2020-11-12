@@ -1,6 +1,7 @@
 package com.minelatino.pixelbuy.managers.player;
 
 import com.minelatino.pixelbuy.PixelBuy;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -21,12 +22,10 @@ public class PlayerManager {
     }
 
     public void processPlayer(Player player) {
-        Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
-            PlayerData data = pl.getDatabase().getData(player.getName());
-            if (data != null) {
-                data.getCommands().forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
-                pl.getDatabase().deleteData(player.getName());
-            }
-        });
+        PlayerData data = pl.getDatabase().getData(player.getName());
+        if (data != null) {
+            data.getCommands().forEach(cmd -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
+            pl.getDatabase().deleteData(player.getName());
+        }
     }
 }

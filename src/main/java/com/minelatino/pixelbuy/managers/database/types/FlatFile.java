@@ -1,6 +1,7 @@
 package com.minelatino.pixelbuy.managers.database.types;
 
 import com.google.gson.Gson;
+
 import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.database.DatabaseType;
 import com.minelatino.pixelbuy.managers.player.PlayerData;

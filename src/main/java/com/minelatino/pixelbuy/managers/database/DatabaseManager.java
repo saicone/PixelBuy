@@ -5,6 +5,7 @@ import com.minelatino.pixelbuy.managers.database.types.FlatFile;
 import com.minelatino.pixelbuy.managers.database.types.MySQL;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 
@@ -46,7 +47,7 @@ public class DatabaseManager {
             sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
             setDefault();
         }
-        if (pl.getFiles().getConfig().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
+        if (pl.configBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
     }
 
     public void setDefault() {

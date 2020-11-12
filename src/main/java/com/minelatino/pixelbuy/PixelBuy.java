@@ -6,10 +6,12 @@ import com.minelatino.pixelbuy.managers.database.DatabaseManager;
 import com.minelatino.pixelbuy.managers.listener.EventManager;
 import com.minelatino.pixelbuy.managers.order.OrderManager;
 import com.minelatino.pixelbuy.managers.player.PlayerManager;
+
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.Collections;
+import java.lang.reflect.Field;
 import java.util.List;
 
 public final class PixelBuy extends JavaPlugin {
@@ -30,21 +32,29 @@ public final class PixelBuy extends JavaPlugin {
 		pixelBuy = this;
 
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
-		getLogger().info(filesManager.getLang().getString("Plugin.Init.FilesManager"));
+		getLogger().info(langString("Plugin.Init.FilesManager"));
 		databaseManager = new DatabaseManager(this);
-        getLogger().info(filesManager.getLang().getString("Plugin.Init.DatabaseManager"));
+        getLogger().info(langString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
-        getLogger().info(filesManager.getLang().getString("Plugin.Init.PlayerManager"));
+        getLogger().info(langString("Plugin.Init.PlayerManager"));
 		orderManager = new OrderManager();
-        getLogger().info(filesManager.getLang().getString("Plugin.Init.OrderManager"));
+        getLogger().info(langString("Plugin.Init.OrderManager"));
 		eventManager = new EventManager();
-        getLogger().info(filesManager.getLang().getString("Plugin.Init.EventManager"));
-        getCommand("pixelbuy").setExecutor(new MainCommand());
+        getLogger().info(langString("Plugin.Init.EventManager"));
+
+        try {
+            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            bukkitCommandMap.setAccessible(true);
+            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+            commandMap.register("pixelbuy", new MainCommand("pixelbuy"));
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
+            e.printStackTrace();
+        }
 	}
 
 	@Override
 	public void onDisable() {
-        getLogger().info(filesManager.getLang().getString("Plugin.Shut"));
+        getLogger().info(langString("Plugin.Shut"));
 	    eventManager.unregisterEvents();
 	}
 

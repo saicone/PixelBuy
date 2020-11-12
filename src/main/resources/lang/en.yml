@@ -75,6 +75,9 @@ Debug:
     Shut-Error: 'There was an error trying to disconnect from the database:'
     Reconnect: 'Reconnecting with the database ...'
     Reco-Error: 'Could not reconnect to database, JSON will be used as change'
+  FlatFile:
+    Folder: 'playerdata folder was created because it didn''t exist'
+    File: '%player% data file was created because it did not exist'
   WebData:
     Empty-URL: 'The URL is empty'
     Empty-Key: 'The Key is empty'
