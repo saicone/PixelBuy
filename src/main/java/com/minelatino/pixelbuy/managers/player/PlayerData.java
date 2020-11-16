@@ -6,7 +6,7 @@ import java.util.List;
 public class PlayerData {
 
     private String player;
-    private List<Order> orders;
+    private final List<Order> orders;
 
     public PlayerData(String player, List<Order> orders) {
         this.player = player;

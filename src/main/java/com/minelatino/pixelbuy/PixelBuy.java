@@ -1,9 +1,9 @@
 package com.minelatino.pixelbuy;
 
 import com.minelatino.pixelbuy.command.MainCommand;
+import com.minelatino.pixelbuy.managers.EventManager;
 import com.minelatino.pixelbuy.managers.FilesManager;
 import com.minelatino.pixelbuy.managers.database.DatabaseManager;
-import com.minelatino.pixelbuy.managers.listener.EventManager;
 import com.minelatino.pixelbuy.managers.order.OrderManager;
 import com.minelatino.pixelbuy.managers.player.PlayerManager;
 

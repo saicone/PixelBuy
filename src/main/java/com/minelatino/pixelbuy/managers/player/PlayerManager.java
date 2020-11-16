@@ -5,9 +5,30 @@ import com.minelatino.pixelbuy.PixelBuy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class PlayerManager {
 
     private final PixelBuy pl = PixelBuy.get();
+
+    private final Map<Player, PlayerData> players = new HashMap<>();
+
+    public PlayerManager() {
+        reload(true);
+    }
+
+    public void reload(boolean init) {
+
+    }
+
+    public void loadPlayers() {
+
+    }
+
+    public void loadPlayer() {
+
+    }
 
     public void processPlayers() {
         Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {

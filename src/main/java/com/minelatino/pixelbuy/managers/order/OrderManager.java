@@ -1,9 +1,6 @@
 package com.minelatino.pixelbuy.managers.order;
 
 import com.minelatino.pixelbuy.PixelBuy;
-import com.minelatino.pixelbuy.managers.order.objects.WebOrder;
-import com.minelatino.pixelbuy.managers.order.objects.SavedOrders;
-import com.minelatino.pixelbuy.managers.order.objects.WebString;
 import com.minelatino.pixelbuy.managers.player.Order;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
@@ -53,12 +50,7 @@ public class OrderManager {
         return new URL(pl.configString("Web-Data.URL").replace("https:", "http:") + "/wp-json/wmc/v1/server/" + pl.configString("Web-Data.Key"));
     }
 
-    /**
-     * Checks WebData String
-     */
     public void checkWebData(CommandSender sender) {
-        // First of all the plugin will check player data stored on database
-        //pl.getPlayerManager().processPlayers();
         boolean debug = pl.configBoolean("Web-Data.Debug");
 
         // Check if plugin is correctly configured
@@ -115,9 +107,6 @@ public class OrderManager {
         }
     }
 
-    /**
-     * Read JSON string and process them
-     */
     public void processData(CommandSender sender, String webData, boolean debug) {
         // First debug message
         if (debug) Utils.info(pl.langString("Debug.WebData.Check-Data"));
@@ -134,7 +123,7 @@ public class OrderManager {
         }
 
         // Create a list of available orders
-        List<WebOrder> webOrderList = webString.getOrders();
+        List<WebString.Order> webOrderList = webString.getOrders();
 
         // Check if order list have orders
         if (webOrderList == null || webOrderList.isEmpty()) {
@@ -144,7 +133,7 @@ public class OrderManager {
         }
 
         List<Integer> savedOrders = new ArrayList<>();
-        for (WebOrder webOrder : webOrderList) {
+        for (WebString.Order webOrder : webOrderList) {
             Player player = Utils.getPlayer(webOrder.getPlayer());
             List<String> cmds = new ArrayList<>();
             for (String cmd : webOrder.getCommands()) {
@@ -166,9 +155,6 @@ public class OrderManager {
         sendProcessedData(sender, savedOrders, debug);
     }
 
-    /**
-     * Sends the processed orders to wordpress.
-     */
     public void sendProcessedData(CommandSender sender, List<Integer> orders, boolean debug) {
         // Build saved orders data to send
         Gson gson = new Gson();
@@ -200,5 +186,13 @@ public class OrderManager {
         //    if (debug) Utils.info("Received error when trying to send post data:" + webString.getCode());
         //}
         on = false;
+    }
+
+    public static class SavedOrders {
+        private List<Integer> processedOrders;
+
+        public SavedOrders(List<Integer> processedOrders) {
+            this.processedOrders = processedOrders;
+        }
     }
 }
