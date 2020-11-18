@@ -90,7 +90,7 @@ public class DatabaseManager {
     }
 
     public void saveData(PlayerData data) {
-        database.saveData(data);
+        if (data != null) database.saveData(data);
     }
 
     public PlayerData getData(String player) {

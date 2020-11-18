@@ -1,0 +1,47 @@
+Name: 'Server Store Name'
+
+# You can make global discounts putting values
+# like 0.35 or 35% or .14
+Global-Discount: '0'
+
+# Shop items
+# Every item need different name
+Items:
+  # Item name
+  item1:
+    # Item price
+    # To apply a price modifier put 'price->newPrice'
+    # For example: '10->8.99'
+    price: '10'
+    # Leave in true if you only want to execute the actions below if
+    # player is online when the orders is processed
+    online: true
+    # List of executables actions
+    # Available types: COMMAND, ITEM, MESSAGE, BROADCAST
+    execute:
+      # Available placeholders: %player%, %orderID%, %itemPrice%
+      # Command type can be separated in 2 parts by |
+      # Part 1: Command to execute when the item was bought
+      # Part 2: Command to execute when the item was refunded with /pixelbuy refund
+      - 'COMMAND:lp user %player% parent add vip|lp user %player% parent remove vip'
+      # Item type parts must be separated by comma
+      # WARNING: If you change something about item type after delivered at least one,
+      # when trying to make a refund the item cannot be deleted because the configuration changed
+      - |-
+        ITEM:
+        mat:DIAMOND_PICKAXE,
+        amount:1,
+        name:&b&lSuper Pickaxe,
+        lore:&7Custom pickaxe|
+             &7from server store| |
+             &eBuyer:%player%|
+             &eOrder ID:%orderID%,
+        enchants:SHARPNESS=10|DIG_SPEED=5|LOOT_BONUS_BLOCKS=15
+      # Broadcast type can be multiple messages separated by |
+      - 'BROADCAST:&7The player &e%player% %7was bought|&bSuper Pickaxe &7and VIP rank!'
+  eco10000:
+    price: '5.99->3.99'
+    online: false
+    actions:
+      - 'COMMAND:eco give %player% 10000|eco take %player% 10000'
+      - 'MESSAGE:&fYou order has received|&eThanks for support us!'

@@ -7,6 +7,7 @@ import com.minelatino.pixelbuy.managers.database.DatabaseManager;
 import com.minelatino.pixelbuy.managers.order.OrderManager;
 import com.minelatino.pixelbuy.managers.player.PlayerManager;
 
+import com.minelatino.pixelbuy.managers.store.StoreManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,6 +19,7 @@ public final class PixelBuy extends JavaPlugin {
 
 	private static PixelBuy pixelBuy;
 	private FilesManager filesManager;
+	private StoreManager storeManager;
 	private DatabaseManager databaseManager;
 	private OrderManager orderManager;
 	private PlayerManager playerManager;
@@ -33,6 +35,8 @@ public final class PixelBuy extends JavaPlugin {
 
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
 		getLogger().info(langString("Plugin.Init.FilesManager"));
+		storeManager = new StoreManager();
+
 		databaseManager = new DatabaseManager(this);
         getLogger().info(langString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
@@ -80,6 +84,10 @@ public final class PixelBuy extends JavaPlugin {
 
 	public FilesManager getFiles() {
 		return filesManager;
+	}
+
+	public StoreManager getStore() {
+		return storeManager;
 	}
 
 	public DatabaseManager getDatabase() {
