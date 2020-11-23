@@ -33,8 +33,6 @@ public class FlatFile implements DatabaseType {
 
     public void saveData(PlayerData data) {
         String player = data.getPlayer().toLowerCase();
-        PlayerData oldData = getData(player);
-        if (oldData != null) data.addOrders(oldData.getOrders());
         if (dataFolder.mkdir() && debug) Utils.info(pl.langString("Debug.FlatFile.Folder"));
         File dataFile = new File(dataFolder + File.separator + player + ".json");
         if (!dataFile.exists()) {

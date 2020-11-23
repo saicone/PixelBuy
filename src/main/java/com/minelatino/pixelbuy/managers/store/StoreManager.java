@@ -5,6 +5,9 @@ import com.minelatino.pixelbuy.managers.store.acts.BroadcastAction;
 import com.minelatino.pixelbuy.managers.store.acts.CommandAction;
 import com.minelatino.pixelbuy.managers.store.acts.ItemAction;
 import com.minelatino.pixelbuy.managers.store.acts.MessageAction;
+import com.minelatino.pixelbuy.util.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -24,7 +27,7 @@ public class StoreManager {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private static List<ActionType> actions = Arrays.asList(
+    private static final List<ActionType> actions = Arrays.asList(
             new BroadcastAction(),
             new CommandAction(),
             new ItemAction(),
@@ -34,20 +37,27 @@ public class StoreManager {
     private final List<StoreItem> items = new ArrayList<>();
 
     public StoreManager() {
-        reload(true);
+        reload(Bukkit.getConsoleSender(), true);
     }
 
-    public void reload(boolean init) {
+    public void reload(CommandSender sender, boolean init) {
         if (!init) items.clear();
         File cF = new File(pl.getDataFolder(), "store.yml");
         if (!cF.exists()) pl.saveResource("store.yml", false);
         store = YamlConfiguration.loadConfiguration(cF);
-        storeName = store.getString("Name");
+        storeName = store.getString("Name", "");
         String dis = store.getString("Global-Discount", "1");
         discount = Double.parseDouble("0." + (dis.contains("%") ? dis.replace("%", "") : dis.split("\\.", 2)[1]));
+        int count = 0;
         for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
-            items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online"), parseActions(store.getStringList("Items." + identifier + ".execute"), store.getString("Items." + identifier + ".price"))));
+            items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), parseActions(store.getStringList("Items." + identifier + ".execute"), store.getString("Items." + identifier + ".price"))));
+            count++;
         }
+        sender.sendMessage(Utils.color(pl.langString("Messages.Store.Loaded").replace("%num%", String.valueOf(count))));
+    }
+
+    public String getStoreName() {
+        return storeName;
     }
 
     public static List<ActionType> parseActions(List<String> list, String price) {

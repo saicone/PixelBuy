@@ -86,6 +86,10 @@ public class PlayerData {
             items.put(item, state);
         }
 
+        public void removeItem(String item) {
+            items.remove(item);
+        }
+
         public boolean hasPending() {
             for (Byte state : items.values()) {
                 if (state == 1) return true;

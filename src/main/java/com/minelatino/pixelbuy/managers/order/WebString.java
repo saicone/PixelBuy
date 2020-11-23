@@ -78,7 +78,7 @@ public class WebString {
             return order_id;
         }
 
-        public List<String> getCommands() {
+        public List<String> getItems() {
             return commands;
         }
     }

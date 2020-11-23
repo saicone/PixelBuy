@@ -19,6 +19,7 @@ public class ReloadCommand {
             return true;
         }
         switch (args[1].toLowerCase()) {
+            case "file":
             case "files":
                 if (args.length == 3) {
                     if (args[2].toLowerCase().equals("settings")) {
@@ -29,11 +30,16 @@ public class ReloadCommand {
                         pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                         return true;
                     }
+                    if (args[2].toLowerCase().equals("store")) {
+                        pl.getStore().reload(s, false);
+                        return true;
+                    }
                     s.sendMessage(Utils.color(pl.langString("Command.Reload.Files.Use")));
                     return true;
                 }
                 pl.getFiles().reloadSettings(s, false);
                 pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
+                pl.getStore().reload(s, false);
                 return true;
             case "database":
                 pl.getDatabase().reload(s);
@@ -45,6 +51,7 @@ public class ReloadCommand {
             case "all":
                 pl.getFiles().reloadSettings(s, false);
                 pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
+                pl.getStore().reload(s, false);
                 pl.getDatabase().reload(s);
                 pl.getOrderManager().reload(false);
                 s.sendMessage(Utils.color(pl.langString("Command.Reload.Webdata.Success")));

@@ -1,5 +1,6 @@
 package com.minelatino.pixelbuy.managers.store;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public abstract class ActionType {
@@ -10,6 +11,11 @@ public abstract class ActionType {
     public abstract String getType();
 
     public abstract boolean isRefundable();
+
+    @SuppressWarnings("deprecation")
+    public void executeBuy(String player, Integer orderID) {
+        executeBuy((Player) Bukkit.getOfflinePlayer(player), orderID);
+    }
 
     public void executeBuy(Player player, Integer orderID) {}
 

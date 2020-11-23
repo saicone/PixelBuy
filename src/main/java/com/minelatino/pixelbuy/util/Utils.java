@@ -24,9 +24,6 @@ public class Utils {
     }
 
     public static boolean isOnline(String player) {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (p.getName().toLowerCase().equals(player.toLowerCase())) return true;
-        }
-        return false;
+        return getPlayer(player) != null;
     }
 }

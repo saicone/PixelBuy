@@ -1,5 +1,6 @@
 package com.minelatino.pixelbuy.managers.store.acts;
 
+import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.store.ActionType;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -30,7 +31,7 @@ public class ItemAction extends ActionType {
     @Override
     public void executeRefund(Player player, Integer orderID) {
         ItemStack it = getItem(getExecutable(player.getName(), orderID));
-
+        PixelBuy.get().getEventManager().addItem(it);
     }
 
     private ItemStack getItem(String content) {

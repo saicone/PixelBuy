@@ -39,7 +39,6 @@ public class DatabaseManager {
             default:
                 sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Default")));
                 database = new FlatFile();
-                break;
         }
         if (database.setup()) {
             sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));

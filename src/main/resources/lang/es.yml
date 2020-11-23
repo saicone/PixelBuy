@@ -2,6 +2,7 @@
 Plugin:
   Init:
     FilesManager: 'Administrador de archivos cargado'
+    StoreManager: 'Administrador de items de tienda cargado'
     DatabaseManager: 'Administrador de bases de datos cargado'
     PlayerManager: 'Administrador de jugadores cargado'
     OrderManager: 'Administrador de ordenes de compra cargado'
@@ -28,6 +29,26 @@ Command:
     Delete:
       Use: '&6Debes usar &e/pbuy database delete <jugador>'
       Success: '&aDatos del jugador %player% borrados correctamente'
+  Playerdata:
+    Help:
+      - '&6Comandos sobre la data del jugador &f(&e/pbuy player ...&f)'
+      - '&6> &einfo <jugador>'
+      - '&6> &erefund <jugador> <id de compra>'
+    Info:
+      Use: '&6Debes usar &e/pbuy player info <jugador>'
+      Not-Have: '&cEl jugador &6%player% &cno tiene data'
+      Player:
+        - '&eJugador: &f%player%'
+        - '&eDonado: &a%donated%'
+        - '&eLista de ordenes:'
+      Order:
+        - '&6%num%- &eID de la orden: &f%id%'
+        - '&e  Lista de Items:'
+      Items: '&6    %num%- &f%item% &7: %state%'
+    Refund:
+      Use: '&6Debes usar &e/pbuy player refund <jugador> <id de compra>'
+      Done: '&aSe procesó una devolución a nombre del jugador &f%player% &acon la orden &f%order%'
+      Error: '&cNo se pudo tramitar la devolución, revisa que hayas escrito bien el comando'
   Reload:
     Help:
       - '&6Comandos sobre recargar el plugin &f(&e/pbuy reload ...&f)'
@@ -48,22 +69,20 @@ Command:
       Error: '&6La base de datos %type% tuvo un error al cargar, se usará JSON como cambio'
     Webdata:
       Success: '&aSe recargò correctamente el administrador de ordenes de compra'
-  Webdata:
-    Help:
-      - '&6Comandos sobre la data web &f(&e/pbuy webdata ...&f)'
-      - '&6> &echeck'
-      - '&6> &einfo <jugador>'
-    Info:
-      Use: '&6Debes usar &e/pbuy webdata info <jugador>'
-      Not-Have: '&cEl jugador &6%player% &cno tiene comandos pendientes'
-      Player:
-        - '&eJugador: &f%player%'
-        - '&eLista de ordenes:'
-      Order:
-        - '&6%num%- &eID de la orden: &f%id%'
-        - '&e  Lista de comandos:'
-      Cmds: '&6    %num%- &f%cmd%'
+  Status:
+    - '&6------PixelBuy Status------'
+    - '&7OrderManager: %state%'
+    - ''
 
+Messages:
+  On: '&aEncendido'
+  Off: '&cApagado'
+  InProcess: '&3En proceso...'
+  Pending: '&3Pediente de entrega'
+  Sent: '&aEntregado'
+  Refunded: '&cDevuelto'
+  Store:
+    Loaded: '&aSe cargaron &f%num% &aitems de compra'
 
 Debug:
   MySQL:

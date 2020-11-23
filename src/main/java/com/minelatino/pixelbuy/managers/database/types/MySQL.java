@@ -59,8 +59,6 @@ public class MySQL implements DatabaseType {
 
     public void saveData(PlayerData data) {
         String player = data.getPlayer().toLowerCase();
-        PlayerData oldData = getData(player);
-        if (oldData != null) data.addOrders(oldData.getOrders());
         Gson gson = new Gson();
         String json = gson.toJson(data);
         query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';", data);

@@ -1,6 +1,7 @@
 Plugin:
   Init:
     FilesManager: 'FilesManager loaded'
+    StoreManager: 'StoreManager loaded'
     DatabaseManager: 'DatabaseManager loaded'
     PlayerManager: 'PlayerManager loaded'
     OrderManager: 'OrderManager loaded'
@@ -27,6 +28,26 @@ Command:
     Delete:
       Use: '&6Use &e/pbuy database delete <player>'
       Success: '&aData from %player% has been deleted'
+  Playerdata:
+    Help:
+      - '&6Player data related commands &f(&e/pbuy player ...&f)'
+      - '&6> &einfo <player>'
+      - '&6> &erefund <player> <order ID>'
+    Info:
+      Use: '&6Use &e/pbuy player info <player>'
+      Not-Have: '&cPlayer &6%player% &cdoesn''t have data'
+      Player:
+        - '&ePlayer: &f%player%'
+        - '&eDonated: &a%donated%'
+        - '&eList of orders:'
+      Order:
+        - '&6%num%- &eOrder ID: &f%id%'
+        - '&e  List of Items:'
+      Items: '&6    %num%- &f%item% &7: %state%'
+    Refund:
+      Use: '&6Use &e/pbuy player refund <player> <order ID>'
+      Done: '&aA refund has been processed for player &f%player% &aand order &f%order%'
+      Error: '&cThe order isn''t processable, check the command or player data'
   Reload:
     Help:
       - '&6Reload related commands &f(&e/pbuy reload ...&f)'
@@ -47,22 +68,20 @@ Command:
       Error: '&6Database type %type% has a error when load, the plugin will use JSON type'
     Webdata:
       Success: '&aWebdata manager reloaded!'
-  Webdata:
-    Help:
-      - '&6Webdata related commands &f(&e/pbuy webdata ...&f)'
-      - '&6> &echeck'
-      - '&6> &einfo <player>'
-    Info:
-      Use: '&6Use &e/pbuy webdata info <player>'
-      Not-Have: '&cPlayer &6%player% &cdon''t have orders'
-      Player:
-        - '&ePlayer: &f%player%'
-        - '&eOrders list:'
-      Order:
-        - '&6%num%- &eOrder ID: &f%id%'
-        - '&e  Commands list:'
-      Cmds: '&6    %num%- &f%cmd%'
+  Status:
+    - '&6------PixelBuy Status------'
+    - '&7OrderManager: %state%'
+    - ''
 
+Messages:
+  On: '&aON'
+  Off: '&cOFF'
+  InProcess: '&3In process...'
+  Pending: '&3Pending'
+  Sent: '&aSent'
+  Refunded: '&cRefunded'
+  Store:
+    Loaded: '&f%num% &astore items has been loaded'
 
 Debug:
   MySQL:

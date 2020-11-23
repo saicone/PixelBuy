@@ -1,7 +1,6 @@
 package com.minelatino.pixelbuy.managers.order;
 
 import com.minelatino.pixelbuy.PixelBuy;
-import com.minelatino.pixelbuy.managers.player.Order;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
 
@@ -10,16 +9,13 @@ import com.google.gson.GsonBuilder;
 import okhttp3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class OrderManager {
 
@@ -38,12 +34,15 @@ public class OrderManager {
             on = false;
             Bukkit.getScheduler().cancelTask(checker);
         }
-        checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
-            if (!on) {
-                on = true;
-                checkWebData(null);
-            }
-        }, pl.configInt("Web-Data.Check-Interval") * 20, pl.configInt("Web-Data.Check-Interval") * 20).getTaskId();
+        int check = pl.configInt("Web-Data.Check-Interval");
+        if (check > 0) {
+            checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
+                if (!on) {
+                    on = true;
+                    checkWebData(null);
+                }
+            }, check * 20, check * 20).getTaskId();
+        }
     }
 
     public URL getURL() throws Exception {
@@ -134,22 +133,9 @@ public class OrderManager {
 
         List<Integer> savedOrders = new ArrayList<>();
         for (WebString.Order webOrder : webOrderList) {
-            Player player = Utils.getPlayer(webOrder.getPlayer());
-            List<String> cmds = new ArrayList<>();
-            for (String cmd : webOrder.getCommands()) {
-                cmds.add(cmd.replace("%orderID%", String.valueOf(webOrder.getOrderId())));
-            }
-
-            if (player != null) {
-                for (String cmd : cmds) {
-                    Bukkit.getScheduler().runTaskAsynchronously(pl, () -> Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd));
-                }
-            } else {
-                String p = (pl.configBoolean("Database.UUID") ? String.valueOf(Bukkit.getOfflinePlayer(webOrder.getPlayer()).getUniqueId()) : webOrder.getPlayer());
-                Order order = new Order(webOrder.getOrderId(), cmds);
-                PlayerData playerData = new PlayerData(p, Collections.singletonList(order));
-                pl.getDatabase().saveData(playerData);
-            }
+            Map<String, Byte> items = new HashMap<>();
+            webOrder.getItems().forEach(item -> items.put(item, (byte) 1));
+            pl.getPlayerManager().processOrder(webOrder.getPlayer(), new PlayerData.Order(webOrder.getOrderId(), items));
             savedOrders.add(webOrder.getOrderId());
         }
         sendProcessedData(sender, savedOrders, debug);

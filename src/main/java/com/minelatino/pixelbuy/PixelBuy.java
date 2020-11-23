@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -25,6 +26,8 @@ public final class PixelBuy extends JavaPlugin {
 	private PlayerManager playerManager;
 	private EventManager eventManager;
 
+	private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
+
 	public static PixelBuy get() {
 		return pixelBuy;
 	}
@@ -36,7 +39,7 @@ public final class PixelBuy extends JavaPlugin {
 		filesManager = new FilesManager(Bukkit.getConsoleSender());
 		getLogger().info(langString("Plugin.Init.FilesManager"));
 		storeManager = new StoreManager();
-
+		getLogger().info(langString("Plugin.Init.StoreManager"));
 		databaseManager = new DatabaseManager(this);
         getLogger().info(langString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
@@ -59,7 +62,7 @@ public final class PixelBuy extends JavaPlugin {
 	@Override
 	public void onDisable() {
         getLogger().info(langString("Plugin.Shut"));
-	    eventManager.unregisterEvents();
+	    eventManager.shut();
 	}
 
 	public String configString(String path) {
@@ -82,6 +85,11 @@ public final class PixelBuy extends JavaPlugin {
 		return filesManager.getLang().getStringList(path);
 	}
 
+	public File getFolderData() {
+		if (!folderData.exists()) folderData.mkdir();
+		return folderData;
+	}
+
 	public FilesManager getFiles() {
 		return filesManager;
 	}
@@ -100,5 +108,9 @@ public final class PixelBuy extends JavaPlugin {
 
 	public PlayerManager getPlayerManager() {
 		return playerManager;
+	}
+
+	public EventManager getEventManager() {
+		return eventManager;
 	}
 }

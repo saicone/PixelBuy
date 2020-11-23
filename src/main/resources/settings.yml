@@ -29,6 +29,7 @@ Database:
 Web-Data:
   # Interval in seconds to check if exists new orders
   # This checker don't require so much CPU, 7 seconds is recommended
+  # Set to -1 to disable
   Check-Interval: 7
   # URL of your site WITHOUT "/" at final
   # For example http://shop.mysite.com
@@ -47,6 +48,6 @@ Perms:
   # Commands permissions
   Main: 'pixelbuy.use'
   Database: 'pixelbuy.database'
+  PlayerData: 'pixelbuy.playerdata'
   Reload: 'pixelbuy.reload'
-  Webdata: 'pixelbuy.webdata'
-
+  Status: 'pixelbuy.status'
