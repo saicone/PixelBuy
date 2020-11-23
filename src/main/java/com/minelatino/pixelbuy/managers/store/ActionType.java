@@ -26,6 +26,10 @@ public abstract class ActionType {
         this.price = price;
     }
 
+    public String getExecutable() {
+        return executable;
+    }
+
     public String getExecutable(String player, Integer orderID) {
         return executable.replace("%player%", player).replace("%orderID%", String.valueOf(orderID)).replace("%itemPrice%", price);
     }

@@ -27,7 +27,7 @@ public class StoreManager {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private static final List<ActionType> actions = Arrays.asList(
+    private static List<ActionType> actions = Arrays.asList(
             new BroadcastAction(),
             new CommandAction(),
             new ItemAction(),
@@ -47,7 +47,7 @@ public class StoreManager {
         store = YamlConfiguration.loadConfiguration(cF);
         storeName = store.getString("Name", "");
         String dis = store.getString("Global-Discount", "1");
-        discount = Double.parseDouble("0." + (dis.contains("%") ? dis.replace("%", "") : dis.split("\\.", 2)[1]));
+        discount = Double.parseDouble("0." + (dis.contains(".") ? dis.split("\\.", 2)[1] : dis.replace("%", "")));
         int count = 0;
         for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
             items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), parseActions(store.getStringList("Items." + identifier + ".execute"), store.getString("Items." + identifier + ".price"))));
@@ -78,5 +78,9 @@ public class StoreManager {
             if (item.getIdentifier().equals(identifier)) return item;
         }
         return null;
+    }
+
+    public List<StoreItem> getItems() {
+        return items;
     }
 }

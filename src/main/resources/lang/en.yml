@@ -13,8 +13,9 @@ Command:
   Help:
     - '&6PixelBuy &f[&e1.0&f]'
     - '&6> &e/pbuy database'
+    - '&6> &e/pbuy playerdata'
     - '&6> &e/pbuy reload'
-    - '&6> &e/pbuy webdata'
+    - '&6> &e/pbuy store'
   Database:
     Help:
       - '&6Database related commands &f(&e/pbuy database ...&f)'
@@ -33,6 +34,7 @@ Command:
       - '&6Player data related commands &f(&e/pbuy player ...&f)'
       - '&6> &einfo <player>'
       - '&6> &erefund <player> <order ID>'
+      - '&6> &efalse-order <jugador> <id de compra> <lista de items>'
     Info:
       Use: '&6Use &e/pbuy player info <player>'
       Not-Have: '&cPlayer &6%player% &cdoesn''t have data'
@@ -48,10 +50,14 @@ Command:
       Use: '&6Use &e/pbuy player refund <player> <order ID>'
       Done: '&aA refund has been processed for player &f%player% &aand order &f%order%'
       Error: '&cThe order isn''t processable, check the command or player data'
+    Order:
+      Use: '&6Use &e/pbuy player order <player> <order ID> <list of items separated by comma>'
+      Done: '&aOrder &f%orderID% &ahas been added to &f%player% &awith items %items%'
   Reload:
     Help:
       - '&6Reload related commands &f(&e/pbuy reload ...&f)'
       - '&6> &efiles [settings, messages]'
+      - '&6> &estore'
       - '&6> &edatabase'
       - '&6> &ewebdata'
       - '&6> &eall'
@@ -72,6 +78,17 @@ Command:
     - '&6------PixelBuy Status------'
     - '&7OrderManager: %state%'
     - ''
+  Store:
+    Help:
+      - '&6Store related commands&f(&e/pbuy store ...&f)'
+      - '&6> &eitems'
+    Items:
+      Info:
+        - '&c%num%- &6Item: &f%id%'
+        - '&6  Price: &f%price%'
+        - '&6  Online: &f%online%'
+        - '&6  Actions:'
+      Enum: '&6-    &f%action%'
 
 Messages:
   On: '&aON'

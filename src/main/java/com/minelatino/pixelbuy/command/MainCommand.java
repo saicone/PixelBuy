@@ -4,6 +4,7 @@ import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.command.sub.DatabaseCommand;
 import com.minelatino.pixelbuy.command.sub.ReloadCommand;
 import com.minelatino.pixelbuy.command.sub.PlayerDataCommand;
+import com.minelatino.pixelbuy.command.sub.StoreCommand;
 import com.minelatino.pixelbuy.util.Utils;
 
 import org.bukkit.command.Command;
@@ -16,8 +17,9 @@ public class MainCommand extends Command {
     private final PixelBuy pl = PixelBuy.get();
 
     private final DatabaseCommand databaseCommand = new DatabaseCommand(pl);
-    private final ReloadCommand reloadCommand = new ReloadCommand(pl);
     private final PlayerDataCommand playerDataCommand = new PlayerDataCommand(pl);
+    private final ReloadCommand reloadCommand = new ReloadCommand(pl);
+    private final StoreCommand storeCommand = new StoreCommand(pl);
 
     public MainCommand(String cmd) {
         super(cmd);
@@ -48,6 +50,9 @@ public class MainCommand extends Command {
                 if (hasPerm(s, "Perms.Status")) {
                     pl.langStringList("Command.Help").forEach(string -> s.sendMessage(Utils.color(string)));
                 }
+                return true;
+            case "store":
+                if (hasPerm(s, "Perms.Store")) return storeCommand.execute(s, args);
                 return true;
             default:
                 pl.langStringList("Command.Help").forEach(string -> s.sendMessage(Utils.color(string)));

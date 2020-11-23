@@ -14,8 +14,9 @@ Command:
   Help:
     - '&6PixelBuy &f[&e1.0&f]'
     - '&6> &e/pbuy database'
+    - '&6> &e/pbuy playerdata'
     - '&6> &e/pbuy reload'
-    - '&6> &e/pbuy webdata'
+    - '&6> &e/pbuy store'
   Database:
     Help:
       - '&6Comandos sobre la base de datos &f(&e/pbuy database ...&f)'
@@ -34,6 +35,7 @@ Command:
       - '&6Comandos sobre la data del jugador &f(&e/pbuy player ...&f)'
       - '&6> &einfo <jugador>'
       - '&6> &erefund <jugador> <id de compra>'
+      - '&6> &efalse-order <jugador> <id de compra> <lista de items>'
     Info:
       Use: '&6Debes usar &e/pbuy player info <jugador>'
       Not-Have: '&cEl jugador &6%player% &cno tiene data'
@@ -49,10 +51,14 @@ Command:
       Use: '&6Debes usar &e/pbuy player refund <jugador> <id de compra>'
       Done: '&aSe procesó una devolución a nombre del jugador &f%player% &acon la orden &f%order%'
       Error: '&cNo se pudo tramitar la devolución, revisa que hayas escrito bien el comando'
+    Order:
+      Use: '&6Debes usar &e/pbuy player order <jugador> <id de compra> <lista de items separados por coma>'
+      Done: '&aSe agregó la orden &f%orderID% &aal jugador &f%player% &acon los items de compra %items%'
   Reload:
     Help:
       - '&6Comandos sobre recargar el plugin &f(&e/pbuy reload ...&f)'
       - '&6> &efiles [settings, messages]'
+      - '&6> &estore'
       - '&6> &edatabase'
       - '&6> &ewebdata'
       - '&6> &eall'
@@ -73,6 +79,17 @@ Command:
     - '&6------PixelBuy Status------'
     - '&7OrderManager: %state%'
     - ''
+  Store:
+    Help:
+      - '&6Comandos sobre la tienda &f(&e/pbuy store ...&f)'
+      - '&6> &eitems'
+    Items:
+      Info:
+        - '&c%num%- &6Item: &f%id%'
+        - '&6  Precio: &f%price%'
+        - '&6  Online: &f%online%'
+        - '&6  Lista de acciones:'
+      Enum: '&6-    &f%action%'
 
 Messages:
   On: '&aEncendido'

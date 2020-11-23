@@ -30,15 +30,13 @@ public class ReloadCommand {
                         pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
                         return true;
                     }
-                    if (args[2].toLowerCase().equals("store")) {
-                        pl.getStore().reload(s, false);
-                        return true;
-                    }
                     s.sendMessage(Utils.color(pl.langString("Command.Reload.Files.Use")));
                     return true;
                 }
                 pl.getFiles().reloadSettings(s, false);
                 pl.getFiles().reloadLang(s, pl.getFiles().getConfig().getString("Language"));
+                return true;
+            case "store":
                 pl.getStore().reload(s, false);
                 return true;
             case "database":

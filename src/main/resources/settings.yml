@@ -51,3 +51,4 @@ Perms:
   PlayerData: 'pixelbuy.playerdata'
   Reload: 'pixelbuy.reload'
   Status: 'pixelbuy.status'
+  Store: 'pixelbuy.store'

@@ -6,6 +6,7 @@ import com.minelatino.pixelbuy.util.Utils;
 
 import org.bukkit.command.CommandSender;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PlayerDataCommand {
@@ -57,6 +58,19 @@ public class PlayerDataCommand {
                     } else {
                         s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Refund.Error")));
                     }
+                }
+                return true;
+            case "false-order":
+            case "order":
+                if (args.length > 5) {
+                    s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Use")));
+                } else {
+                    Map<String, Byte> items = new HashMap<>();
+                    for (String item : args[4].split(",")) {
+                        items.put(item, (byte) 1);
+                    }
+                    pl.getPlayerManager().processOrder(args[2], new PlayerData.Order(Integer.valueOf(args[3]), items));
+                    s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Done")));
                 }
                 return true;
             default:
