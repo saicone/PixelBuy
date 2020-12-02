@@ -17,9 +17,12 @@ public class MessageAction extends ActionType {
     }
 
     @Override
-    public void executeBuy(Player player, Integer orderID) {
-        for (String msg : getExecutable(player.getName(), orderID).split("\\|")) {
-            player.sendMessage(Utils.color(msg));
+    public void executeBuy(String player, Integer orderID) {
+        Player p = Utils.getPlayer(player);
+        if (p != null) {
+            for (String msg : getExecutable(player, orderID).split("\\|")) {
+                p.sendMessage(Utils.color(msg));
+            }
         }
     }
 }

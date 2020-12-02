@@ -35,11 +35,12 @@ public class FlatFile implements DatabaseType {
         String player = data.getPlayer().toLowerCase();
         if (dataFolder.mkdir() && debug) Utils.info(pl.langString("Debug.FlatFile.Folder"));
         File dataFile = new File(dataFolder + File.separator + player + ".json");
-        if (!dataFile.exists()) {
-            try {
-                if (dataFile.createNewFile() && debug) Utils.info(pl.langString("Debug.FlatFile.File").replace("%player%", player));
-            } catch (IOException ignored) { }
-        }
+        if (dataFile.delete() && debug) Utils.info(pl.langString("Debug.FlatFile.Delete").replace("%player%", player));
+
+        try {
+            if (dataFile.createNewFile() && debug) Utils.info(pl.langString("Debug.FlatFile.File").replace("%player%", player));
+        } catch (IOException ignored) { }
+
         try {
             FileWriter writer = new FileWriter(dataFile);
             String dataString = new Gson().toJson(data);

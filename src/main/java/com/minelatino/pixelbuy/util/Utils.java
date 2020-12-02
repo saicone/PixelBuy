@@ -23,6 +23,11 @@ public class Utils {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
+    public static String getOfflineUUID(String s) {
+        return Bukkit.getOfflinePlayer(s).getUniqueId().toString();
+    }
+
     public static boolean isOnline(String player) {
         return getPlayer(player) != null;
     }

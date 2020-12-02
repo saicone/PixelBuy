@@ -7,10 +7,10 @@ import java.util.stream.Collectors;
 public class PlayerData {
 
     private String player;
-    private Integer donated;
+    private double donated;
     private List<Order> orders;
 
-    public PlayerData(String player, Integer donated, List<Order> orders) {
+    public PlayerData(String player, double donated, List<Order> orders) {
         this.player = player;
         this.donated = donated;
         this.orders = orders;
@@ -24,11 +24,11 @@ public class PlayerData {
         this.player = player;
     }
 
-    public Integer getDonated() {
+    public double getDonated() {
         return donated;
     }
 
-    public void setDonated(Integer donated) {
+    public void setDonated(double donated) {
         this.donated = donated;
     }
 
@@ -66,7 +66,11 @@ public class PlayerData {
     public static class Order {
 
         private final Integer id;
-        private final Map<String, Byte> items;
+        // Item states:
+        // 1 = Pending
+        // 2 = Processed
+        // 3 = Refunded
+        private Map<String, Byte> items;
 
         public Order(Integer id, Map<String, Byte> items) {
             this.id = id;
@@ -79,6 +83,10 @@ public class PlayerData {
 
         public Map<String, Byte> getItems() {
             return items;
+        }
+
+        public void setItems(Map<String, Byte> items) {
+            this.items = items;
         }
 
         public void setItemState(String item, Byte state) {

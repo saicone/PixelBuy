@@ -12,14 +12,9 @@ public abstract class ActionType {
 
     public abstract boolean isRefundable();
 
-    @SuppressWarnings("deprecation")
-    public void executeBuy(String player, Integer orderID) {
-        executeBuy((Player) Bukkit.getOfflinePlayer(player), orderID);
-    }
+    public void executeBuy(String player, Integer orderID) {}
 
-    public void executeBuy(Player player, Integer orderID) {}
-
-    public void executeRefund(Player player, Integer orderID) {}
+    public void executeRefund(String player, Integer orderID) {}
 
     public void setParts(String executable, String price) {
         this.executable = executable;

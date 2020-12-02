@@ -3,7 +3,6 @@ package com.minelatino.pixelbuy.managers.store.acts;
 import com.minelatino.pixelbuy.managers.store.ActionType;
 import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 public class BroadcastAction extends ActionType {
 
@@ -18,8 +17,8 @@ public class BroadcastAction extends ActionType {
     }
 
     @Override
-    public void executeBuy(Player player, Integer orderID) {
-        for (String msg : getExecutable(player.getName(), orderID).split("\\|")) {
+    public void executeBuy(String player, Integer orderID) {
+        for (String msg : getExecutable(player, orderID).split("\\|")) {
             broadcast(msg);
         }
     }

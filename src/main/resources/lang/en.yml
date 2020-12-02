@@ -52,7 +52,7 @@ Command:
       Error: '&cThe order isn''t processable, check the command or player data'
     Order:
       Use: '&6Use &e/pbuy player order <player> <order ID> <list of items separated by comma>'
-      Done: '&aOrder &f%orderID% &ahas been added to &f%player% &awith items %items%'
+      Done: '&aOrder &f%orderID% &ahas been added to &f%player% &awith items &f%items%'
   Reload:
     Help:
       - '&6Reload related commands &f(&e/pbuy reload ...&f)'
@@ -84,7 +84,7 @@ Command:
       - '&6> &eitems'
     Items:
       Info:
-        - '&c%num%- &6Item: &f%id%'
+        - '&c%num%- &6Item: &f%ID%'
         - '&6  Price: &f%price%'
         - '&6  Online: &f%online%'
         - '&6  Actions:'
@@ -113,7 +113,8 @@ Debug:
     Reco-Error: 'Could not reconnect to database, JSON will be used as change'
   FlatFile:
     Folder: 'playerdata folder was created because it didn''t exist'
-    File: '%player% data file was created because it did not exist'
+    File: '%player% data file was created'
+    Delete: '%player% data file was deleted'
   WebData:
     Empty-URL: 'The URL is empty'
     Empty-Key: 'The Key is empty'

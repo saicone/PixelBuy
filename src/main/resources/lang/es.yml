@@ -53,7 +53,7 @@ Command:
       Error: '&cNo se pudo tramitar la devolución, revisa que hayas escrito bien el comando'
     Order:
       Use: '&6Debes usar &e/pbuy player order <jugador> <id de compra> <lista de items separados por coma>'
-      Done: '&aSe agregó la orden &f%orderID% &aal jugador &f%player% &acon los items de compra %items%'
+      Done: '&aSe agregó la orden &f%orderID% &aal jugador &f%player% &acon los items de compra &f%items%'
   Reload:
     Help:
       - '&6Comandos sobre recargar el plugin &f(&e/pbuy reload ...&f)'
@@ -85,7 +85,7 @@ Command:
       - '&6> &eitems'
     Items:
       Info:
-        - '&c%num%- &6Item: &f%id%'
+        - '&c%num%- &6Item: &f%ID%'
         - '&6  Precio: &f%price%'
         - '&6  Online: &f%online%'
         - '&6  Lista de acciones:'
@@ -114,7 +114,8 @@ Debug:
     Reco-Error: 'No se pudo reconectar con la base de datos, se usará JSON como cambio'
   FlatFile:
     Folder: 'Se creó la carpeta playerdata porque no existía'
-    File: 'Se creó el archivo de datos del jugador %player% porque no existía'
+    File: 'Se creó el archivo de datos del jugador %player%'
+    Delete: 'Se eliminó el archivo de datos del jugador %player%'
   WebData:
     Empty-URL: 'La URL está vacia'
     Empty-Key: 'La Key está vacia'

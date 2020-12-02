@@ -35,7 +35,7 @@ public class OrderManager {
             Bukkit.getScheduler().cancelTask(checker);
         }
         int check = pl.configInt("Web-Data.Check-Interval");
-        if (check > 0) {
+        if (check < 1) {
             checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
                 if (!on) {
                     on = true;

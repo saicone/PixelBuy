@@ -48,7 +48,7 @@ public class StoreItem {
         this.actions = actions;
     }
 
-    public void refund(Player player, Integer orderID) {
+    public void refund(String player, Integer orderID) {
         actions.forEach(action -> {
             if (action.isRefundable()) action.executeRefund(player, orderID);
         });

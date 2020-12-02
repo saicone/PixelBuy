@@ -63,6 +63,7 @@ public final class PixelBuy extends JavaPlugin {
 	public void onDisable() {
         getLogger().info(langString("Plugin.Shut"));
 	    eventManager.shut();
+	    playerManager.shut();
 	}
 
 	public String configString(String path) {

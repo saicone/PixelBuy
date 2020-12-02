@@ -2,6 +2,7 @@ package com.minelatino.pixelbuy.managers.store.acts;
 
 import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.store.ActionType;
+import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -23,14 +24,15 @@ public class ItemAction extends ActionType {
     }
 
     @Override
-    public void executeBuy(Player player, Integer orderID) {
-        ItemStack it = getItem(getExecutable(player.getName(), orderID));
-        player.getInventory().addItem(it);
+    public void executeBuy(String player, Integer orderID) {
+        ItemStack it = getItem(Utils.color(getExecutable(player, orderID)));
+        Player p = Utils.getPlayer(player);
+        if (p != null) p.getInventory().addItem(it);
     }
 
     @Override
-    public void executeRefund(Player player, Integer orderID) {
-        ItemStack it = getItem(getExecutable(player.getName(), orderID));
+    public void executeRefund(String player, Integer orderID) {
+        ItemStack it = getItem(Utils.color(getExecutable(player, orderID)));
         PixelBuy.get().getEventManager().addItem(it);
     }
 
@@ -53,10 +55,10 @@ public class ItemAction extends ActionType {
                     amount = Integer.parseInt(s[1]);
                     break;
                 case "name":
-                    name = s[1].replace('&', '§');
+                    name = s[1];
                     break;
                 case "lore":
-                    lore = Arrays.asList(s[1].replace('&', '§').split("\\|"));
+                    lore = Arrays.asList(s[1].split("\\|"));
                     break;
                 case "enchants":
                 case "enchantments":

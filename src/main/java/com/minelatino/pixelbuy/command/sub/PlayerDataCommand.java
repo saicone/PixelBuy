@@ -27,7 +27,7 @@ public class PlayerDataCommand {
                 if (args.length == 2) {
                     s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Use")));
                 } else {
-                    PlayerData data = pl.getDatabase().getData(args[2]);
+                    PlayerData data = pl.getPlayerManager().getPlayerData(args[2]);
                     if (data == null) {
                         s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Not-Have")));
                         return true;
@@ -50,7 +50,7 @@ public class PlayerDataCommand {
                     return true;
                 }
             case "refund":
-                if (args.length > 4) {
+                if (args.length < 4) {
                     s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Refund.Use")));
                 } else {
                     if (pl.getPlayerManager().refundOrder(args[2], Integer.valueOf(args[3]))) {
@@ -62,7 +62,7 @@ public class PlayerDataCommand {
                 return true;
             case "false-order":
             case "order":
-                if (args.length > 5) {
+                if (args.length < 5) {
                     s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Use")));
                 } else {
                     Map<String, Byte> items = new HashMap<>();
@@ -70,7 +70,7 @@ public class PlayerDataCommand {
                         items.put(item, (byte) 1);
                     }
                     pl.getPlayerManager().processOrder(args[2], new PlayerData.Order(Integer.valueOf(args[3]), items));
-                    s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Done")));
+                    s.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Done").replace("%orderID%", args[3]).replace("%player%", args[2]).replace("%items%", args[4])));
                 }
                 return true;
             default:
