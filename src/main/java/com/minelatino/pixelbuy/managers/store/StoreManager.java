@@ -50,7 +50,7 @@ public class StoreManager {
         discount = Double.parseDouble("0." + (dis.contains(".") ? dis.split("\\.", 2)[1] : dis.replace("%", "")));
         int count = 0;
         for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
-            items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), parseActions(store.getStringList("Items." + identifier + ".execute"), store.getString("Items." + identifier + ".price"))));
+            items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), store.getStringList("Items." + identifier + ".execute")));
             count++;
         }
         sender.sendMessage(Utils.color(pl.langString("Messages.Store.Loaded").replace("%num%", String.valueOf(count))));
@@ -60,17 +60,14 @@ public class StoreManager {
         return storeName;
     }
 
-    public static List<ActionType> parseActions(List<String> list, String price) {
-        List<ActionType> acts = new ArrayList<>();
-        for (String string : list) {
-            String type = string.split(":", 2)[0].toUpperCase();
-            ActionType action = actions.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
-            if (action != null) {
-                action.setParts(string.split(":", 2)[1], price);
-                acts.add(action);
-            }
+    public static ActionType parseAction(String act, String price) {
+        String type = act.split(":", 2)[0].toUpperCase();
+        ActionType action = actions.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
+        if (action != null) {
+            action.setParts(act.split(":", 2)[1], price);
+            return action;
         }
-        return acts;
+        return null;
     }
 
     public StoreItem getItem(String identifier) {

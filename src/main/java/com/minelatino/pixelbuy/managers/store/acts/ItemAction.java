@@ -33,7 +33,7 @@ public class ItemAction extends ActionType {
     @Override
     public void executeRefund(String player, Integer orderID) {
         ItemStack it = getItem(Utils.color(getExecutable(player, orderID)));
-        PixelBuy.get().getEventManager().addItem(it);
+        PixelBuy.get().getEventManager().addItem(it, it.getAmount());
     }
 
     private ItemStack getItem(String content) {

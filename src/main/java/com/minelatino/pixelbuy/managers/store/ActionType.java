@@ -1,8 +1,5 @@
 package com.minelatino.pixelbuy.managers.store;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 public abstract class ActionType {
 
     private String executable;

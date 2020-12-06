@@ -38,7 +38,7 @@ public class PlayerManager {
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
                         if (item.getValue() == 1) {
                             StoreItem sItem = pl.getStore().getItem(item.getKey());
-                            sItem.getActions().forEach(action -> action.executeBuy(player.getName(), order.getId()));
+                            Bukkit.getScheduler().runTaskLaterAsynchronously(pl, () -> sItem.buy(player.getName(), order.getId()), 100L);
                             items.put(item.getKey(), (byte) 2);
                             donated += Double.parseDouble(sItem.getPrice());
                         } else {
@@ -69,7 +69,7 @@ public class PlayerManager {
             StoreItem sItem = pl.getStore().getItem(item);
             if (sItem != null) {
                 if (!sItem.isOnline() || p != null) {
-                    sItem.getActions().forEach(action -> action.executeBuy(player, order.getId()));
+                    sItem.buy(player, order.getId());
                     items.put(item, (byte) 2);
                     donated += Double.parseDouble(sItem.getPrice());
                 } else {
@@ -96,9 +96,11 @@ public class PlayerManager {
             for (PlayerData.Order order : pData.getOrders()) {
                 if (order.getId().equals(orderID)) {
                     Map<String, Byte> items = new HashMap<>();
-                    for (String item : order.getItems().keySet()) {
-                        pl.getStore().getItem(item).refund(player, orderID);
-                        items.put(item, (byte) 3);
+                    for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
+                        if (item.getValue() == 2) {
+                            pl.getStore().getItem(item.getKey()).refund(player, orderID);
+                        }
+                        items.put(item.getKey(), (byte) 3);
                     }
                     orders.add(new PlayerData.Order(order.getId(), items));
                     exists = true;

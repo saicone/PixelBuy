@@ -26,7 +26,7 @@ public class StoreCommand {
                                 .replace("%price%", item.getPrice())
                                 .replace("%online%", String.valueOf(item.isOnline()))));
             }
-            item.getActions().forEach(action -> s.sendMessage(Utils.color(pl.langString("Command.Store.Items.Enum").replace("%action%", action.getExecutable()))));
+            item.getActions().forEach(action -> s.sendMessage(Utils.color(pl.langString("Command.Store.Items.Enum").replace("%action%", action))));
             itemNum++;
         }
         return true;

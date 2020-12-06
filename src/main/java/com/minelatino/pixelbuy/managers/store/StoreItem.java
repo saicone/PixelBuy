@@ -1,8 +1,5 @@
 package com.minelatino.pixelbuy.managers.store;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-
 import java.util.List;
 
 public class StoreItem {
@@ -13,9 +10,9 @@ public class StoreItem {
 
     private final boolean online;
 
-    private List<ActionType> actions;
+    private List<String> actions;
 
-    public StoreItem(String identifier, String price, boolean online, List<ActionType> actions) {
+    public StoreItem(String identifier, String price, boolean online, List<String> actions) {
         this.identifier = identifier;
         this.price = price;
         this.online = online;
@@ -40,17 +37,25 @@ public class StoreItem {
         return online;
     }
 
-    public List<ActionType> getActions() {
+    public List<String> getActions() {
         return actions;
     }
 
-    public void setActions(List<ActionType> actions) {
+    public void setActions(List<String> actions) {
         this.actions = actions;
     }
 
+    public void buy(String player, Integer orderID) {
+        actions.forEach(string -> {
+            ActionType action = StoreManager.parseAction(string, price);
+            if (action != null) action.executeBuy(player, orderID);
+        });
+    }
+
     public void refund(String player, Integer orderID) {
-        actions.forEach(action -> {
-            if (action.isRefundable()) action.executeRefund(player, orderID);
+        actions.forEach(string -> {
+            ActionType action = StoreManager.parseAction(string, price);
+            if (action != null && action.isRefundable()) action.executeRefund(player, orderID);
         });
     }
 }

@@ -6,6 +6,7 @@ Plugin:
     PlayerManager: 'PlayerManager loaded'
     OrderManager: 'OrderManager loaded'
     EventManager: 'EventManager loaded'
+    Refunded-Items: '%num% refunded items has been loaded'
   Shut: 'Disabling plugin...'
 
 Command:

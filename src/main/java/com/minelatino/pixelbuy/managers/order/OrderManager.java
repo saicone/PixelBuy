@@ -134,7 +134,11 @@ public class OrderManager {
         List<Integer> savedOrders = new ArrayList<>();
         for (WebString.Order webOrder : webOrderList) {
             Map<String, Byte> items = new HashMap<>();
-            webOrder.getItems().forEach(item -> items.put(item, (byte) 1));
+            webOrder.getItems().forEach(item -> {
+                for (String it : item.split(",")) {
+                    items.put(it, (byte) 1);
+                }
+            });
             pl.getPlayerManager().processOrder(webOrder.getPlayer(), new PlayerData.Order(webOrder.getOrderId(), items));
             savedOrders.add(webOrder.getOrderId());
         }
@@ -175,10 +179,14 @@ public class OrderManager {
     }
 
     public static class SavedOrders {
-        private List<Integer> processedOrders;
+        private final List<Integer> processedOrders;
 
         public SavedOrders(List<Integer> processedOrders) {
             this.processedOrders = processedOrders;
+        }
+
+        public List<Integer> getOrders() {
+            return processedOrders;
         }
     }
 }

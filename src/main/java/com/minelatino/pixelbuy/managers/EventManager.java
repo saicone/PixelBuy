@@ -1,9 +1,13 @@
 package com.minelatino.pixelbuy.managers;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.minelatino.pixelbuy.PixelBuy;
 
+import com.minelatino.pixelbuy.util.GsonAdapter;
+import com.minelatino.pixelbuy.util.Utils;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -21,13 +25,12 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class EventManager implements Listener {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private final List<ItemStack> items = new ArrayList<>();
+    private final List<RefundedItem> items = new ArrayList<>();
 
     public EventManager() {
         pl.getServer().getPluginManager().registerEvents(this, pl);
@@ -45,12 +48,45 @@ public class EventManager implements Listener {
     }
 
     @EventHandler
-    public void itemInteract(InventoryClickEvent e) {
+    public void onClick(InventoryClickEvent e) {
         if (items.isEmpty()) return;
-        if (items.contains(e.getCurrentItem())) {
-            e.setCancelled(true);
-            e.getInventory().remove(Objects.requireNonNull(e.getCurrentItem()));
+        ItemStack current = e.getInventory().getItem(e.getSlot());
+        if (current != null || !current.getType().toString().contains("AIR")) {
+            for (RefundedItem item : items) {
+                if (item.getItem().isSimilar(current)) {
+                    e.setCancelled(true);
+                    if (current.getAmount() > item.getAmount()) {
+                        current.setAmount(current.getAmount() - item.getAmount());
+                        items.remove(item);
+                    } else if (current.getAmount() == item.getAmount()) {
+                        e.getInventory().setItem(e.getSlot(), null);
+                        items.remove(item);
+                    } else {
+                        e.getInventory().setItem(e.getSlot(), null);
+                        reduceItemAmount(item, current.getAmount());
+                    }
+                    break;
+                }
+            }
         }
+    }
+
+    public void addItem(ItemStack item, Integer amount) {
+        items.add(new RefundedItem(item, amount));
+    }
+
+    public void reduceItemAmount(RefundedItem item, Integer amount) {
+        List<RefundedItem> items = new ArrayList<>();
+        for (RefundedItem it : this.items) {
+            if (it.equals(item)) {
+                item.reduceAmount(amount);
+                items.add(item);
+            } else {
+                items.add(it);
+            }
+        }
+        this.items.clear();
+        this.items.addAll(items);
     }
 
     public void loadItems() {
@@ -58,34 +94,55 @@ public class EventManager implements Listener {
         if (refunded.exists()) {
             try {
                 Reader reader = Files.newBufferedReader(Paths.get(refunded.toString()));
-                Gson gson = new Gson();
+                final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new GsonAdapter()).create();
                 if (!reader.toString().isEmpty()) {
-                    Type itemList = new TypeToken<List<ItemStack>>(){}.getType();
-                    items.addAll(gson.fromJson(reader, itemList));
+                    Type listType = new TypeToken<ArrayList<RefundedItem>>(){}.getType();
+                    items.addAll(gson.fromJson(reader, listType));
                 }
+                Utils.info(pl.langString("Plugin.Init.Refunded-Items").replace("%num%", String.valueOf(items.size())));
             } catch (IOException ignored) { }
         }
-    }
-
-    public void addItem(ItemStack item) {
-        items.add(item);
     }
 
     public void shut() {
         File refunded = new File(pl.getFolderData(), "refunded-items.json");
-        if (!refunded.exists()) {
-            try {
-                refunded.createNewFile();
-            } catch (IOException ignored) { }
-        }
+        refunded.delete();
+
+        try {
+            refunded.createNewFile();
+        } catch (IOException ignored) { }
+
         try {
             FileWriter writer = new FileWriter(refunded);
-            String dataString = new Gson().toJson(items);
+            final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new GsonAdapter()).create();
+            String dataString = gson.toJson(items);
             writer.write(dataString);
             writer.flush();
             writer.close();
         } catch (IOException ignored) { }
         items.clear();
         HandlerList.unregisterAll(this);
+    }
+
+    private static class RefundedItem {
+        private final ItemStack item;
+        private Integer amount;
+
+        public RefundedItem(ItemStack item, Integer amount) {
+            this.item = item;
+            this.amount = amount;
+        }
+
+        public ItemStack getItem() {
+            return item;
+        }
+
+        public Integer getAmount() {
+            return amount;
+        }
+
+        public void reduceAmount(Integer amount) {
+            this.amount = this.amount - amount;
+        }
     }
 }

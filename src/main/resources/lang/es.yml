@@ -7,6 +7,7 @@ Plugin:
     PlayerManager: 'Administrador de jugadores cargado'
     OrderManager: 'Administrador de ordenes de compra cargado'
     EventManager: 'Administrador de eventos cargado'
+    Refunded-Items: 'Se cargaron %num% items por devolver'
   Shut: 'Desactivando plugin...'
 
 Command:
