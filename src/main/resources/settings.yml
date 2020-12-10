@@ -41,6 +41,15 @@ Web-Data:
   # and errors about miss configured things
   Debug: false
 
+# Configuration about plugin command
+# Yes, you can edit command name and aliases
+Commands:
+  # Main command configuration
+  Main:
+    Cmd: 'pixelbuy'
+    Aliases:
+      - 'pbuy'
+
 # Permissions configuration
 Perms:
   # All permissions
@@ -50,5 +59,4 @@ Perms:
   Database: 'pixelbuy.database'
   PlayerData: 'pixelbuy.playerdata'
   Reload: 'pixelbuy.reload'
-  Status: 'pixelbuy.status'
   Store: 'pixelbuy.store'

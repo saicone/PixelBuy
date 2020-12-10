@@ -40,6 +40,11 @@ public class StoreManager {
         reload(Bukkit.getConsoleSender(), true);
     }
 
+    public void shut() {
+        items.clear();
+        actions.clear();
+    }
+
     public void reload(CommandSender sender, boolean init) {
         if (!init) items.clear();
         File cF = new File(pl.getDataFolder(), "store.yml");

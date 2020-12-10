@@ -21,7 +21,7 @@ public class OrderManager {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private int checker;
+    private int checker = 0;
 
     private boolean on = false;
 
@@ -30,12 +30,10 @@ public class OrderManager {
     }
 
     public void reload(boolean init) {
-        if (!init) {
-            on = false;
-            Bukkit.getScheduler().cancelTask(checker);
-        }
+        on = false;
+        if (checker > 0 && !init) Bukkit.getScheduler().cancelTask(checker);
         int check = pl.configInt("Web-Data.Check-Interval");
-        if (check < 1) {
+        if (check > 1) {
             checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
                 if (!on) {
                     on = true;
@@ -43,6 +41,10 @@ public class OrderManager {
                 }
             }, check * 20, check * 20).getTaskId();
         }
+    }
+
+    public void shut() {
+        Bukkit.getScheduler().cancelTask(checker);
     }
 
     public URL getURL() throws Exception {

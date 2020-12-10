@@ -12,32 +12,32 @@ Plugin:
 Command:
   No-Perm: '&cYou don''t have permission to use this command'
   Help:
-    - '&6PixelBuy &f[&e1.0&f]'
-    - '&6> &e/pbuy database'
-    - '&6> &e/pbuy playerdata'
-    - '&6> &e/pbuy reload'
-    - '&6> &e/pbuy store'
+    - '&6PixelBuy &f[&e1.1&f]'
+    - '&6> &e/%cmd% database'
+    - '&6> &e/%cmd% playerdata'
+    - '&6> &e/%cmd% reload'
+    - '&6> &e/%cmd% store'
   Database:
     Help:
-      - '&6Database related commands &f(&e/pbuy database ...&f)'
+      - '&6Database related commands &f(&e/%cmd% database ...&f)'
       - '&6> &econvert <from> [true/false]'
       - '&6> &edelete <player>'
     Convert:
-      Use: '&6Use &e/pbuy database convert <from> [true/false]'
+      Use: '&6Use &e/%cmd% database convert <from> [true/false]'
       Same-Type: '&cYou can''t convert data from the current database type!'
       No-Exist: '&cSpecified type doesn''t exist!'
       Cant-Setup: '&6Database &e%type% &6can''t connect, enable debug and try again'
     Delete:
-      Use: '&6Use &e/pbuy database delete <player>'
+      Use: '&6Use &e/%cmd% database delete <player>'
       Success: '&aData from %player% has been deleted'
   Playerdata:
     Help:
-      - '&6Player data related commands &f(&e/pbuy player ...&f)'
+      - '&6Player data related commands &f(&e/%cmd% player ...&f)'
       - '&6> &einfo <player>'
       - '&6> &erefund <player> <order ID>'
       - '&6> &efalse-order <jugador> <id de compra> <lista de items>'
     Info:
-      Use: '&6Use &e/pbuy player info <player>'
+      Use: '&6Use &e/%cmd% player info <player>'
       Not-Have: '&cPlayer &6%player% &cdoesn''t have data'
       Player:
         - '&ePlayer: &f%player%'
@@ -48,22 +48,22 @@ Command:
         - '&e  List of Items:'
       Items: '&6    %num%- &f%item% &7: %state%'
     Refund:
-      Use: '&6Use &e/pbuy player refund <player> <order ID>'
+      Use: '&6Use &e/%cmd% player refund <player> <order ID>'
       Done: '&aA refund has been processed for player &f%player% &aand order &f%order%'
       Error: '&cThe order isn''t processable, check the command or player data'
     Order:
-      Use: '&6Use &e/pbuy player order <player> <order ID> <list of items separated by comma>'
+      Use: '&6Use &e/%cmd% player order <player> <order ID> <list of items separated by comma>'
       Done: '&aOrder &f%orderID% &ahas been added to &f%player% &awith items &f%items%'
   Reload:
     Help:
-      - '&6Reload related commands &f(&e/pbuy reload ...&f)'
+      - '&6Reload related commands &f(&e/%cmd% reload ...&f)'
       - '&6> &efiles [settings, messages]'
       - '&6> &estore'
       - '&6> &edatabase'
       - '&6> &ewebdata'
       - '&6> &eall'
     Files:
-      Use: '&6Use &e/pbuy reload files [settings, messages]'
+      Use: '&6Use &e/%cmd% reload files [settings, messages]'
       Settings: '&aConfiguration reloaded!'
       Messages:
         Success: '&aLanguage file reloaded!'
@@ -75,13 +75,14 @@ Command:
       Error: '&6Database type %type% has a error when load, the plugin will use JSON type'
     Webdata:
       Success: '&aWebdata manager reloaded!'
+      Command: '&aPlugin main command has been reloaded!'
   Status:
     - '&6------PixelBuy Status------'
     - '&7OrderManager: %state%'
     - ''
   Store:
     Help:
-      - '&6Store related commands&f(&e/pbuy store ...&f)'
+      - '&6Store related commands&f(&e/%cmd% store ...&f)'
       - '&6> &eitems'
     Items:
       Info:

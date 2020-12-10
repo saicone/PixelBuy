@@ -1,44 +1,53 @@
 package com.minelatino.pixelbuy.command.sub;
 
 import com.minelatino.pixelbuy.PixelBuy;
+import com.minelatino.pixelbuy.command.SubCommand;
 import com.minelatino.pixelbuy.util.Utils;
 
 import org.bukkit.command.CommandSender;
 
-public class DatabaseCommand {
+import java.util.regex.Pattern;
 
-    private final PixelBuy pl;
+public class DatabaseCommand extends SubCommand {
 
-    public DatabaseCommand(PixelBuy pl) {
-        this.pl = pl;
+    private final PixelBuy pl = PixelBuy.get();
+
+    @Override
+    public Pattern getAliases() {
+        return Pattern.compile("d(ata)?b(ase)?");
     }
 
-    public boolean execute(CommandSender s, String[] args) {
+    @Override
+    public String getPermission() {
+        return pl.getFiles().getConfig().getString("Perms.Database", "pixelbuy.database");
+    }
+
+    @Override
+    public void execute(CommandSender sender, String cmd, String[] args) {
         if (args.length == 1) {
-            pl.langStringList("Command.Database.Help").forEach(string -> s.sendMessage(Utils.color(string)));
-            return true;
+            pl.langStringList("Command.Database.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+            return;
         }
         switch (args[1].toLowerCase()) {
             case "convert":
                 if (args.length == 2) {
-                    s.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Use")));
+                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Use").replace("%cmd%", cmd)));
                 } else if (args.length == 3) {
-                    pl.getDatabase().convertData(s, args[2], false);
+                    pl.getDatabase().convertData(sender, args[2], false);
                 } else {
-                    pl.getDatabase().convertData(s, args[2], Boolean.getBoolean(args[3]));
+                    pl.getDatabase().convertData(sender, args[2], Boolean.getBoolean(args[3]));
                 }
-                return true;
+                break;
             case "delete":
                 if (args.length == 2) {
-                    s.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Use")));
+                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Use").replace("%cmd%", cmd)));
                 } else {
                     pl.getDatabase().deleteData(args[2]);
-                    s.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Success").replace("%player%", args[2])));
+                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Success").replace("%player%", args[2])));
                 }
-                return true;
+                break;
             default:
-                pl.langStringList("Command.Database.Help").forEach(string -> s.sendMessage(Utils.color(string)));
-                return true;
+                pl.langStringList("Command.Database.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
         }
     }
 }

@@ -28,6 +28,10 @@ public class DatabaseManager {
         }, 12000, 12000);
     }
 
+    public void shut() {
+        cachedData.clear();
+    }
+
     public void reload(CommandSender sender) {
         switch (pl.getFiles().getConfig().getString("Database.Type", "JSON").toUpperCase()) {
             case "JSON":

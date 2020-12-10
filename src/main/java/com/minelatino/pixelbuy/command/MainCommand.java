@@ -10,58 +10,50 @@ import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 
 public class MainCommand extends Command {
 
     private final PixelBuy pl = PixelBuy.get();
+    private final String cmd;
 
-    private final DatabaseCommand databaseCommand = new DatabaseCommand(pl);
-    private final PlayerDataCommand playerDataCommand = new PlayerDataCommand(pl);
-    private final ReloadCommand reloadCommand = new ReloadCommand(pl);
-    private final StoreCommand storeCommand = new StoreCommand(pl);
+    private static final List<SubCommand> subCommands = Arrays.asList(
+            new DatabaseCommand(),
+            new PlayerDataCommand(),
+            new ReloadCommand(),
+            new StoreCommand()
+    );
 
-    public MainCommand(String cmd) {
+    public MainCommand(String cmd, List<String> aliases) {
         super(cmd);
-        setAliases(Collections.singletonList("pbuy"));
+        this.cmd = this.getName();
+        setAliases(aliases);
     }
 
     @Override
-    public boolean execute(CommandSender s, String label, String[] args) {
-        if (!hasPerm(s, "Perms.Main")) return true;
+    public boolean execute(CommandSender sender, String label, String[] args) {
+        if (!hasPerm(sender, pl.getFiles().getConfig().getString("Perms.Main", "pixelbuy.use"))) return true;
         if (args.length == 0) {
-            pl.langStringList("Command.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+            pl.langStringList("Command.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
             return true;
         }
-        switch (args[0].toLowerCase()) {
-            case "database":
-            case "db":
-                if (hasPerm(s, "Perms.Database")) return databaseCommand.execute(s, args);
-                return true;
-            case "playerdata":
-            case "player":
-            case "data":
-                if (hasPerm(s, "Perms.PlayerData")) return playerDataCommand.execute(s, args);
-                return true;
-            case "reload":
-                if (hasPerm(s, "Perms.Reload")) return reloadCommand.execute(s, args);
-                return true;
-            case "status":
-                if (hasPerm(s, "Perms.Status")) {
-                    pl.langStringList("Command.Help").forEach(string -> s.sendMessage(Utils.color(string)));
+        boolean matched = false;
+        for (SubCommand sub : subCommands) {
+            if (sub.getAliases().matcher(args[0].toLowerCase()).matches()) {
+                if (hasPerm(sender, sub.getPermission())) {
+                    sub.execute(sender, cmd, args);
                 }
-                return true;
-            case "store":
-                if (hasPerm(s, "Perms.Store")) return storeCommand.execute(s, args);
-                return true;
-            default:
-                pl.langStringList("Command.Help").forEach(string -> s.sendMessage(Utils.color(string)));
-                return true;
+                matched = true;
+                break;
+            }
         }
+        if (!matched) pl.langStringList("Command.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+        return true;
     }
 
-    public boolean hasPerm(CommandSender sender, String path) {
-        if (sender.hasPermission(pl.configString(path)) || sender.hasPermission(pl.configString("Perms.All"))) return true;
+    public boolean hasPerm(CommandSender sender, String perm) {
+        if (sender.hasPermission(perm) || sender.hasPermission(pl.getFiles().getConfig().getString("Perms.All", "pixelbuy.*"))) return true;
         sender.sendMessage(Utils.color(pl.langString("Command.No-Perm")));
         return false;
     }

@@ -9,16 +9,21 @@ import com.minelatino.pixelbuy.managers.player.PlayerManager;
 
 import com.minelatino.pixelbuy.managers.store.StoreManager;
 import org.bukkit.Bukkit;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 public final class PixelBuy extends JavaPlugin {
 
 	private static PixelBuy pixelBuy;
+    private CommandMap commandMap;
+    private MainCommand mainCommand;
+
 	private FilesManager filesManager;
 	private StoreManager storeManager;
 	private DatabaseManager databaseManager;
@@ -52,18 +57,22 @@ public final class PixelBuy extends JavaPlugin {
         try {
             Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
             bukkitCommandMap.setAccessible(true);
-            CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-            commandMap.register("pixelbuy", new MainCommand("pixelbuy"));
+            commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
         } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
             e.printStackTrace();
         }
+        registerCommand();
 	}
 
 	@Override
 	public void onDisable() {
         getLogger().info(langString("Plugin.Shut"));
-	    eventManager.shut();
+        unregisterCommand();
+        eventManager.shut();
+        orderManager.shut();
 	    playerManager.shut();
+	    databaseManager.shut();
+	    storeManager.shut();
 	}
 
 	public String configString(String path) {
@@ -114,4 +123,44 @@ public final class PixelBuy extends JavaPlugin {
 	public EventManager getEventManager() {
 		return eventManager;
 	}
+
+	public void reloadCommand() {
+	    unregisterCommand();
+	    registerCommand();
+    }
+
+    private void registerCommand() {
+        if (commandMap != null) {
+            mainCommand = new MainCommand(filesManager.getConfig().getString("Commands.Main.Cmd", "pixelbuy"), filesManager.getConfig().getStringList("Commands.Main.Aliases"));
+            commandMap.register("pixelbuy", mainCommand);
+            mainCommand.isRegistered();
+        }
+    }
+
+    private void unregisterCommand() {
+        if (commandMap != null) {
+            try {
+                Class<? extends CommandMap> cmdMapClass = commandMap.getClass();
+                final Field field;
+                if (cmdMapClass.getSimpleName().equals("CraftCommandMap")) {
+                    field = cmdMapClass.getSuperclass().getDeclaredField("knownCommands");
+                } else {
+                    field = cmdMapClass.getDeclaredField("knownCommands");
+                }
+                field.setAccessible(true);
+
+                Map<String, Command> knownCmds = (Map<String, Command>) field.get(commandMap);
+                knownCmds.remove(mainCommand.getName());
+                mainCommand.getAliases().forEach(alias -> {
+                    if (knownCmds.containsKey(alias) && knownCmds.get(alias).toString().contains(mainCommand.getName())) {
+                        knownCmds.remove(alias);
+                    }
+                });
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
+            mainCommand.unregister(commandMap);
+        }
+    }
 }

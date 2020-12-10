@@ -20,6 +20,7 @@ public class PlayerManager {
     }
 
     public void shut() {
+        Bukkit.getOnlinePlayers().forEach(this::unloadPlayer);
         players.clear();
     }
 

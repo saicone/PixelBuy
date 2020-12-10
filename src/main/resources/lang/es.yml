@@ -13,32 +13,32 @@ Plugin:
 Command:
   No-Perm: '&cNo tienes permiso para usar este comando'
   Help:
-    - '&6PixelBuy &f[&e1.0&f]'
-    - '&6> &e/pbuy database'
-    - '&6> &e/pbuy playerdata'
-    - '&6> &e/pbuy reload'
-    - '&6> &e/pbuy store'
+    - '&6PixelBuy &f[&e1.1&f]'
+    - '&6> &e/%cmd% database'
+    - '&6> &e/%cmd% playerdata'
+    - '&6> &e/%cmd% reload'
+    - '&6> &e/%cmd% store'
   Database:
     Help:
-      - '&6Comandos sobre la base de datos &f(&e/pbuy database ...&f)'
+      - '&6Comandos sobre la base de datos &f(&e/%cmd% database ...&f)'
       - '&6> &econvert <tipo> [true/false]'
       - '&6> &edelete <jugador>'
     Convert:
-      Use: '&6Debes usar &e/pbuy database convert <tipo> [true/false]'
+      Use: '&6Debes usar &e/%cmd% database convert <tipo> [true/false]'
       Same-Type: '&cEl tipo de base de datos actual es el mismo tipo de donde quieres obtener los datos!'
       No-Exist: '&cEl tipo de base de datos %type% no existe!'
       Cant-Setup: '&6El tipo de base de datos &e%type% &6no no se conectó correctamente, activa el debug e intenta otra vez'
     Delete:
-      Use: '&6Debes usar &e/pbuy database delete <jugador>'
+      Use: '&6Debes usar &e/%cmd% database delete <jugador>'
       Success: '&aDatos del jugador %player% borrados correctamente'
   Playerdata:
     Help:
-      - '&6Comandos sobre la data del jugador &f(&e/pbuy player ...&f)'
+      - '&6Comandos sobre la data del jugador &f(&e/%cmd% player ...&f)'
       - '&6> &einfo <jugador>'
       - '&6> &erefund <jugador> <id de compra>'
       - '&6> &efalse-order <jugador> <id de compra> <lista de items>'
     Info:
-      Use: '&6Debes usar &e/pbuy player info <jugador>'
+      Use: '&6Debes usar &e/%cmd% player info <jugador>'
       Not-Have: '&cEl jugador &6%player% &cno tiene data'
       Player:
         - '&eJugador: &f%player%'
@@ -49,22 +49,22 @@ Command:
         - '&e  Lista de Items:'
       Items: '&6    %num%- &f%item% &7: %state%'
     Refund:
-      Use: '&6Debes usar &e/pbuy player refund <jugador> <id de compra>'
+      Use: '&6Debes usar &e/%cmd% player refund <jugador> <id de compra>'
       Done: '&aSe procesó una devolución a nombre del jugador &f%player% &acon la orden &f%order%'
       Error: '&cNo se pudo tramitar la devolución, revisa que hayas escrito bien el comando'
     Order:
-      Use: '&6Debes usar &e/pbuy player order <jugador> <id de compra> <lista de items separados por coma>'
+      Use: '&6Debes usar &e/%cmd% player order <jugador> <id de compra> <lista de items separados por coma>'
       Done: '&aSe agregó la orden &f%orderID% &aal jugador &f%player% &acon los items de compra &f%items%'
   Reload:
     Help:
-      - '&6Comandos sobre recargar el plugin &f(&e/pbuy reload ...&f)'
+      - '&6Comandos sobre recargar el plugin &f(&e/%cmd% reload ...&f)'
       - '&6> &efiles [settings, messages]'
       - '&6> &estore'
       - '&6> &edatabase'
       - '&6> &ewebdata'
       - '&6> &eall'
     Files:
-      Use: '&6Debes usar &e/pbuy reload files [settings, messages]'
+      Use: '&6Debes usar &e/%cmd% reload files [settings, messages]'
       Settings: '&aLa configuración del plugin fue recargada con éxito'
       Messages:
         Success: '&aEl archivo de idioma fue recargado con éxito'
@@ -76,13 +76,14 @@ Command:
       Error: '&6La base de datos %type% tuvo un error al cargar, se usará JSON como cambio'
     Webdata:
       Success: '&aSe recargò correctamente el administrador de ordenes de compra'
+    Command: '&aEl comando principal del plugin ha sido recargado'
   Status:
     - '&6------PixelBuy Status------'
     - '&7OrderManager: %state%'
     - ''
   Store:
     Help:
-      - '&6Comandos sobre la tienda &f(&e/pbuy store ...&f)'
+      - '&6Comandos sobre la tienda &f(&e/%cmd% store ...&f)'
       - '&6> &eitems'
     Items:
       Info:
