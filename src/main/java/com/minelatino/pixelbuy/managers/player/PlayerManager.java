@@ -39,7 +39,7 @@ public class PlayerManager {
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
                         if (item.getValue() == 1) {
                             StoreItem sItem = pl.getStore().getItem(item.getKey());
-                            Bukkit.getScheduler().runTaskLaterAsynchronously(pl, () -> sItem.buy(player.getName(), order.getId()), 100L);
+                            Bukkit.getScheduler().runTaskLater(pl, () -> sItem.buy(player.getName(), order.getId()), 100L);
                             items.put(item.getKey(), (byte) 2);
                             donated += Double.parseDouble(sItem.getPrice());
                         } else {
@@ -47,7 +47,7 @@ public class PlayerManager {
                         }
                     }
                     orders.add(new PlayerData.Order(order.getId(), items));
-                } else {
+                } else if (!orders.contains(order)) {
                     orders.add(order);
                 }
             }

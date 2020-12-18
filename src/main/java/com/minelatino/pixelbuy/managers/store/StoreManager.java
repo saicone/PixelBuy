@@ -42,7 +42,6 @@ public class StoreManager {
 
     public void shut() {
         items.clear();
-        actions.clear();
     }
 
     public void reload(CommandSender sender, boolean init) {

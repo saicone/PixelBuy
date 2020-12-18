@@ -42,6 +42,6 @@ Items:
   eco10000:
     price: '5.99->3.99'
     online: false
-    actions:
+    execute:
       - 'COMMAND:eco give %player% 10000|eco take %player% 10000'
       - 'MESSAGE:&fYou order has received|&eThanks for support us!'

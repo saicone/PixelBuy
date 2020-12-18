@@ -5,10 +5,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.minelatino.pixelbuy.PixelBuy;
 
+import com.minelatino.pixelbuy.api.event.OrderProcessedEvent;
 import com.minelatino.pixelbuy.util.GsonAdapter;
 import com.minelatino.pixelbuy.util.Utils;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -45,6 +47,11 @@ public class EventManager implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
         pl.getPlayerManager().unloadPlayer(e.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onProcessOrder(OrderProcessedEvent e) {
+        pl.getPlayerManager().processOrder(e.getPlayer(), e.getOrder());
     }
 
     @EventHandler

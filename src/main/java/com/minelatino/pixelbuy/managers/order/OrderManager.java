@@ -1,6 +1,7 @@
 package com.minelatino.pixelbuy.managers.order;
 
 import com.minelatino.pixelbuy.PixelBuy;
+import com.minelatino.pixelbuy.api.event.OrderProcessedEvent;
 import com.minelatino.pixelbuy.managers.player.PlayerData;
 import com.minelatino.pixelbuy.util.Utils;
 
@@ -141,7 +142,10 @@ public class OrderManager {
                     items.put(it, (byte) 1);
                 }
             });
-            pl.getPlayerManager().processOrder(webOrder.getPlayer(), new PlayerData.Order(webOrder.getOrderId(), items));
+            Bukkit.getScheduler().runTask(pl, () -> {
+                OrderProcessedEvent event = new OrderProcessedEvent(webOrder.getPlayer(), new PlayerData.Order(webOrder.getOrderId(), items));
+                Bukkit.getPluginManager().callEvent(event);
+            });
             savedOrders.add(webOrder.getOrderId());
         }
         sendProcessedData(sender, savedOrders, debug);
