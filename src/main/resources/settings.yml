@@ -41,6 +41,11 @@ Web-Data:
   # and errors about miss configured things
   Debug: false
 
+# Configuration about orders
+Order:
+  # Delay on seconds order sending to player
+  Delay: 5
+
 # Configuration about plugin command
 # Yes, you can edit command name and aliases
 Commands:

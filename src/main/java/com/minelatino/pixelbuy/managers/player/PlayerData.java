@@ -1,5 +1,6 @@
 package com.minelatino.pixelbuy.managers.player;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,8 +60,8 @@ public class PlayerData {
         });
     }
 
-    public List<Order> getPendingOrders() {
-        return orders.stream().filter(Order::hasPending).collect(Collectors.toList());
+    public List<Order> getOrders(boolean pending) {
+        return orders.stream().filter(order -> order.pending(pending)).collect(Collectors.toList());
     }
 
     public static class Order {
@@ -85,6 +86,14 @@ public class PlayerData {
             return items;
         }
 
+        public Map<String, Byte> getItems(byte type) {
+            Map<String, Byte> items = new HashMap<>();
+            for (Map.Entry<String, Byte> item : this.items.entrySet()) {
+                if (item.getValue() >= type) items.put(item.getKey(), item.getValue());
+            }
+            return items;
+        }
+
         public void setItems(Map<String, Byte> items) {
             this.items = items;
         }
@@ -98,11 +107,12 @@ public class PlayerData {
             items.remove(item);
         }
 
-        public boolean hasPending() {
-            for (Byte state : items.values()) {
-                if (state == 1) return true;
+        public boolean pending(boolean pending) {
+            if (pending) {
+                return items.containsValue((byte) 1);
+            } else {
+                return !items.containsValue((byte) 1);
             }
-            return false;
         }
     }
 }

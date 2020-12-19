@@ -15,6 +15,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -46,6 +47,11 @@ public class EventManager implements Listener {
 
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
+        pl.getPlayerManager().unloadPlayer(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onKick(PlayerKickEvent e) {
         pl.getPlayerManager().unloadPlayer(e.getPlayer());
     }
 

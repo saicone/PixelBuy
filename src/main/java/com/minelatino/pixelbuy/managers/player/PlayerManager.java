@@ -31,29 +31,7 @@ public class PlayerManager {
     public void loadPlayer(Player player) {
         PlayerData pData = pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
         if (pData != null) {
-            double donated = pData.getDonated();
-            List<PlayerData.Order> orders = new ArrayList<>();
-            for (PlayerData.Order order : pData.getOrders()) {
-                if (order.hasPending()) {
-                    Map<String, Byte> items = new HashMap<>();
-                    for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
-                        if (item.getValue() == 1) {
-                            StoreItem sItem = pl.getStore().getItem(item.getKey());
-                            Bukkit.getScheduler().runTaskLater(pl, () -> sItem.buy(player.getName(), order.getId()), 100L);
-                            items.put(item.getKey(), (byte) 2);
-                            donated += Double.parseDouble(sItem.getPrice());
-                        } else {
-                            items.put(item.getKey(), item.getValue());
-                        }
-                    }
-                    orders.add(new PlayerData.Order(order.getId(), items));
-                } else if (!orders.contains(order)) {
-                    orders.add(order);
-                }
-            }
-            pData.setOrders(orders);
-            pData.setDonated(donated);
-            players.put(player, pData);
+            players.put(player, processData(player, pData));
         }
     }
 
@@ -64,28 +42,40 @@ public class PlayerManager {
 
     public void processOrder(String player, PlayerData.Order order) {
         Player p = Utils.getPlayer(player);
-        double donated = 0.00;
-        Map<String, Byte> items = new HashMap<>();
-        for (String item : order.getItems().keySet()) {
-            StoreItem sItem = pl.getStore().getItem(item);
-            if (sItem != null) {
-                if (!sItem.isOnline() || p != null) {
-                    sItem.buy(player, order.getId());
-                    items.put(item, (byte) 2);
-                    donated += Double.parseDouble(sItem.getPrice());
-                } else {
-                    items.put(item, (byte) 1);
+        PlayerData pData = getPlayerData(player);
+        if (pData != null) {
+            if (isDuplicated(order.getId(), pData.getOrders())) return;
+            pData.addOrder(order);
+        } else {
+            pData = new PlayerData((pl.configBoolean("Database.UUID") ? (p == null ? Utils.getOfflineUUID(player) : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
+        }
+        saveDataChanges(p, processData(p, pData));
+    }
+
+    public PlayerData processData(Player player, PlayerData data) {
+        double donated = data.getDonated();
+        List<PlayerData.Order> orders = data.getOrders(false);
+        for (PlayerData.Order order : data.getOrders(true)) {
+            if (!isDuplicated(order.getId(), orders)) {
+                Map<String, Byte> items = order.getItems((byte) 2);
+                for (Map.Entry<String, Byte> item : order.getItems((byte) 1).entrySet()) {
+                    StoreItem sItem = pl.getStore().getItem(item.getKey());
+                    if (sItem != null) {
+                        if (!sItem.isOnline() || player != null) {
+                            Bukkit.getScheduler().runTaskLater(pl, () -> sItem.buy(data.getPlayer(), order.getId()), pl.getFiles().getConfig().getInt("Order.Delay", 5) * 20);
+                            items.put(item.getKey(), (byte) 2);
+                            donated = donated + Double.parseDouble(sItem.getPrice());
+                        } else {
+                            items.put(item.getKey(), item.getValue());
+                        }
+                    }
                 }
+                orders.add(new PlayerData.Order(order.getId(), items));
             }
         }
-        order.setItems(items);
-        PlayerData pData = getPlayerData(player);
-        if (pData == null) {
-            pData = new PlayerData((pl.configBoolean("Database.UUID") ? (p == null ? Utils.getOfflineUUID(player) : p.getUniqueId().toString()) : player), donated, Collections.singletonList(order));
-        } else {
-            pData.addOrder(order);
-        }
-        saveDataChanges(p, pData);
+        data.setOrders(orders);
+        data.setDonated(donated);
+        return data;
     }
 
     public boolean refundOrder(String player, Integer orderID) {
@@ -128,5 +118,12 @@ public class PlayerManager {
     public PlayerData getPlayerData(String player) {
         Player p = Utils.getPlayer(player);
         return (p != null ? players.getOrDefault(p, null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Utils.getOfflineUUID(player) : player)));
+    }
+
+    private boolean isDuplicated(Integer id, List<PlayerData.Order> list) {
+        for (PlayerData.Order order : list) {
+            if (order.getId().equals(id)) return true;
+        }
+        return false;
     }
 }
