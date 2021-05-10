@@ -1,9 +1,0 @@
-name: ${name}
-main: ${main}
-
-authors: [Rubenicos]
-
-api-version: 1.13
-version: ${version}
-
-description: Free plugin for donation system

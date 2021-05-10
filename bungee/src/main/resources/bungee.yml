@@ -1,0 +1,8 @@
+name: PixelBuy
+main: com.minelatino.pixelbuy.PixelBuyBungee
+
+authors: [Rubenicos]
+
+version: ${version}
+
+description: Free plugin for donation system

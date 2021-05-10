@@ -1,0 +1,39 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+repositories {
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        expand(
+                'version': project.version
+        )
+    }
+}
+
+dependencies {
+    compile project(':common')
+
+    // Bungeecord API
+    compileOnly ('net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT') {
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
+        exclude group: 'net.md-5', module: 'bungeecord-protocol'
+        exclude group: 'org.yaml', module: 'snakeyaml'
+    }
+
+    compileOnly 'org.jetbrains:annotations:19.0.0'
+
+    compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
+}
+
+shadowJar {
+    configurations = [project.configurations.compile]
+    archiveFileName = 'PixelBuy-' + project.name + '-' + project.version + '-all.jar'
+}
+
+jar.dependsOn (shadowJar)

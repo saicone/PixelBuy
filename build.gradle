@@ -1,45 +1,13 @@
-plugins {
-    id 'java'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
-}
+subprojects {
+    apply plugin: 'java'
 
-group = 'com.minelatino.pixelbuy'
-version = '1.1'
+    group = 'com.minelatino.pixelbuy'
+    version = '1.1.2'
 
-shadowJar {
-    dependencies {
-        [
-                'com.google.code.gson:gson:2.8.5',
-                'com.squareup.okhttp3:okhttp:3.14.6',
-                'com.squareup.okio:okio:1.17.2'
-        ].forEach {
-            include(dependency(it))
-        }
+    repositories {
+        // MC Stuff
+        maven { url "http://repo.ptms.ink/repository/maven-releases/" }
+
+        mavenCentral()
     }
-}
-
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'plugin.yml'
-        expand(
-                'name': project.name,
-                'main': project.group + '.' + project.name,
-                'version': project.version
-        )
-    }
-}
-
-repositories {
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
-    mavenCentral()
-}
-
-dependencies {
-    compile 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.squareup.okhttp3:okhttp:3.14.6'
-    compile 'com.squareup.okio:okio:1.17.2'
-
-    compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
 }

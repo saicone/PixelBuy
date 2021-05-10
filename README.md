@@ -1,2 +1,2 @@
 ## PixelBuy
-Free plugin for donation system based on WooMinecraft
+Free multi-platform plugin for donation system based on WooMinecraft

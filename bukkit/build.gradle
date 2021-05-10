@@ -1,0 +1,37 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+}
+
+repositories {
+    // PlaceholderAPI
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+}
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        expand(
+                'version': project.version
+        )
+    }
+}
+
+dependencies {
+    compile project(':common')
+
+    // Bukkit, Spigot, Paper and shaded dependencies
+    implementation 'ink.ptms.core:v11604:11604:all'
+    // PlaceholderAPI
+    compileOnly 'me.clip:placeholderapi:2.10.9'
+
+    compileOnly 'org.jetbrains:annotations:19.0.0'
+
+    compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
+}
+
+shadowJar {
+    configurations = [project.configurations.compile]
+    archiveFileName = 'PixelBuy-' + project.name + '-' + project.version + '-all.jar'
+}
+
+jar.dependsOn (shadowJar)

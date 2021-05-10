@@ -1,0 +1,15 @@
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+        include '**/*.yml'
+        expand(
+                'version': project.version
+        )
+    }
+}
+
+dependencies {
+    compileOnly 'org.jetbrains:annotations:19.0.0'
+    compileOnly 'com.google.code.gson:gson:2.8.6'
+
+    compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
+}
