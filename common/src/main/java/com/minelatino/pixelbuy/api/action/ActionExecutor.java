@@ -1,10 +1,8 @@
 package com.minelatino.pixelbuy.api.action;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-import com.minelatino.pixelbuy.PixelBuy;
+import com.minelatino.pixelbuy.api.action.type.BroadcastAction;
+import com.minelatino.pixelbuy.api.action.type.MessageAction;
+import com.minelatino.pixelbuy.util.PixelUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,34 +11,21 @@ import java.util.Map;
 
 public abstract class ActionExecutor {
 
-    private final Gson gson = new Gson();
-    private final List<ActionType<?, ?>> actions = new ArrayList<>();
+    final List<ActionType> actions = new ArrayList<>();
 
-    private Map<String, String> getJsonKeys(JsonObject json) {
-        Map<String, String> map = new HashMap<>();
-
-        for (String s : json.keySet()) {
-            JsonElement element = json.get(s);
-
-            if (element instanceof JsonObject) {
-                Map<String, String> map0 = getJsonKeys((JsonObject) element);
-                map0.forEach((key, string) -> map.put(s + "." + key, string));
-            } else {
-                map.put(s, element.getAsString());
-            }
-        }
-
-        return map;
+    public ActionExecutor(){
+        actions.add(new BroadcastAction(""));
+        actions.add(new MessageAction(""));
     }
 
-    public List<ActionType<?, ?>> getActions() {
+    public List<ActionType> getActions() {
         return actions;
     }
 
-    public boolean addAction(ActionType<?, ?> action) {
+    public boolean addAction(ActionType action) {
         if (actions.contains(action)) return false;
         boolean exists = false;
-        for (ActionType<?, ?> act : actions) {
+        for (ActionType act : actions) {
             if (act.getName().toUpperCase().equals(action.getName().toUpperCase())) {
                 exists = true;
             }
@@ -50,7 +35,7 @@ public abstract class ActionExecutor {
         return true;
     }
 
-    public boolean removeAction(ActionType<?, ?> action) {
+    public boolean removeAction(ActionType action) {
         if (!actions.contains(action)) return false;
         actions.remove(action);
         return true;
@@ -58,7 +43,7 @@ public abstract class ActionExecutor {
 
     public boolean removeAction(String actionName) {
         int index = -1;
-        for (ActionType<?, ?> act : actions) {
+        for (ActionType act : actions) {
             if (act.getName().toUpperCase().equals(actionName.toUpperCase())) {
                 index = actions.indexOf(act);
             }
@@ -68,24 +53,21 @@ public abstract class ActionExecutor {
         return true;
     }
 
-    public void execute(String player, String action) {
+    public boolean execute(String player, String action, boolean online) {
         String[] act = action.split("=", 2);
         if (act.length == 2) {
             String[] name = act[0].split("\\{", 2);
-            Map<String, String> keys;
-            if (name.length > 1) {
-                try {
-                    keys = getJsonKeys(gson.fromJson(name[1], JsonObject.class));
-                } catch (JsonSyntaxException e) {
-                    PixelBuy.LOCALE.log(0, "Action.Error.JsonSyntax", name[1], e.getMessage());
-                    keys = new HashMap<>();
-                }
+            Map<String, String> keys = (name.length > 1 ? PixelUtils.getJsonKeys(name[1].trim()) : new HashMap<>());
+            name[0] = name[0].trim();
+            act[1] = act[1].trim();
+            if (name[0].isEmpty() || act[1].isEmpty()) {
+                return false;
             } else {
-                keys = new HashMap<>();
+                return execute(player, online, name[0], keys, act[1]);
             }
-            execute(player, name[0], keys, act[1]);
         }
+        return false;
     }
 
-    public abstract void execute(String player, String actionName, Map<String, String> keys, String content);
+    public abstract boolean execute(String player, boolean online, String actionName, Map<String, String> keys, String content);
 }

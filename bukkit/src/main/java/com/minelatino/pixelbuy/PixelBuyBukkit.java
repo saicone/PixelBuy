@@ -1,5 +1,7 @@
 package com.minelatino.pixelbuy;
 
+import com.minelatino.pixelbuy.api.PixelBuyAPI;
+import com.minelatino.pixelbuy.api.action.BukkitExecutor;
 import com.minelatino.pixelbuy.module.config.SettingsBukkit;
 import com.minelatino.pixelbuy.module.locale.BukkitLocale;
 import com.minelatino.pixelbuy.module.locale.user.BukkitUser;
@@ -21,6 +23,7 @@ public class PixelBuyBukkit extends JavaPlugin {
         userType = new BukkitUser();
         PixelBuy.SETTINGS = new SettingsBukkit("settings.yml");
         PixelBuy.LOCALE = new BukkitLocale(new SettingsBukkit("lang/" + PixelBuy.SETTINGS.getString("Locale.Language") + ".yml", "lang/en_US.yml", false));
+        PixelBuyAPI.setupExecutor(new BukkitExecutor());
     }
 
     @Override

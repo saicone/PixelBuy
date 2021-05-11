@@ -37,6 +37,8 @@ public abstract class PixelLocale {
 
     public abstract void sendTo(Object user, String path, String... args);
 
+    public abstract void sendMessage(Object user, String text, String... args);
+
     public abstract void broadcast(String text, String... args);
 
     public abstract void broadcastPath(String path, String... args);
@@ -56,6 +58,12 @@ public abstract class PixelLocale {
     public void broadcastActionbar(String path, String... args) { }
 
     public void broadcastActionbar(String text, int pulses, String... args) { }
+
+    public List<String> color(List<String> list) {
+        List<String> l = new ArrayList<>();
+        list.forEach(s -> l.add(color(s)));
+        return l;
+    }
 
     public String color(String s) {
         return s;

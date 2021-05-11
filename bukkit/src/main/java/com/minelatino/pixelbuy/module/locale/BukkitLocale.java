@@ -73,6 +73,11 @@ public class BukkitLocale extends PixelLocale {
     }
 
     @Override
+    public void sendMessage(Object user, String text, String... args) {
+        ((CommandSender) user).sendMessage(replaceArgs(text, args));
+    }
+
+    @Override
     public void broadcast(String text, String... args) {
         String msg = replaceArgs(text, args);
         Bukkit.getOnlinePlayers().forEach(player -> player.sendMessage(msg));

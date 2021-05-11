@@ -30,7 +30,14 @@ public class BungeeLocale extends PixelLocale {
     @Override
     public void sendTo(Object user, String path, String... args) {
         if (user instanceof CommandSender) {
-            text(((CommandSender) user), translate(file.getStringList(path), args));
+            text((CommandSender) user, translate(file.getStringList(path), args));
+        }
+    }
+
+    @Override
+    public void sendMessage(Object user, String text, String... args) {
+        if (user instanceof CommandSender) {
+            ((CommandSender) user).sendMessage(translate(text, args));
         }
     }
 

@@ -12,12 +12,16 @@ public class PixelBuyAPI {
         executor = ex;
     }
 
+    public static ActionExecutor getExecutor() {
+        return executor;
+    }
+
     /**
      * Register an action only if provided action doesn't exist in registered actions list.
      * @param action The action to register.
      * @return True if provided action has registered / False if not.
      */
-    public static boolean registerAction(@NotNull ActionType<?, ?> action) {
+    public static boolean registerAction(@NotNull ActionType action) {
         return executor.addAction(action);
     }
 
@@ -26,7 +30,7 @@ public class PixelBuyAPI {
      * @param action The action to unregister.
      * @return True if provided action has unregistered / False if not.
      */
-    public static boolean unregisterAction(@NotNull ActionType<?, ?> action) {
+    public static boolean unregisterAction(@NotNull ActionType action) {
         return executor.removeAction(action);
     }
 
@@ -42,17 +46,20 @@ public class PixelBuyAPI {
     /**
      * Execute an action string for a player
      * @param player The player name.
-     * @param action Action content
+     * @param action Action content.
+     * @param online Need for the player to be online.
+     * @return True if action are executed / False if not
      */
-    public static void executeAction(@NotNull String player, @NotNull String action) {
-        executor.execute(player, action);
+    public static boolean executeAction(@NotNull String player, @NotNull String action, boolean online) {
+        return executor.execute(player, action, online);
     }
 
     /**
      * Execute an action without player.
-     * @param action Action content
+     * @param action Action content.
+     * @return True if action are executed / False if not
      */
-    public static void executeAction(@NotNull String action) {
-        executor.execute(null, action);
+    public static boolean executeAction(@NotNull String action) {
+        return executor.execute(null, action, false);
     }
 }

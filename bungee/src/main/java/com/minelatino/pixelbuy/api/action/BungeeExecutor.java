@@ -1,14 +1,11 @@
 package com.minelatino.pixelbuy.api.action;
 
-import com.minelatino.pixelbuy.api.action.type.GiveItemAction;
-
 import java.util.Map;
 
-public class BukkitExecutor extends ActionExecutor {
+public class BungeeExecutor extends ActionExecutor {
 
-    public BukkitExecutor() {
+    public BungeeExecutor() {
         super();
-        actions.add(new GiveItemAction(""));
     }
 
     @Override

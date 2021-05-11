@@ -9,8 +9,7 @@ public class PixelBuy {
     public static PixelLocale LOCALE;
 
     public static void init() {
-    	String asd = "asd";
-    	String[] sd = asd.split("/");
+
 	}
 
 	public static void reload() {
