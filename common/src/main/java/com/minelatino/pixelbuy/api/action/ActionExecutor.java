@@ -4,10 +4,7 @@ import com.minelatino.pixelbuy.api.action.type.BroadcastAction;
 import com.minelatino.pixelbuy.api.action.type.MessageAction;
 import com.minelatino.pixelbuy.util.PixelUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class ActionExecutor {
 
@@ -53,21 +50,25 @@ public abstract class ActionExecutor {
         return true;
     }
 
-    public boolean execute(String player, String action, boolean online) {
+    public boolean execute(String player, boolean online, Object action) {
+        return execute(player, online, String.valueOf(action));
+    }
+
+    public boolean execute(String player, boolean online, String action) {
         String[] act = action.split("=", 2);
         if (act.length == 2) {
-            String[] name = act[0].split("\\{", 2);
-            Map<String, String> keys = (name.length > 1 ? PixelUtils.getJsonKeys(name[1].trim()) : new HashMap<>());
+            String[] name = act[0].split("\\|", 2);
+            Map<String, String> keys = (name.length > 1 ? PixelUtils.getKeys(name[1].trim(), ";", ":") : new HashMap<>());
             name[0] = name[0].trim();
             act[1] = act[1].trim();
             if (name[0].isEmpty() || act[1].isEmpty()) {
                 return false;
             } else {
-                return execute(player, online, name[0], keys, act[1]);
+                return execute(player, online, name[0], keys, Collections.singletonMap("content", act[1]));
             }
         }
         return false;
     }
 
-    public abstract boolean execute(String player, boolean online, String actionName, Map<String, String> keys, String content);
+    public abstract boolean execute(String player, boolean online, String actionName, Map<String, String> keys, Map<String, String> content);
 }

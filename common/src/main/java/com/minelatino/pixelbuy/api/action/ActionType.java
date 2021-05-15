@@ -19,15 +19,15 @@ public abstract class ActionType {
         return matcher.matches();
     }
 
-    public boolean executeOnline(Object player, Map<String, String> keys, String content) {
+    public boolean executeOnline(Object player, Map<String, String> keys, Map<String, String> content) {
         return execute(keys, content);
     }
 
-    public boolean executeOffline(Object offlinePlayer, Map<String, String> keys, String content) {
+    public boolean executeOffline(Object offlinePlayer, Map<String, String> keys, Map<String, String> content) {
         return execute(keys, content);
     }
 
-    public boolean execute(Map<String, String> keys, String content) {
+    public boolean execute(Map<String, String> keys, Map<String, String> content) {
         return false;
     }
 }

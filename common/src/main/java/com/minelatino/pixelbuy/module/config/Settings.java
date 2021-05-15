@@ -67,6 +67,20 @@ public abstract class Settings {
         return Collections.singletonList(String.valueOf(cache(path, object)));
     }
 
+    @SuppressWarnings("unchecked")
+    public @NotNull List<Object> getList(@NotNull String path) {
+        return (List<Object>) cache.getOrDefault(path, getList0(path));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Object> getList0(String path) {
+        final Object object = get(path);
+        if (object instanceof List) {
+            return (List<Object>) cache(path, object);
+        }
+        return Collections.singletonList(cache(path, object));
+    }
+
     public int getInt(@NotNull String path) {
         return (int) cache.getOrDefault(path, getInt0(path));
     }

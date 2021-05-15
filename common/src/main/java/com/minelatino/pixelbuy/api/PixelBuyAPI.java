@@ -46,12 +46,23 @@ public class PixelBuyAPI {
     /**
      * Execute an action string for a player
      * @param player The player name.
-     * @param action Action content.
      * @param online Need for the player to be online.
+     * @param action Action content.
      * @return True if action are executed / False if not
      */
-    public static boolean executeAction(@NotNull String player, @NotNull String action, boolean online) {
-        return executor.execute(player, action, online);
+    public static boolean executeAction(@NotNull String player, boolean online, @NotNull Object action) {
+        return executor.execute(player, online, online);
+    }
+
+    /**
+     * Execute an action string for a player
+     * @param player The player name.
+     * @param online Need for the player to be online.
+     * @param action Action content.
+     * @return True if action are executed / False if not
+     */
+    public static boolean executeAction(@NotNull String player, boolean online, @NotNull String action) {
+        return executor.execute(player, online, online);
     }
 
     /**
@@ -60,6 +71,6 @@ public class PixelBuyAPI {
      * @return True if action are executed / False if not
      */
     public static boolean executeAction(@NotNull String action) {
-        return executor.execute(null, action, false);
+        return executor.execute(null, false, action);
     }
 }

@@ -18,16 +18,17 @@ public class MessageAction extends ActionType {
     }
 
     @Override
-    public boolean executeOnline(Object player, Map<String, String> keys, String content) {
+    public boolean executeOnline(Object player, Map<String, String> keys, Map<String, String> content) {
         String type = keys.getOrDefault("type", "CHAT").toUpperCase();
+        boolean single = content.size() == 1 && content.containsKey("content");
         if (type.equals("CHAT")) {
-            for (String s : content.split("\\n")) {
+            for (String s : (single ? content.get("content") : content.getOrDefault("text", "")).split("\\n")) {
                 PixelBuy.LOCALE.sendMessage(player, s);
             }
             return true;
         }
 
-        Map<String, String> subKeys = PixelUtils.getKeys(content, ";", ":");
+        Map<String, String> subKeys = (single ? PixelUtils.getKeys(content.get("content"), ";", ":") : content);
         if (type.equals("TITLE")) {
             String title = subKeys.getOrDefault("title", "");
             String subtitle = subKeys.getOrDefault("subtitle", "");

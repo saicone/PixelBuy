@@ -9,7 +9,7 @@ public class BungeeExecutor extends ActionExecutor {
     }
 
     @Override
-    public boolean execute(String player, boolean online, String actionName, Map<String, String> keys, String content) {
+    public boolean execute(String player, boolean online, String actionName, Map<String, String> keys, Map<String, String> content) {
         return false;
     }
 }

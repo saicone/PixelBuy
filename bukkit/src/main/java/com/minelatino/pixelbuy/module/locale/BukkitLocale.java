@@ -3,6 +3,9 @@ package com.minelatino.pixelbuy.module.locale;
 import com.minelatino.pixelbuy.PixelBuyBukkit;
 import com.minelatino.pixelbuy.module.config.Settings;
 import com.minelatino.pixelbuy.util.ReflectUtils;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -16,14 +19,25 @@ public class BukkitLocale extends PixelLocale {
 
     private final String version;
     private final int verNumber;
+    private boolean titleCompatible = false;
+    private boolean usingSpigot = false;
     private boolean useRGB = false;
 
     public BukkitLocale(Settings settings) {
         super(settings);
         version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
         verNumber = Integer.parseInt(version.split("_")[1]);
-        if (verNumber >= 16) {
-            useRGB = true;
+        if (verNumber >= 9) {
+            try {
+                Class.forName("org.spigotmc.SpigotConfig");
+                usingSpigot = true;
+            } catch (ClassNotFoundException ignored) { }
+            if (verNumber >= 12) {
+                titleCompatible = true;
+                if (verNumber >= 16) {
+                    useRGB = true;
+                }
+            }
         }
         load();
         reload();
@@ -31,32 +45,39 @@ public class BukkitLocale extends PixelLocale {
 
     @Override
     void load() {
+        if (titleCompatible && usingSpigot) return;
         try {
-            if (verNumber >= 16) {
-                ReflectUtils.addClass("IChatMutableComponent", Class.forName("net.minecraft.server." + version + ".IChatMutableComponent"));
-            }
             ReflectUtils.addClass("CraftPlayer", Class.forName("net.minecraft.server." + version + ".entity.CraftPlayer"));
             ReflectUtils.addClass("IChatBaseComponent", Class.forName("net.minecraft.server." + version + ".IChatBaseComponent"));
             ReflectUtils.addClass("ChatSerializer", ReflectUtils.getClass("IChatBaseComponent").getDeclaredClasses()[0]);
-            ReflectUtils.addClass("PacketPlayOutTitle", Class.forName("net.minecraft.server." + version + ".PacketPlayOutTitle"));
-            ReflectUtils.addClass("PacketPlayOutChat", Class.forName("net.minecraft.server." + version + ".PacketPlayOutChat"));
-            ReflectUtils.addClass("ChatMessageType", Class.forName("net.minecraft.server." + version + ".ChatMessageType"));
             ReflectUtils.addClass("Packet", Class.forName("net.minecraft.server." + version + ".Packet"));
 
-            if (verNumber >= 12) {
-                ReflectUtils.addMethod("ChatMessageType.a", ReflectUtils.getClass("ChatMessageType").getMethod("a", byte.class));
-            }
             ReflectUtils.addMethod("ChatSerializer.a", ReflectUtils.getClass("ChatSerializer").getMethod("a", String.class));
             ReflectUtils.addMethod("CraftPlayer.getHandle", ReflectUtils.getClass("CraftPlayer").getMethod("getHandle"));
             ReflectUtils.addMethod("PlayerConnection.sendPacket", Class.forName("net.minecraft.server." + version + ".PlayerConnection").getMethod("sendPacket", ReflectUtils.getClass("Packet")));
 
             ReflectUtils.addField("playerConnection", Class.forName("net.minecraft.server." + version + ".EntityPlayer").getField("playerConnection"));
-            ReflectUtils.addField("TIMES", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES"));
-            ReflectUtils.addField("TITLE", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE"));
-            ReflectUtils.addField("SUBTITLE", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE"));
 
-            ReflectUtils.addConstructor("PacketPlayOutTitle", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredConstructor(ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0], ReflectUtils.getClass("IChatBaseComponent"), int.class, int.class, int.class));
-            ReflectUtils.addConstructor("PacketPlayOutChat", ReflectUtils.getClass("PacketPlayOutChat").getDeclaredConstructor(ReflectUtils.getClass("IChatBaseComponent"), (verNumber >= 12 ? ReflectUtils.getClass("ChatMessageType") : byte.class)));
+            if (!titleCompatible) {
+                ReflectUtils.addClass("PacketPlayOutTitle", Class.forName("net.minecraft.server." + version + ".PacketPlayOutTitle"));
+
+                ReflectUtils.addField("TIMES", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TIMES"));
+                ReflectUtils.addField("TITLE", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE"));
+                ReflectUtils.addField("SUBTITLE", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE"));
+
+                ReflectUtils.addConstructor("PacketPlayOutTitle", ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredConstructor(ReflectUtils.getClass("PacketPlayOutTitle").getDeclaredClasses()[0], ReflectUtils.getClass("IChatBaseComponent"), int.class, int.class, int.class));
+            }
+
+            if (!usingSpigot) {
+                ReflectUtils.addClass("PacketPlayOutChat", Class.forName("net.minecraft.server." + version + ".PacketPlayOutChat"));
+                ReflectUtils.addClass("ChatMessageType", Class.forName("net.minecraft.server." + version + ".ChatMessageType"));
+
+                if (verNumber >= 12) {
+                    ReflectUtils.addMethod("ChatMessageType.a", ReflectUtils.getClass("ChatMessageType").getMethod("a", byte.class));
+                }
+
+                ReflectUtils.addConstructor("PacketPlayOutChat", ReflectUtils.getClass("PacketPlayOutChat").getDeclaredConstructor(ReflectUtils.getClass("IChatBaseComponent"), (verNumber >= 12 ? ReflectUtils.getClass("ChatMessageType") : byte.class)));
+            }
         } catch (ClassNotFoundException | NoSuchMethodException | NoSuchFieldException e) {
             e.printStackTrace();
         }
@@ -125,27 +146,33 @@ public class BukkitLocale extends PixelLocale {
     }
 
     private void title(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        try {
-            Object chatTitle = ReflectUtils.getMethod("ChatSerializer.a").invoke(ReflectUtils.getClass("ChatSerializer"), "{\"text\" : \"" + title + "\"}");
-            Object chatSubTitle = ReflectUtils.getMethod("ChatSerializer.a").invoke(ReflectUtils.getClass("ChatSerializer"), "{\"text\" : \"" + subtitle + "\"}");
+        if (titleCompatible) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+        } else {
+            packetTitle(player, title, subtitle, fadeIn, stay, fadeOut);
+        }
+    }
 
-            Object packet1;
-            Object packet2;
-            Object packet3;
-            if (verNumber >= 16) {
-                packet1 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TIMES").get(null), ReflectUtils.getClass("IChatBaseComponent").cast(chatTitle), fadeIn, stay, fadeOut);
-                packet2 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TITLE").get(null), ReflectUtils.getClass("IChatBaseComponent").cast(chatTitle), fadeIn, stay, fadeOut);
-                packet3 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("SUBTITLE").get(null), ReflectUtils.getClass("IChatBaseComponent").cast(chatSubTitle), fadeIn, stay, fadeOut);
-            } else {
-                packet1 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TIMES").get(null), chatTitle, fadeIn, stay, fadeOut);
-                packet2 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TITLE").get(null), chatTitle, fadeIn, stay, fadeOut);
-                packet3 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("SUBTITLE").get(null), chatSubTitle, fadeIn, stay, fadeOut);
+    // TODO: Remove this in future by dropping <1.12 versions compatibility
+    private void packetTitle(Player player, String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        if ((title == null || title.isEmpty()) && (subtitle == null || subtitle.isEmpty())) return;
+        try {
+            Object playerConnection = ReflectUtils.getField("playerConnection").get(ReflectUtils.getMethod("CraftPlayer.getHandle").invoke(ReflectUtils.getClass("CraftPlayer").cast(player)));
+
+            Object chatTitle = ReflectUtils.getMethod("ChatSerializer.a").invoke(ReflectUtils.getClass("ChatSerializer"), "{\"text\" : \"" + (title != null ? title : "") + "\"}");
+            Object packet1 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TIMES").get(null), chatTitle, fadeIn, stay, fadeOut);
+            ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet1));
+
+            if (title != null && !title.isEmpty()) {
+                Object packet2 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("TITLE").get(null), chatTitle, fadeIn, stay, fadeOut);
+                ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet2));
             }
 
-            Object playerConnection = ReflectUtils.getField("playerConnection").get(ReflectUtils.getMethod("CraftPlayer.getHandle").invoke(ReflectUtils.getClass("CraftPlayer").cast(player)));
-            ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet1));
-            ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet2));
-            ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet3));
+            if (subtitle != null && !subtitle.isEmpty()) {
+                Object chatSubTitle = ReflectUtils.getMethod("ChatSerializer.a").invoke(ReflectUtils.getClass("ChatSerializer"), "{\"text\" : \"" + subtitle + "\"}");
+                Object packet3 = ReflectUtils.getConstructor("PacketPlayOutTitle").newInstance(ReflectUtils.getField("SUBTITLE").get(null), chatSubTitle, fadeIn, stay, fadeOut);
+                ReflectUtils.getMethod("PlayerConnection.sendPacket").invoke(playerConnection, ReflectUtils.getClass("Packet").cast(packet3));
+            }
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             e.printStackTrace();
         }
@@ -179,6 +206,31 @@ public class BukkitLocale extends PixelLocale {
     }
 
     private void actionbar(Player player, String text, int pulses) {
+        if (text == null || text.isEmpty()) return;
+        if (usingSpigot) {
+            if (pulses == 1) {
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(text));
+            } else {
+                BaseComponent[] msg = TextComponent.fromLegacyText(text);
+                new BukkitRunnable() {
+                    int times = 1;
+                    @Override
+                    public void run() {
+                        if (times > pulses) {
+                            cancel();
+                        } else {
+                            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, msg);
+                            times++;
+                        }
+                    }
+                }.runTaskTimer(PixelBuyBukkit.get(), 1, 10);
+            }
+        } else {
+            packetActionbar(player, text, pulses);
+        }
+    }
+
+    private void packetActionbar(Player player, String text, int pulses) {
         try {
             Object chatActionbar = ReflectUtils.getMethod("ChatSerializer.a").invoke(ReflectUtils.getClass("ChatSerializer"), "{\"text\" : \"" + text + "\"}");
 
