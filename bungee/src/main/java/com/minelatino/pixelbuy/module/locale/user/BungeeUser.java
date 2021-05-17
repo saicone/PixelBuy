@@ -10,6 +10,11 @@ import java.util.UUID;
 public class BungeeUser extends UserType<CommandSender> {
 
     @Override
+    boolean isConsole(CommandSender user) {
+        return !(user instanceof ProxiedPlayer);
+    }
+
+    @Override
     public String getName(CommandSender user) {
         if (user instanceof ProxiedPlayer) {
             return user.getName();

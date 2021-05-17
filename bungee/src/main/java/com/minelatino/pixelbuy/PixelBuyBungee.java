@@ -8,7 +8,9 @@ import com.minelatino.pixelbuy.module.locale.user.BungeeUser;
 import com.minelatino.pixelbuy.module.locale.user.UserType;
 import net.md_5.bungee.api.plugin.Plugin;
 
-public class PixelBuyBungee extends Plugin {
+import java.util.UUID;
+
+public class PixelBuyBungee extends Plugin implements PixelPlugin {
 
     private static PixelBuyBungee instance;
 
@@ -17,6 +19,11 @@ public class PixelBuyBungee extends Plugin {
 
     public static PixelBuyBungee get() {
         return instance;
+    }
+
+    @Override
+    public void onLoad() {
+        PixelBuy.init(this);
     }
 
     @Override
@@ -40,5 +47,10 @@ public class PixelBuyBungee extends Plugin {
 
     public UserType<?> getUserType() {
         return userType;
+    }
+
+    @Override
+    public UUID getPlayerUUID(String name) {
+        return null;
     }
 }

@@ -6,6 +6,8 @@ public abstract class UserType<T> {
 
     UUID CONSOLE_UUID = new UUID(0, 0);
 
+    abstract boolean isConsole(T user);
+
     abstract String getName(T user);
 
     abstract UUID getUniqueId(T user);

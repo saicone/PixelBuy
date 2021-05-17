@@ -1,6 +1,7 @@
 package com.minelatino.pixelbuy.module.config;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,7 +10,8 @@ import java.util.Map;
 
 public abstract class Settings {
 
-    private final Map<String, Object> cache = new HashMap<>();
+    final Map<String, Object> cache = new HashMap<>();
+    final Map<String, PathSection> sections = new HashMap<>();
 
     String path;
     boolean defaultExists = true;
@@ -44,6 +46,8 @@ public abstract class Settings {
     abstract Object getDefault(@NotNull String path);
 
     abstract Object get(@NotNull String path, Object def);
+
+    abstract PathSection getSection0(@NotNull String path);
 
     public @NotNull String getString(@NotNull String path) {
         return String.valueOf(cache.getOrDefault(path, cache(path, get(path))));
@@ -120,8 +124,9 @@ public abstract class Settings {
         return (boolean) cache.getOrDefault(path, def);
     }
 
-    public Map<String, Object> getCache() {
-        return cache;
+    @Nullable
+    public PathSection getSection(@NotNull String path) {
+        return sections.getOrDefault(path, getSection0(path));
     }
 
     private Object cache(String path, Object obj) {

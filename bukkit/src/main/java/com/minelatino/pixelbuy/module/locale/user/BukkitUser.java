@@ -2,11 +2,18 @@ package com.minelatino.pixelbuy.module.locale.user;
 
 import com.minelatino.pixelbuy.PixelBuy;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
 public class BukkitUser extends UserType<CommandSender> {
+
+    @Override
+    boolean isConsole(CommandSender user) {
+        return user instanceof ConsoleCommandSender || user instanceof RemoteConsoleCommandSender;
+    }
 
     @Override
     public String getName(CommandSender user) {
@@ -22,7 +29,7 @@ public class BukkitUser extends UserType<CommandSender> {
         if (user instanceof Player) {
             return ((Player) user).getUniqueId();
         } else {
-            return CONSOLE_UUID;
+            return null;
         }
     }
 

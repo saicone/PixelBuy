@@ -9,14 +9,20 @@ public final class PixelUser<T> {
     private final UserType<T> type;
     private final T user;
 
+    private final boolean console;
     private final String name;
     private final UUID uuid;
 
     public PixelUser(UserType<T> type, T user) {
         this.type = type;
         this.user = user;
+        console = type.isConsole(user);
         name = type.getName(user);
         uuid = type.getUniqueId(user);
+    }
+
+    public boolean isConsole() {
+        return console;
     }
 
     public String getName() {
@@ -28,6 +34,7 @@ public final class PixelUser<T> {
     }
 
     public boolean hasPermission(String permission) {
+        if (isConsole()) return true;
         return type.hasPermission(user, permission);
     }
 
@@ -51,7 +58,7 @@ public final class PixelUser<T> {
         PixelBuy.LOCALE.sendActionbar(user, path, args);
     }
 
-    public void sendActionbar(String path, int pulses, String... args) {
-        PixelBuy.LOCALE.sendActionbar(user, path, pulses, args);
+    public void sendActionbar(String text, int pulses, String... args) {
+        PixelBuy.LOCALE.sendActionbar(user, text, pulses, args);
     }
 }

@@ -6,15 +6,23 @@ import com.minelatino.pixelbuy.module.config.SettingsBukkit;
 import com.minelatino.pixelbuy.module.locale.BukkitLocale;
 import com.minelatino.pixelbuy.module.locale.user.BukkitUser;
 import com.minelatino.pixelbuy.module.locale.user.UserType;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class PixelBuyBukkit extends JavaPlugin {
+import java.util.UUID;
+
+public class PixelBuyBukkit extends JavaPlugin implements PixelPlugin {
 
     private static PixelBuyBukkit instance;
     private BukkitUser userType;
 
     public static PixelBuyBukkit get() {
         return instance;
+    }
+
+    @Override
+    public void onLoad() {
+        PixelBuy.init(this);
     }
 
     @Override
@@ -33,5 +41,10 @@ public class PixelBuyBukkit extends JavaPlugin {
 
     public UserType<?> getUserType() {
         return userType;
+    }
+
+    @Override
+    public UUID getPlayerUUID(String name) {
+        return Bukkit.getOfflinePlayer(name).getUniqueId();
     }
 }

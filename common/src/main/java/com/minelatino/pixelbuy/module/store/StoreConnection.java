@@ -52,7 +52,7 @@ public class StoreConnection {
         }
 
         try {
-            url = new URL(page.replace("https:", "http:") + "/wp-json/wmc/v1/server/" + key);
+            url = new URL(page + "/wp-json/wmc/v1/server/" + key);
             return true;
         } catch (MalformedURLException e) {
             // Debug: Bad url

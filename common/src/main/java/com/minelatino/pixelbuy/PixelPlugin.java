@@ -1,8 +1,10 @@
 package com.minelatino.pixelbuy;
 
-import com.minelatino.pixelbuy.module.locale.user.UserType;
+import java.util.UUID;
 
 public interface PixelPlugin {
 
-    UserType<?> getUserType();
+    default void onReload() { }
+
+    UUID getPlayerUUID(String name);
 }

@@ -10,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsBungee extends Settings {
 
@@ -48,6 +50,8 @@ public class SettingsBungee extends Settings {
 
     @Override
     public void reload() {
+        cache.clear();
+        sections.clear();
         File folder = pl.getDataFolder();
         if (!folder.exists()) {
             folder.mkdir();
@@ -82,5 +86,29 @@ public class SettingsBungee extends Settings {
     @Override
     Object get(@NotNull String path, Object def) {
         return config.get(path, def);
+    }
+
+    @Override
+    PathSection getSection0(@NotNull String path) {
+        Object section = get(path);
+        if (section instanceof Configuration) {
+            int index = path.lastIndexOf('.');
+            String name = path.substring(index);
+            if (name.isEmpty()) return null;
+
+            Map<String, Object> objects = new HashMap<>();
+            ((Configuration) section).getKeys().forEach(key -> {
+                Object obj = get(path + "." + key);
+                if (obj instanceof Configuration) {
+                    objects.put(key, getSection0(path + "." + key));
+                } else {
+                    objects.put(key, obj);
+                }
+            });
+
+            return new PathSection(this, path.substring(0, index), name, objects);
+        } else {
+            return null;
+        }
     }
 }

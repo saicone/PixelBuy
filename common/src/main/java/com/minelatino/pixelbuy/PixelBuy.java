@@ -8,12 +8,20 @@ public class PixelBuy {
     public static Settings SETTINGS;
     public static PixelLocale LOCALE;
 
-    public static void init() {
+    private static PixelPlugin plugin;
 
+    public static void init(PixelPlugin pl) {
+    	if (plugin == null) {
+    		plugin = pl;
+		}
 	}
 
 	public static void reload() {
     	SETTINGS.reload();
     	LOCALE.reload();
+	}
+
+	public static PixelPlugin getPlugin() {
+		return plugin;
 	}
 }

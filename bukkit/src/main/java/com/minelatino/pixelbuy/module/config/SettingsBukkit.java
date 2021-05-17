@@ -2,6 +2,7 @@ package com.minelatino.pixelbuy.module.config;
 
 import com.minelatino.pixelbuy.PixelBuyBukkit;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsBukkit extends Settings {
 
@@ -47,7 +50,8 @@ public class SettingsBukkit extends Settings {
 
     @Override
     public void reload() {
-        getCache().clear();
+        cache.clear();
+        sections.clear();
         String path = pl.getDataFolder() + File.separator + this.path;
         File file = new File(path);
         if (file.exists()) {
@@ -72,5 +76,33 @@ public class SettingsBukkit extends Settings {
     @Override
     Object get(@NotNull String path, Object def) {
         return config.get(path, def);
+    }
+
+    @Override
+    PathSection getSection0(@NotNull String path) {
+        Object section = get(path);
+        if (section instanceof ConfigurationSection) {
+            return convertSection(path, (ConfigurationSection) section);
+        } else {
+            return null;
+        }
+    }
+
+    private PathSection convertSection(final String path, ConfigurationSection section) {
+        int index = path.lastIndexOf('.');
+        String name = path.substring(index);
+        if (name.isEmpty()) return null;
+
+        Map<String, Object> objects = new HashMap<>();
+        section.getKeys(false).forEach(key -> {
+            Object obj = get(path + "." + key);
+            if (obj instanceof ConfigurationSection) {
+                objects.put(key, convertSection(path + "." + key, (ConfigurationSection) obj));
+            } else {
+                objects.put(key, obj);
+            }
+        });
+
+        return new PathSection(this, path.substring(0, index), name, objects);
     }
 }
