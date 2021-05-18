@@ -1,0 +1,28 @@
+# Default store configuration
+# If you want to make more stores just make other .yml file in this directory
+
+# Store name
+Name: 'defaultStore'
+
+# Store display name
+DisplayName: '&eServer Store 1'
+
+# Store connection configuration
+Connection:
+  # Interval in seconds to check if exists new orders
+  # This checker don't require so much CPU, 7 seconds is recommended
+  # Set to -1 to disable
+  Check-Interval: 7
+  # URL of your site WITHOUT "/" at final
+  # For example https://shop.mysite.com
+  URL: ''
+  # This is a key that YOU set, both needing to be identical
+  # in the WooCommerce configuration and in this config file
+  Key: ''
+
+# Store items configuration
+Items:
+  # Item identifier, in this case is "item1"
+  item1:
+    price: ''
+    requireOnline: true

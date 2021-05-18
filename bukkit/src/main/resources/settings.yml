@@ -18,93 +18,55 @@ Locale:
 
 # Server configuration
 Server:
+  # Available server types:
+  # * MAIN : Main server who can handle, SAVE, GET and log donations received from store connection and logger (if set)
+  # * SUB : Sub server who only GET data saved by main server (require external database)
+  # * GLOBAL: Global server who can handle, SAVE and log donations with global aspects (require a configured logger)
+  Type: 'MAIN'
   # Server name identifier
   Name: 'BukkitServer1'
   # Server display name
   DisplayName: '&aSome cool server'
-  # Maximum number of months donations data will be saved
-  # Donations data represent the total number of donations and top players
+  # Maximum number of month donations data will be saved
+  # Donations data represent the total number of donated money and top players
   # Set -1 to unlimited (not recommended)
   MaxMonthsSize: 12
   # Maximum TOP size
   # Set -1 to disable
   MaxTopSize: 10
+  # Database identifier to SAVE data
+  # You can configure databases in database.yml file
+  Database: 'default'
+  # Interval in seconds to SAVE current server data in database
+  # Set to 0 to disable
+  SaveInterval: 20
+  # Interval in seconds to GET other servers data in database
+  GetInterval: 20
+  # List of servers to get data and make logger connections
+  # Set to List: '*' for all servers
+  # You can set modifiers like "database" and "logger" separated by ; if exists some server
+  # with different database or logger
+  # Modifiers path '<server identifier>|<modifier1>:<text>;<modifier2>:<text>...'
+  List:
+    - 'BukkitServer2'
+    - 'SomeServerIdentifier'
+    - 'BukkitServer3|database:noDefaultDatabase'
+    - 'BukkitServer4|database:otherDatabaseIdentifier;logger:redisLogger'
 
 
-# Database configuration
-Database:
-  # If true data will be saved using player UUID, false if not
-  OnlineMode: true
-  # Available types:
-  # * JSON : Data will be stored on multiple .json files
-  # * SQLITE : Data will be stored on one .db file
-  # * SQL : Data will be stored on external sql database
-  Type: 'SQLITE'
-  # SQL database configuration
-  # Don't touch this if you set other database type
-  Sql:
-    # Driver class to use
-    # MySQL : com.mysql.jdbc.Driver
-    # MariaDB : org.mariadb.jdbc.Driver (Not included on Bukkit, you need to put your own plugin with MariaDB classes)
-    class: 'com.mysql.jdbc.Driver'
-    # Connection URL (With some flags)
-    # Change "localhost:3306" and "database" with you own database information
-    url: 'jdbc:mysql://localhost:3306/database?autoReconnect=true&useSSL=false&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8'
-    # Database username
-    name: 'username'
-    # Database password
-    password: 'password'
-    # Tables prefix
-    table-prefix: 'pixelbuy_'
-    # Data types to use for objects stored in database
-    data-type:
-      # Player name or UUID
-      player: 'VARCHAR(255)'
-      # Player data (donated, orders, displayName.. etc)
-      playerdata: 'MEDIUMTEXT'
-      # Server name
-      server: 'VARCHAR(255)'
-      # Server data (top data, displayName and donations)
-      serverdata: 'TEXT'
-
-
-# Configuration about WooCommerce connection
-Web-Data:
-  # Interval in seconds to check if exists new orders
-  # This checker don't require so much CPU, 7 seconds is recommended
-  # Set to -1 to disable
-  Check-Interval: 7
-  # URL of your site WITHOUT "/" at final
-  # For example http://shop.mysite.com
-  URL: ''
-  # This is a key that YOU set, both needing to be identical
-  # in the WooCommerce configuration and in this config file
-  Key: ''
-  # Set to true if you want to see more info in console about processed orders
-  # and errors about miss configured things
-  Debug: false
-
-# Configuration about orders
-Order:
-  # Delay on seconds order sending to player
-  Delay: 5
-
-# Configuration about plugin command
-# Yes, you can edit command name and aliases
+# Plugin commands configuration
+# You can reload changes with /pixebuy reload
 Commands:
-  # Main command configuration
-  Main:
-    Cmd: 'pixelbuy'
+  # Typically /buy command who display shop items
+  Buy:
+    # Enable or disable this command
+    Enable: true
+    # Main command
+    Cmd: 'buy'
+    # Permission to use the command
+    # To allow everyone put this in blank
+    Permission: 'pixelbuy.command.buy'
+    # Other ways to use this command
     Aliases:
-      - 'pbuy'
-
-# Permissions configuration
-Perms:
-  # All permissions
-  All: 'pixelbuy.*'
-  # Commands permissions
-  Main: 'pixelbuy.use'
-  Database: 'pixelbuy.database'
-  PlayerData: 'pixelbuy.playerdata'
-  Reload: 'pixelbuy.reload'
-  Store: 'pixelbuy.store'
+      - 'ranks'
+      - 'servershop'

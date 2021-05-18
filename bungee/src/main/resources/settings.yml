@@ -7,56 +7,66 @@ Locale:
   # Available languages: en_US, es_MX
   # If you want to create other language go to "lang" folder and create new file
   Language: 'en_US'
+  # Log level for extra messages in console
+  # 0 = errors
+  # 1 = errors and warnings
+  # 2 = errors, warnings and suggestions
+  # 3 = errors, warnings, suggestions and debug information
+  # Set to -1 to disable all extra messages
   LogLevel: 1
 
 
 # Server configuration
 Server:
+  # Available server types:
+  # * MAIN : Main server who can handle, SAVE, GET and log donations received from store connection and logger (if set)
+  # * SUB : Sub server who only GET data saved by main server (require external database)
+  # * GLOBAL: Global server who can handle, SAVE and log donations with global aspects (require a configured logger)
+  Type: 'MAIN'
   # Server name identifier
   Name: 'BungeeServer1'
   # Server display name
   DisplayName: '&aSome cool server'
-  # Maximum number of months donations data will be saved
-  # Donations data represent the total number of donations and top players
+  # Maximum number of month donations data will be saved
+  # Donations data represent the total number of donated money and top players
   # Set -1 to unlimited (not recommended)
   MaxMonthsSize: 12
   # Maximum TOP size
   # Set -1 to disable
   MaxTopSize: 10
+  # Database identifier to SAVE data
+  # You can configure databases in database.yml file
+  Database: 'default'
+  # Interval in seconds to SAVE current server data in database
+  # Set to 0 to disable
+  SaveInterval: 20
+  # Interval in seconds to GET other servers data in database
+  GetInterval: 20
+  # List of servers to get data and make logger connections
+  # Set to List: '*' for all servers
+  # You can set modifiers like "database" and "logger" separated by ; if exists some server
+  # with different database or logger
+  # Modifiers path '<server identifier>|<modifier1>:<text>;<modifier2>:<text>...'
+  List:
+    - 'BungeeServer2'
+    - 'SomeServerIdentifier'
+    - 'BungeeServer3|database:noDefaultDatabase'
+    - 'BungeeServer4|database:otherDatabaseIdentifier;logger:redisLogger'
 
 
-# Database configuration
-Database:
-  # If true data will saved using player UUID, false if not
-  OnlineMode: true
-  # Available types:
-  # * JSON : Data will be stored on multiple .json files
-  # * SQLITE : Data will be stored on one .db file
-  # * SQL : Data will be stored on external sql database
-  Type: 'SQLITE'
-  # SQL database configuration
-  # Don't touch this if you set different database type
-  Sql:
-    # Driver class to use
-    # MySQL : com.mysql.jdbc.Driver
-    # MariaDB : org.mariadb.jdbc.Driver (Not included on Bukkit, you need to put your own plugin with MariaDB classes)
-    class: 'com.mysql.jdbc.Driver'
-    # Connection URL (With some flags)
-    # Change "localhost:3306" and "database" with you own database information
-    url: 'jdbc:mysql://localhost:3306/database?autoReconnect=true&useSSL=false&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8'
-    # Database username
-    name: 'username'
-    # Database password
-    password: 'password'
-    # Tables prefix
-    table-prefix: 'pixelbuy_'
-    # Data types to use for objects stored in database
-    data-type:
-      # Player name or UUID
-      player: 'VARCHAR(255)'
-      # Player data (donated, orders, displayName.. etc)
-      playerdata: 'MEDIUMTEXT'
-      # Server name
-      server: 'VARCHAR(255)'
-      # Server data (top data, displayName)
-      serverdata: 'TEXT'
+# Plugin commands configuration
+# You can reload changes with /pixebuy reload
+Commands:
+  # Typically /buy command who display shop items
+  Buy:
+    # Enable or disable this command
+    Enable: true
+    # Main command
+    Cmd: 'buy'
+    # Permission to use the command
+    # To allow everyone put this in blank
+    Permission: 'pixelbuy.command.buy'
+    # Other ways to use this command
+    Aliases:
+      - 'ranks'
+      - 'servershop'

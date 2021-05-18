@@ -1,0 +1,46 @@
+# PixelBuy databases configuration
+
+# Default database configuration
+# "default" is the identifier
+default:
+  # If true data will be saved using player UUID, false if not
+  OnlineMode: true
+  # Local database types:
+  # * JSON : Data will be stored on multiple .json files
+  # * SQLITE : Data will be stored on one .db file (Best local database)
+  # External databas types:
+  # * SQL : Data will be stored on external sql database (Require extra configuration, go down this file)
+  Type: 'SQLITE'
+
+
+# MySQL database example
+# "mysqlExample" is the identifier
+mysqlExample:
+  OnlineMode: true
+  Type: 'SQL'
+  # SQL database configuration
+  # Don't touch this if you set other database type
+  Sql:
+    # Driver class to use
+    # MySQL : com.mysql.jdbc.Driver
+    # MariaDB : org.mariadb.jdbc.Driver (Not included on Bukkit, you need to put your own plugin with MariaDB classes)
+    class: 'com.mysql.jdbc.Driver'
+    # Connection URL (With some flags)
+    # Change "localhost:3306" and "database" with you own database information
+    url: 'jdbc:mysql://localhost:3306/database?autoReconnect=true&useSSL=false&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8'
+    # Database username
+    name: 'username'
+    # Database password
+    password: 'password'
+    # Tables prefix
+    table-prefix: 'pixelbuy_'
+    # Data types to use for objects stored in database
+    data-type:
+      # Player name or UUID
+      player: 'VARCHAR(255)'
+      # Player data (donated, orders, displayName.. etc)
+      playerdata: 'MEDIUMTEXT'
+      # Server name
+      server: 'VARCHAR(255)'
+      # Server data (top data, displayName and donations)
+      serverdata: 'TEXT'

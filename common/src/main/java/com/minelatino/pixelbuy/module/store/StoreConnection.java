@@ -81,12 +81,12 @@ public class StoreConnection {
         }
 
         if (content.isEmpty()) {
-            // Debug: Empty page
+            // Debug: Empty page (maybe protocol)
             return true;
         }
 
         JsonObject object = gson.fromJson(content, JsonObject.class);
-        if (object.getAsJsonObject("data") != null) {
+        if (object.get("data") != null) {
             // Debug: object.get("code").getAsString();
             return false;
         }
@@ -106,7 +106,7 @@ public class StoreConnection {
         });
 
         JsonObject saved = new JsonObject();
-        saved.add("processedOrders", gson.toJsonTree(checked));
+        saved.add("processedOrders", gson.toJsonTree(checked).getAsJsonArray());
 
         send(gson.toJson(saved));
         return true;
@@ -137,7 +137,7 @@ public class StoreConnection {
             if (!response.toString().isEmpty()) {
                 // Debug: Error while connect
                 JsonObject object = gson.fromJson(response.toString(), JsonObject.class);
-                if (object.getAsJsonObject("data") != null) {
+                if (object.get("data") != null) {
                     // Debug: object.get("code").getAsString();
                 }
             } else {
