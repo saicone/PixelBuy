@@ -27,23 +27,34 @@ Server:
   Name: 'BungeeServer1'
   # Server display name
   DisplayName: '&aSome cool server'
-  # Maximum number of month donations data will be saved
-  # Donations data represent the total number of donated money and top players
-  # Set -1 to unlimited (not recommended)
-  MaxMonthsSize: 12
-  # Maximum TOP size
-  # Set -1 to disable
-  MaxTopSize: 10
-  # Database identifier to SAVE data
+
+
+# Server database configuration
+Database:
+  # Database identifier to SAVE and GET data
   # You can configure databases in database.yml file
-  Database: 'default'
+  Identifier: 'default'
   # Interval in seconds to SAVE current server data in database
-  # Set to 0 to disable
+  # Set to 0 to only save when plugin is unloaded
   SaveInterval: 20
   # Interval in seconds to GET other servers data in database
   GetInterval: 20
+
+
+# Donations configuration
+# Donations data represent the total number of donated money and top players
+Donations:
+  # Maximum number of month donations data will be saved
+  # Set -1 to unlimited (not recommended)
+  MonthsSize: 12
+  # Maximum TOP size
+  # Set -1 to disable
+  TopSize: 10
+
+
+# Connection configuration
+Connection:
   # List of servers to get data and make logger connections
-  # Set to List: '*' for all servers
   # You can set modifiers like "database" and "logger" separated by ; if exists some server
   # with different database or logger
   # Modifiers path '<server identifier>|<modifier1>:<text>;<modifier2>:<text>...'

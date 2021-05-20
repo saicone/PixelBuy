@@ -3,15 +3,12 @@ package com.minelatino.pixelbuy.module.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class Settings {
 
-    final Map<String, Object> cache = new HashMap<>();
     final Map<String, PathSection> sections = new HashMap<>();
+    final Map<String, Object> cache = new HashMap<>();
 
     String path;
     boolean defaultExists = true;
@@ -47,7 +44,23 @@ public abstract class Settings {
 
     abstract Object get(@NotNull String path, Object def);
 
-    abstract PathSection getSection0(@NotNull String path);
+    abstract boolean isSection(@NotNull Object object);
+
+    @Nullable
+    public PathSection getSection(@NotNull String path) {
+        return sections.getOrDefault(path, getSection0(path));
+    }
+
+    private PathSection getSection0(@NotNull String path) {
+        Object object = get(path);
+        if (isSection(object)) {
+            return toSection(path, object);
+        } else {
+            return null;
+        }
+    }
+
+    abstract PathSection toSection(@NotNull String path, @NotNull Object object);
 
     public @NotNull String getString(@NotNull String path) {
         return String.valueOf(cache.getOrDefault(path, cache(path, get(path))));
@@ -78,11 +91,22 @@ public abstract class Settings {
 
     @SuppressWarnings("unchecked")
     private List<Object> getList0(String path) {
+        List<Object> list = new ArrayList<>();
         final Object object = get(path);
         if (object instanceof List) {
-            return (List<Object>) cache(path, object);
+            ((List<Object>) object).forEach(obj -> {
+                if (isSection(obj)) {
+                    list.add(toSection(path, obj));
+                } else {
+                    list.add(obj);
+                }
+            });
+        } else if (isSection(object)) {
+            list.add(toSection(path, object));
+        } else {
+            list.add(object);
         }
-        return Collections.singletonList(cache(path, object));
+        return (List<Object>) cache(path, list);
     }
 
     public int getInt(@NotNull String path) {
@@ -122,11 +146,6 @@ public abstract class Settings {
 
     public boolean getBoolean(@NotNull String path, boolean def) {
         return (boolean) cache.getOrDefault(path, def);
-    }
-
-    @Nullable
-    public PathSection getSection(@NotNull String path) {
-        return sections.getOrDefault(path, getSection0(path));
     }
 
     private Object cache(String path, Object obj) {

@@ -16,9 +16,9 @@ processResources {
 }
 
 dependencies {
-    compile project(':common')
+    implementation project(':common')
 
-    // Bungeecord API
+    // Bungeecord API without implemented dependencies
     compileOnly ('net.md-5:bungeecord-api:1.16-R0.5-SNAPSHOT') {
         exclude group: 'com.google.guava', module: 'guava'
         exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
@@ -32,8 +32,9 @@ dependencies {
 }
 
 shadowJar {
-    configurations = [project.configurations.compile]
-    archiveFileName = 'PixelBuy-' + project.name + '-' + project.version + '-all.jar'
+    destinationDirectory.set(new File(rootProject.rootDir, 'generated'))
+    archiveBaseName.set('PixelBuy-' + project.name)
+    archiveClassifier.set('')
 }
 
 jar.dependsOn (shadowJar)

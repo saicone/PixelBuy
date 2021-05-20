@@ -3,6 +3,8 @@
 # Default logger configuration
 # "default" is the logger identifier
 default:
+  # Enable or not this logger
+  Enable: true
   # Available logger types to send and receive message:
   # * PROXY : Use proxy (Require PixelBuy on bungeecord or velocity server)
   # * SQL=<database> : Use provided sql database with pooling (Causes lag? Maybe)
@@ -12,14 +14,17 @@ default:
   # Channel names to communicate
   Channel:
     donations: 'PixelBuy-Donations'
+    stores: 'PixelBuy-Stores'
 
 # SQL logger example
 sqlExample:
+  Enable: false
   # In this case the logger suppose you're using SQL in default database
   # Otherwise use 'SQL=<database identifier>', for example 'SQL=mysqlExample'
   Type: 'SQL'
   Channel:
     donations: 'PixelBuy-Donations'
+    stores: 'PixelBuy-Stores'
   # SQL logger configuration
   Sql:
     max-pool-size: 8
@@ -30,9 +35,11 @@ sqlExample:
 
 # Redis logger example
 redisExample:
+  Enable: false
   Type: 'REDIS'
   Channel:
     donations: 'PixelBuy-Donations'
+    stores: 'PixelBuy-Stores'
   # Redis logger configuration
   Redis:
     host: 'localhost'
@@ -42,9 +49,11 @@ redisExample:
 
 # RabbitMQ logger example
 rabbitmqExample:
+  Enable: false
   Type: 'RABBITMQ'
   Channel:
     donations: 'PixelBuy-Donations'
+    stores: 'PixelBuy-Stores'
   # RabbitMQ logger configuration
   RabbitMQ:
     host: 'localhost'

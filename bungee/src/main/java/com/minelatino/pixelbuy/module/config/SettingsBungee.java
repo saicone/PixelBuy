@@ -89,26 +89,26 @@ public class SettingsBungee extends Settings {
     }
 
     @Override
-    PathSection getSection0(@NotNull String path) {
-        Object section = get(path);
-        if (section instanceof Configuration) {
-            int index = path.lastIndexOf('.');
-            String name = path.substring(index);
-            if (name.isEmpty()) return null;
+    boolean isSection(@NotNull Object object) {
+        return object instanceof Configuration;
+    }
 
-            Map<String, Object> objects = new HashMap<>();
-            ((Configuration) section).getKeys().forEach(key -> {
-                Object obj = get(path + "." + key);
-                if (obj instanceof Configuration) {
-                    objects.put(key, getSection0(path + "." + key));
-                } else {
-                    objects.put(key, obj);
-                }
-            });
+    @Override
+    PathSection toSection(@NotNull String path, @NotNull Object object) {
+        int index = path.lastIndexOf('.');
+        String name = path.substring(index);
+        if (name.isEmpty()) return null;
 
-            return new PathSection(this, path.substring(0, index), name, objects);
-        } else {
-            return null;
-        }
+        Map<String, Object> objects = new HashMap<>();
+        ((Configuration) object).getKeys().forEach(key -> {
+            Object obj = get(path + "." + key);
+            if (isSection(obj)) {
+                objects.put(key, toSection(path + "." + key, obj));
+            } else {
+                objects.put(key, obj);
+            }
+        });
+
+        return new PathSection(this, path.substring(0, index), name, objects);
     }
 }

@@ -79,25 +79,21 @@ public class SettingsBukkit extends Settings {
     }
 
     @Override
-    PathSection getSection0(@NotNull String path) {
-        Object section = get(path);
-        if (section instanceof ConfigurationSection) {
-            return convertSection(path, (ConfigurationSection) section);
-        } else {
-            return null;
-        }
+    boolean isSection(@NotNull Object object) {
+        return object instanceof ConfigurationSection;
     }
 
-    private PathSection convertSection(final String path, ConfigurationSection section) {
+    @Override
+    PathSection toSection(@NotNull String path, @NotNull Object object) {
         int index = path.lastIndexOf('.');
         String name = path.substring(index);
         if (name.isEmpty()) return null;
 
         Map<String, Object> objects = new HashMap<>();
-        section.getKeys(false).forEach(key -> {
+        ((ConfigurationSection) object).getKeys(false).forEach(key -> {
             Object obj = get(path + "." + key);
-            if (obj instanceof ConfigurationSection) {
-                objects.put(key, convertSection(path + "." + key, (ConfigurationSection) obj));
+            if (isSection(obj)) {
+                objects.put(key, toSection(path + "." + key, obj));
             } else {
                 objects.put(key, obj);
             }

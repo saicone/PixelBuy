@@ -17,10 +17,10 @@ processResources {
 }
 
 dependencies {
-    compile project(':common')
+    implementation project(':common')
 
     // Bukkit, Spigot, Paper and shaded dependencies
-    implementation 'ink.ptms.core:v11604:11604:all'
+    compileOnly 'ink.ptms.core:v11604:11604:all'
     // PlaceholderAPI
     compileOnly 'me.clip:placeholderapi:2.10.9'
 
@@ -30,8 +30,9 @@ dependencies {
 }
 
 shadowJar {
-    configurations = [project.configurations.compile]
-    archiveFileName = 'PixelBuy-' + project.name + '-' + project.version + '-all.jar'
+    destinationDirectory.set(new File(rootProject.rootDir, 'generated'))
+    archiveBaseName.set('PixelBuy-' + project.name)
+    archiveClassifier.set('')
 }
 
 jar.dependsOn (shadowJar)
