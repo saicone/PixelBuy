@@ -2,6 +2,7 @@ package com.minelatino.pixelbuy;
 
 import com.minelatino.pixelbuy.api.PixelBuyAPI;
 import com.minelatino.pixelbuy.api.action.BungeeExecutor;
+import com.minelatino.pixelbuy.module.config.Settings;
 import com.minelatino.pixelbuy.module.config.SettingsBungee;
 import com.minelatino.pixelbuy.module.locale.BungeeLocale;
 import com.minelatino.pixelbuy.module.locale.user.BungeeUser;
@@ -52,5 +53,10 @@ public class PixelBuyBungee extends Plugin implements PixelPlugin {
     @Override
     public UUID getPlayerUUID(String name) {
         return null;
+    }
+
+    @Override
+    public Settings settingsOf(String path, String defPath, boolean requireDefault) {
+        return new SettingsBungee(path, defPath, requireDefault);
     }
 }

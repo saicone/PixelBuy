@@ -9,6 +9,7 @@ import com.minelatino.pixelbuy.PixelBuy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PixelUtils {
 
@@ -67,5 +68,25 @@ public class PixelUtils {
         }
 
         return map;
+    }
+
+    public static int randomInt(int num) {
+        return ThreadLocalRandom.current().nextInt(num);
+    }
+
+    public static String randomString(int length) {
+        return randomString("AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890", length);
+    }
+
+    public static String randomString(String chars, int length) {
+        StringBuilder builder = new StringBuilder();
+        while (builder.length() < length) {
+            builder.append(chars.charAt(randomInt(chars.length())));
+        }
+        return builder.toString();
+    }
+
+    public static boolean isAlphanumeric(String s) {
+        return s.matches("[a-zA-Z0-9]+");
     }
 }

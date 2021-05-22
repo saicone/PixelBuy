@@ -34,17 +34,37 @@ public class PathSection {
         return name;
     }
 
+    public Object get(@NotNull String path) {
+        return get(path, null);
+    }
+
+    public Object get(@NotNull String path, Object def) {
+        String[] s = path.split("\\.", 2);
+        if (s.length == 1) {
+            return objects.getOrDefault(path, def);
+        } else {
+            Object obj = objects.get(s[0]);
+            if (obj == null) {
+                return def;
+            } else if (obj instanceof PathSection) {
+                return ((PathSection) obj).get(s[1], def);
+            } else {
+                return obj;
+            }
+        }
+    }
+
     public @NotNull String getString(@NotNull String path) {
-        return String.valueOf(objects.get(path));
+        return String.valueOf(get(path));
     }
 
     public @NotNull String getString(@NotNull String path, @NotNull String def) {
-        return String.valueOf(objects.getOrDefault(path, def));
+        return String.valueOf(get(path, def));
     }
 
     @SuppressWarnings("unchecked")
     public @NotNull List<String> getStringList(@NotNull String path) {
-        Object list = objects.get(path);
+        Object list = get(path);
         if (list instanceof List) {
             return (List<String>) list;
         } else {
@@ -65,7 +85,7 @@ public class PathSection {
     }
 
     public boolean getBoolean(@NotNull String path, boolean def) {
-        Object bool = objects.get(path);
+        Object bool = get(path);
         if (bool instanceof Boolean) {
             return (boolean) bool;
         } else {
@@ -75,7 +95,7 @@ public class PathSection {
 
     @Nullable
     public PathSection getSection(@NotNull String path) {
-        Object section = objects.get(path);
+        Object section = get(path);
         if (section instanceof PathSection) {
             return (PathSection) section;
         } else {

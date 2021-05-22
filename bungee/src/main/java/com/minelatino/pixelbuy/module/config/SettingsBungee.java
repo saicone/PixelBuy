@@ -1,7 +1,7 @@
 package com.minelatino.pixelbuy.module.config;
 
 import com.minelatino.pixelbuy.PixelBuyBungee;
-import com.minelatino.pixelbuy.util.Files;
+import com.minelatino.pixelbuy.util.FileUtils;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
@@ -63,7 +63,7 @@ public class SettingsBungee extends Settings {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Files.writeStream(file, pl.getResourceAsStream(path));
+            FileUtils.writeStream(file, pl.getResourceAsStream(path));
         }
         try {
             config = ConfigurationProvider.getProvider(YamlConfiguration.class).load(file);

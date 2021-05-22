@@ -22,19 +22,18 @@ mysqlExample:
   # Don't touch this if you set other database type
   Sql:
     # Driver class to use
-    # MySQL : com.mysql.jdbc.Driver
-    # MariaDB : org.mariadb.jdbc.Driver (Not included on Bukkit, you need to put your own plugin with MariaDB classes)
     class: 'com.mysql.jdbc.Driver'
     # Connection URL (With some flags)
-    # Change "localhost:3306" and "database" with you own database information
+    # Change "localhost:3306" and "database" with you own database information like ip, port and name
     url: 'jdbc:mysql://localhost:3306/database?autoReconnect=true&useSSL=false&allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8'
     # Database username
-    name: 'username'
+    user: 'username'
     # Database password
     password: 'password'
     # Tables prefix
+    # Set '' to disable
     table-prefix: 'pixelbuy_'
-    # Data types to use for objects stored in database
+    # You can also modify data types to use for objects stored in database
     data-type:
       # Player name or UUID
       player: 'VARCHAR(255)'
@@ -43,4 +42,48 @@ mysqlExample:
       # Server name
       server: 'VARCHAR(255)'
       # Server data (top data, displayName and donations)
-      serverdata: 'TEXT'
+      serverdata: 'MEDIUMTEXT'
+      # Donated money (For example 30.5)
+      donated: 'DOUBLE(11,2)'
+
+
+# MariaDB database example
+mariadbExample:
+  OnlineMode: true
+  Type: 'SQL'
+  Sql:
+    # This class isn't included on Bukkit by default, you need to put your own plugin with MariaDB classes
+    class: 'org.mariadb.jdbc.Driver'
+    url: 'jdbc:mariadb://localhost:3306/database'
+    user: 'username'
+    password: 'password'
+    table-prefix: 'pixelbuy_'
+    data-type:
+      player: 'VARCHAR(255)'
+      playerdata: 'MEDIUMTEXT'
+      server: 'VARCHAR(255)'
+      serverdata: 'MEDIUMTEXT'
+      donated: 'DOUBLE'
+
+
+# PostgreSQL database example
+postgreExample:
+  OnlineMode: true
+  Type: 'SQL'
+  Sql:
+    # This class isn't included on Bukkit by default, you need to put your own plugin with PostgreSQL classes
+    class: 'org.postgresql.Driver'
+    url: 'jdbc:postgresql://localhost:3306/database'
+    user: 'username'
+    password: 'password'
+    table-prefix: 'pixelbuy_'
+    data-type:
+      player: 'VARCHAR(255)'
+      playerdata: 'JSON'
+      server: 'VARCHAR(255)'
+      serverdata: 'JSON'
+      donated: 'MONEY'
+    # You can also edit query text for database connection
+    # PostgreSQL is a special case with update-column query
+    query:
+      update-column: 'ALTER TABLE %prefix%{0} ALTER COLUMN {1} TYPE {2}'

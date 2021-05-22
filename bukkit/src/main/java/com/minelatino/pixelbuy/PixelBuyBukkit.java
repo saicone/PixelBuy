@@ -2,6 +2,7 @@ package com.minelatino.pixelbuy;
 
 import com.minelatino.pixelbuy.api.PixelBuyAPI;
 import com.minelatino.pixelbuy.api.action.BukkitExecutor;
+import com.minelatino.pixelbuy.module.config.Settings;
 import com.minelatino.pixelbuy.module.config.SettingsBukkit;
 import com.minelatino.pixelbuy.module.locale.BukkitLocale;
 import com.minelatino.pixelbuy.module.locale.user.BukkitUser;
@@ -46,5 +47,10 @@ public class PixelBuyBukkit extends JavaPlugin implements PixelPlugin {
     @Override
     public UUID getPlayerUUID(String name) {
         return Bukkit.getOfflinePlayer(name).getUniqueId();
+    }
+
+    @Override
+    public Settings settingsOf(String path, String defPath, boolean requireDefault) {
+        return new SettingsBukkit(path, defPath, requireDefault);
     }
 }
