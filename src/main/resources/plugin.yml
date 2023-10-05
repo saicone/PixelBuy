@@ -1,5 +1,5 @@
-name: ${name}
-main: ${main}
+name: PixelBuy
+main: com.minelatino.pixelbuy.PixelBuy
 
 authors: [Rubenicos]
 

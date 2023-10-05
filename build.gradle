@@ -1,45 +1,44 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
-}
-
-group = 'com.minelatino.pixelbuy'
-version = '1.1'
-
-shadowJar {
-    dependencies {
-        [
-                'com.google.code.gson:gson:2.8.5',
-                'com.squareup.okhttp3:okhttp:3.14.6',
-                'com.squareup.okio:okio:1.17.2'
-        ].forEach {
-            include(dependency(it))
-        }
-    }
-}
-
-processResources {
-    from(sourceSets.main.resources.srcDirs) {
-        include 'plugin.yml'
-        expand(
-                'name': project.name,
-                'main': project.group + '.' + project.name,
-                'version': project.version
-        )
-    }
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 repositories {
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/groups/public/' }
+    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url 'https://oss.sonatype.org/content/repositories/central' }
     mavenCentral()
 }
 
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from(sourceSets.main.resources.srcDirs) {
+        include 'plugin.yml'
+        expand(rootProject.properties)
+    }
+}
+
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.squareup.okhttp3:okhttp:3.14.6'
-    compile 'com.squareup.okio:okio:1.17.2'
+    compileOnly 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
+
+    implementation 'com.squareup.okhttp3:okhttp:3.14.6'
+    implementation 'com.squareup.okio:okio:1.17.2'
 
     compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    enabled = false
+    dependsOn (shadowJar)
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    relocate 'okhttp3', project.group + '.lib.okhttp3'
+    relocate 'okio', project.group + '.lib.okio'
+    minimize()
 }
