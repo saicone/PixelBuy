@@ -91,6 +91,10 @@ public final class PixelBuy extends JavaPlugin {
         return filesManager.getLang().getString(path, "");
     }
 
+    public String langString(String path, String def) {
+        return filesManager.getLang().getString(path, def);
+    }
+
     public List<String> langStringList(String path) {
         return filesManager.getLang().getStringList(path);
     }

@@ -55,6 +55,10 @@ Command:
     Order:
       Use: '&6Debes usar &e/%cmd% player order <jugador> <id de compra> <lista de items separados por coma>'
       Done: '&aSe agregó la orden &f%orderID% &aal jugador &f%player% &acon los items de compra &f%items%'
+    Recover:
+      Use: '&6Debes usar &e/%cmd% player recover <jugador> <id de compra>'
+      Not-Found: '&cLa orden de compra con el ID &6%orderID% &cno existe'
+      Done: '&aSe recuperó la orden &f%orderID% &adel jugador &f%player% &acon los items de compra &f%items%'
   Reload:
     Help:
       - '&6Comandos sobre recargar el plugin &f(&e/%cmd% reload ...&f)'

@@ -64,7 +64,9 @@ public class PlayerManager {
                         if (!sItem.isOnline() || player != null) {
                             Bukkit.getScheduler().runTaskLater(pl, () -> sItem.buy(data.getPlayer(), order.getId()), pl.getFiles().getConfig().getInt("Order.Delay", 5) * 20);
                             items.put(item.getKey(), (byte) 2);
-                            donated = donated + Double.parseDouble(sItem.getPrice());
+                            if (!sItem.getIdentifier().endsWith("-copy")) {
+                                donated = donated + Double.parseDouble(sItem.getPrice());
+                            }
                         } else {
                             items.put(item.getKey(), item.getValue());
                         }
@@ -113,6 +115,14 @@ public class PlayerManager {
         } else {
             pl.getDatabase().saveData(playerData);
         }
+    }
+
+    public void saveDataChanges(String name, PlayerData data) {
+        Player player = Utils.getPlayer(name);
+        if (player != null) {
+            players.put(player.getUniqueId(), data);
+        }
+        pl.getDatabase().saveData(data);
     }
 
     public PlayerData getPlayerData(String player) {

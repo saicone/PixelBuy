@@ -84,4 +84,8 @@ public class StoreManager {
     public List<StoreItem> getItems() {
         return items;
     }
+
+    public boolean isItem(String id) {
+        return getItem(id) != null;
+    }
 }

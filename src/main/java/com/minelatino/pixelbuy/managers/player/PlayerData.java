@@ -33,6 +33,16 @@ public class PlayerData {
         this.donated = donated;
     }
 
+    public Order getOrder(Integer id) {
+        for (int i = 0; i < orders.size(); i++) {
+            final Order order = orders.get(i);
+            if (order.getId().equals(id)) {
+                return order;
+            }
+        }
+        return null;
+    }
+
     public List<Order> getOrders() {
         return orders;
     }

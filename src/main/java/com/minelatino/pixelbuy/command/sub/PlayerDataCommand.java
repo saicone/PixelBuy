@@ -98,6 +98,48 @@ public class PlayerDataCommand extends SubCommand {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Done").replace("%orderID%", args[3]).replace("%player%", args[2]).replace("%items%", args[4])));
                 }
                 break;
+            case "recover-order":
+            case "recover":
+                if (!sender.hasPermission("pixelbuy.playerdata.recover")) {
+                    sender.sendMessage(Utils.color(pl.langString("Command.No-Perm")));
+                } else if (args.length < 4) {
+                    sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Recover.Use", "&6Debes usar &e/%cmd% player recover <jugador> <id de compra>").replace("%cmd%", cmd)));
+                } else {
+                    PlayerData data = pl.getPlayerManager().getPlayerData(args[2]);
+                    if (data == null) {
+                        sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Not-Have")));
+                        break;
+                    }
+
+                    final PlayerData.Order order = data.getOrder(Integer.parseInt(args[3]));
+                    if (order == null) {
+                        sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Recover.Not-Found", "&cLa orden de compra con el ID &6%orderID% &cno existe")));
+                        break;
+                    }
+
+                    final List<String> list = new ArrayList<>();
+                    for (Map.Entry<String, Byte> entry : order.getItems((byte) 2).entrySet()) {
+                        boolean hasRecovered = entry.getKey().endsWith("-copy");
+                        if (hasRecovered || pl.getStore().isItem(entry.getKey() + "-copy")) {
+                            list.add(hasRecovered ? entry.getKey().substring(0, entry.getKey().length() - 5) : entry.getKey());
+                            if (hasRecovered) {
+                                order.getItems().put(entry.getKey(), (byte) 1);
+                            } else {
+                                order.getItems().remove(entry.getKey());
+                                order.getItems().put(entry.getKey() + "-copy", (byte) 1);
+                            }
+                        }
+                    }
+
+                    pl.getPlayerManager().saveDataChanges(args[2], data);
+                    sender.sendMessage(Utils.color(
+                            pl.langString("Command.Playerdata.Recover.Done", "&aSe recuperó la orden &f%orderID% &adel jugador &f%player% &acon los items de compra &f%items%")
+                                    .replace("%orderID%", args[3])
+                                    .replace("%player%", args[2])
+                                    .replace("%items%", list.isEmpty() ? "- vacio -" : String.join(", ", list))
+                    ));
+                }
+                break;
             default:
                 pl.langStringList("Command.Playerdata.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
                 break;

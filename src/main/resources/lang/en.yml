@@ -54,6 +54,10 @@ Command:
     Order:
       Use: '&6Use &e/%cmd% player order <player> <order ID> <list of items separated by comma>'
       Done: '&aOrder &f%orderID% &ahas been added to &f%player% &awith items &f%items%'
+    Recover:
+      Use: '&6Use &e/%cmd% player recover <player> <order ID>'
+      Not-Found: '&cThe order &6%orderID% &cdoes not exist'
+      Done: '&aOrder &f%orderID% &ahas been recovered to &f%player% &awith items &f%items%'
   Reload:
     Help:
       - '&6Reload related commands &f(&e/%cmd% reload ...&f)'
