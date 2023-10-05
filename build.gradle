@@ -7,6 +7,8 @@ repositories {
     maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url 'https://oss.sonatype.org/content/repositories/central' }
+    maven { url 'https://repo.codemc.io/repository/nms/' }
+    maven { url 'https://jitpack.io' }
     mavenCentral()
 }
 
@@ -19,16 +21,23 @@ processResources {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.16.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT'
 
     implementation 'com.squareup.okhttp3:okhttp:3.14.6'
     implementation 'com.squareup.okio:okio:1.17.2'
+
+    compileOnly 'org.jetbrains:annotations:24.0.1'
 
     compileOnly fileTree(dir: 'libs', includes: ['*.jar'])
 }
 
 compileJava {
     options.encoding = 'UTF-8'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 jar {
