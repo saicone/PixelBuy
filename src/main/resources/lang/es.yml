@@ -43,7 +43,7 @@ Command:
       Player:
         - '&eJugador: &f%player%'
         - '&eDonado: &a%donated%'
-        - '&eLista de ordenes:'
+        - '&eLista de ordenes [%page%/%maxpage%]:'
       Order:
         - '&6%num%- &eID de la orden: &f%id%'
         - '&e  Lista de Items:'

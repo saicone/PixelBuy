@@ -42,7 +42,7 @@ Command:
       Player:
         - '&ePlayer: &f%player%'
         - '&eDonated: &a%donated%'
-        - '&eList of orders:'
+        - '&eList of orders [%page%/%maxpage%]:'
       Order:
         - '&6%num%- &eOrder ID: &f%id%'
         - '&e  List of Items:'

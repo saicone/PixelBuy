@@ -7,7 +7,9 @@ import com.minelatino.pixelbuy.util.Utils;
 
 import org.bukkit.command.CommandSender;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -41,10 +43,20 @@ public class PlayerDataCommand extends SubCommand {
                         sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Not-Have")));
                         break;
                     }
+
+                    int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
+                    final List<PlayerData.Order> orders = data.getOrders();
+                    final int max = page * 10 + 10;
+
                     sender.sendMessage(" ");
-                    pl.langStringList("Command.Playerdata.Info.Player").forEach(string -> sender.sendMessage(Utils.color(string).replace("%player%", data.getPlayer()).replace("%donated%", String.valueOf(data.getDonated()))));
+                    pl.langStringList("Command.Playerdata.Info.Player").forEach(string -> sender.sendMessage(Utils.color(string)
+                            .replace("%player%", data.getPlayer())
+                            .replace("%donated%", String.valueOf(data.getDonated()))
+                            .replace("%page%", String.valueOf(page + 1))
+                            .replace("%maxpage%", String.valueOf((orders.size() - 1) / 10 + 1))));
                     int orderNum = 1;
-                    for (PlayerData.Order order : data.getOrders()) {
+                    for (int i = page * 10; i < orders.size() && i < max; i++) {
+                        final PlayerData.Order order = orders.get(i);
                         for (String string : pl.langStringList("Command.Playerdata.Info.Order")) {
                             sender.sendMessage(Utils.color(string).replace("%num%", String.valueOf(orderNum)).replace("%id%", String.valueOf(order.getId())));
                         }
