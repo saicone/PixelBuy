@@ -33,7 +33,7 @@ public class PlayerDataCommand extends SubCommand {
         }
         switch (args[1].toLowerCase()) {
             case "info":
-                if (args.length == 2) {
+                if (args.length <= 2) {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Use").replace("%cmd%", cmd)));
                 } else {
                     PlayerData data = pl.getPlayerManager().getPlayerData(args[2]);
@@ -59,7 +59,9 @@ public class PlayerDataCommand extends SubCommand {
                     break;
                 }
             case "refund":
-                if (args.length < 4) {
+                if (!sender.hasPermission("pixelbuy.playerdata.refund")) {
+                    sender.sendMessage(Utils.color(pl.langString("Command.No-Perm")));
+                } else if (args.length < 4) {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Refund.Use").replace("%cmd%", cmd)));
                 } else {
                     if (pl.getPlayerManager().refundOrder(args[2], Integer.valueOf(args[3]))) {
@@ -71,7 +73,9 @@ public class PlayerDataCommand extends SubCommand {
                 break;
             case "false-order":
             case "order":
-                if (args.length < 5) {
+                if (!sender.hasPermission("pixelbuy.playerdata.falseorder")) {
+                    sender.sendMessage(Utils.color(pl.langString("Command.No-Perm")));
+                } else if (args.length < 5) {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Use").replace("%cmd%", cmd)));
                 } else {
                     Map<String, Byte> items = new HashMap<>();
