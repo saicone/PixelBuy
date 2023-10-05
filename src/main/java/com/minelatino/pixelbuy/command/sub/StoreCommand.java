@@ -32,9 +32,9 @@ public class StoreCommand extends SubCommand {
         for (StoreItem item : pl.getStore().getItems()) {
             for (String string : pl.langStringList("Command.Store.Items.Info")) {
                 sender.sendMessage(Utils.color(string.replace("%num%", String.valueOf(itemNum))
-                                .replace("%ID%", item.getIdentifier())
-                                .replace("%price%", item.getPrice())
-                                .replace("%online%", String.valueOf(item.isOnline()))));
+                        .replace("%ID%", item.getIdentifier())
+                        .replace("%price%", item.getPrice())
+                        .replace("%online%", String.valueOf(item.isOnline()))));
             }
             item.getActions().forEach(action -> sender.sendMessage(Utils.color(pl.langString("Command.Store.Items.Enum").replace("%action%", action))));
             itemNum++;

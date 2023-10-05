@@ -36,8 +36,8 @@ public class MySQL implements DatabaseType {
                             pl.configString("Database.Host") + "/" +
                             pl.configString("Database.Database") +
                             pl.configString("Database.Flags"),
-                            pl.configString("Database.User"),
-                            pl.configString("Database.Password"));
+                    pl.configString("Database.User"),
+                    pl.configString("Database.Password"));
 
         } catch (ClassNotFoundException e) {
             if (debug) Utils.info(pl.langString("Debug.MySQL.Not-Found"));

@@ -34,13 +34,13 @@ public class OrderManager {
         on = false;
         if (checker > 0 && !init) Bukkit.getScheduler().cancelTask(checker);
         int check = pl.configInt("Web-Data.Check-Interval");
-        if (check > 1) {
+        if (check >= 1) {
             checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
                 if (!on) {
                     on = true;
                     checkWebData(null);
                 }
-            }, check * 20, check * 20).getTaskId();
+            }, check * 20L, check * 20L).getTaskId();
         }
     }
 
@@ -49,7 +49,7 @@ public class OrderManager {
     }
 
     public URL getURL() throws Exception {
-        return new URL(pl.configString("Web-Data.URL").replace("https:", "http:") + "/wp-json/wmc/v1/server/" + pl.configString("Web-Data.Key"));
+        return new URL(pl.configString("Web-Data.URL") + "/wp-json/wmc/v1/server/" + pl.configString("Web-Data.Key"));
     }
 
     public void checkWebData(CommandSender sender) {
