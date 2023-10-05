@@ -45,6 +45,7 @@ public class StoreManager {
     }
 
     public void reload(CommandSender sender, boolean init) {
+        ItemAction.cache.clear();
         if (!init) items.clear();
         File cF = new File(pl.getDataFolder(), "store.yml");
         if (!cF.exists()) pl.saveResource("store.yml", false);
