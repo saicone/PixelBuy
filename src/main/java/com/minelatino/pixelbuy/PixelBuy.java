@@ -20,38 +20,38 @@ import java.util.Map;
 
 public final class PixelBuy extends JavaPlugin {
 
-	private static PixelBuy pixelBuy;
+    private static PixelBuy pixelBuy;
     private CommandMap commandMap;
     private MainCommand mainCommand;
 
-	private FilesManager filesManager;
-	private StoreManager storeManager;
-	private DatabaseManager databaseManager;
-	private OrderManager orderManager;
-	private PlayerManager playerManager;
-	private EventManager eventManager;
+    private FilesManager filesManager;
+    private StoreManager storeManager;
+    private DatabaseManager databaseManager;
+    private OrderManager orderManager;
+    private PlayerManager playerManager;
+    private EventManager eventManager;
 
-	private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
+    private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
 
-	public static PixelBuy get() {
-		return pixelBuy;
-	}
+    public static PixelBuy get() {
+        return pixelBuy;
+    }
 
-	@Override
-	public void onEnable() {
-		pixelBuy = this;
+    @Override
+    public void onEnable() {
+        pixelBuy = this;
 
-		filesManager = new FilesManager(Bukkit.getConsoleSender());
-		getLogger().info(langString("Plugin.Init.FilesManager"));
-		storeManager = new StoreManager();
-		getLogger().info(langString("Plugin.Init.StoreManager"));
-		databaseManager = new DatabaseManager(this);
+        filesManager = new FilesManager(Bukkit.getConsoleSender());
+        getLogger().info(langString("Plugin.Init.FilesManager"));
+        storeManager = new StoreManager();
+        getLogger().info(langString("Plugin.Init.StoreManager"));
+        databaseManager = new DatabaseManager(this);
         getLogger().info(langString("Plugin.Init.DatabaseManager"));
         playerManager = new PlayerManager();
         getLogger().info(langString("Plugin.Init.PlayerManager"));
-		orderManager = new OrderManager();
+        orderManager = new OrderManager();
         getLogger().info(langString("Plugin.Init.OrderManager"));
-		eventManager = new EventManager();
+        eventManager = new EventManager();
         getLogger().info(langString("Plugin.Init.EventManager"));
 
         try {
@@ -62,71 +62,71 @@ public final class PixelBuy extends JavaPlugin {
             e.printStackTrace();
         }
         registerCommand();
-	}
+    }
 
-	@Override
-	public void onDisable() {
+    @Override
+    public void onDisable() {
         getLogger().info(langString("Plugin.Shut"));
         unregisterCommand();
         eventManager.shut();
         orderManager.shut();
-	    playerManager.shut();
-	    databaseManager.shut();
-	    storeManager.shut();
-	}
-
-	public String configString(String path) {
-	    return filesManager.getConfig().getString(path, "");
+        playerManager.shut();
+        databaseManager.shut();
+        storeManager.shut();
     }
 
-	public int configInt(String path) {
-	    return filesManager.getConfig().getInt(path, 1000);
+    public String configString(String path) {
+        return filesManager.getConfig().getString(path, "");
+    }
+
+    public int configInt(String path) {
+        return filesManager.getConfig().getInt(path, 1000);
     }
 
     public boolean configBoolean(String path) {
-	    return filesManager.getConfig().getBoolean(path, false);
+        return filesManager.getConfig().getBoolean(path, false);
     }
 
     public String langString(String path) {
-	    return filesManager.getLang().getString(path, "");
+        return filesManager.getLang().getString(path, "");
     }
 
-	public List<String> langStringList(String path) {
-		return filesManager.getLang().getStringList(path);
-	}
+    public List<String> langStringList(String path) {
+        return filesManager.getLang().getStringList(path);
+    }
 
-	public File getFolderData() {
-		if (!folderData.exists()) folderData.mkdir();
-		return folderData;
-	}
+    public File getFolderData() {
+        if (!folderData.exists()) folderData.mkdir();
+        return folderData;
+    }
 
-	public FilesManager getFiles() {
-		return filesManager;
-	}
+    public FilesManager getFiles() {
+        return filesManager;
+    }
 
-	public StoreManager getStore() {
-		return storeManager;
-	}
+    public StoreManager getStore() {
+        return storeManager;
+    }
 
-	public DatabaseManager getDatabase() {
-		return databaseManager;
-	}
+    public DatabaseManager getDatabase() {
+        return databaseManager;
+    }
 
-	public OrderManager getOrderManager() {
-		return orderManager;
-	}
+    public OrderManager getOrderManager() {
+        return orderManager;
+    }
 
-	public PlayerManager getPlayerManager() {
-		return playerManager;
-	}
+    public PlayerManager getPlayerManager() {
+        return playerManager;
+    }
 
-	public EventManager getEventManager() {
-		return eventManager;
-	}
+    public EventManager getEventManager() {
+        return eventManager;
+    }
 
-	public void reloadCommand() {
-	    unregisterCommand();
-	    registerCommand();
+    public void reloadCommand() {
+        unregisterCommand();
+        registerCommand();
     }
 
     private void registerCommand() {
