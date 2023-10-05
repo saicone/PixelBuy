@@ -55,9 +55,7 @@ public class PlayerData {
     }
 
     public void removeOrder(Integer id) {
-        orders.forEach(order -> {
-            if (order.getId().equals(id)) orders.remove(order);
-        });
+        orders.removeIf(order -> order.getId().equals(id));
     }
 
     public List<Order> getOrders(boolean pending) {

@@ -13,7 +13,7 @@ public class PlayerManager {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private final Map<Player, PlayerData> players = new HashMap<>();
+    private final Map<UUID, PlayerData> players = new HashMap<>();
 
     public PlayerManager() {
         loadPlayers();
@@ -31,13 +31,13 @@ public class PlayerManager {
     public void loadPlayer(Player player) {
         PlayerData pData = pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
         if (pData != null) {
-            players.put(player, processData(player, pData));
+            players.put(player.getUniqueId(), processData(player, pData));
         }
     }
 
     public void unloadPlayer(Player player) {
-        pl.getDatabase().saveData(players.get(player));
-        players.remove(player);
+        pl.getDatabase().saveData(players.get(player.getUniqueId()));
+        players.remove(player.getUniqueId());
     }
 
     public void processOrder(String player, PlayerData.Order order) {
@@ -108,8 +108,8 @@ public class PlayerManager {
 
     public void saveDataChanges(Player player, PlayerData playerData) {
         if (player != null) {
-            players.remove(player);
-            players.put(player, playerData);
+            players.remove(player.getUniqueId());
+            players.put(player.getUniqueId(), playerData);
         } else {
             pl.getDatabase().saveData(playerData);
         }
@@ -117,7 +117,7 @@ public class PlayerManager {
 
     public PlayerData getPlayerData(String player) {
         Player p = Utils.getPlayer(player);
-        return (p != null ? players.getOrDefault(p, null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Utils.getOfflineUUID(player) : player)));
+        return (p != null ? players.getOrDefault(p.getUniqueId(), null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Utils.getOfflineUUID(player) : player)));
     }
 
     private boolean isDuplicated(Integer id, List<PlayerData.Order> list) {
