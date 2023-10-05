@@ -3,6 +3,8 @@ package com.minelatino.pixelbuy.managers.store.acts;
 import com.minelatino.pixelbuy.PixelBuy;
 import com.minelatino.pixelbuy.managers.store.ActionType;
 import com.minelatino.pixelbuy.util.Utils;
+import io.th0rgal.oraxen.api.OraxenItems;
+import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -16,11 +18,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemAction extends ActionType {
 
+    public static final boolean ORAXEN_COMPATIBILITY;
+    public static final boolean MMOITEMS_COMPATIBILITY;
     private static final ItemStack DEFAULT_ITEM;
 
     public static final Map<String, ItemStack> cache = new ConcurrentHashMap<>();
 
     static {
+        ORAXEN_COMPATIBILITY = Bukkit.getPluginManager().isPluginEnabled("Oraxen") || Bukkit.getPluginManager().isPluginEnabled("oraxen");
+        MMOITEMS_COMPATIBILITY = Bukkit.getPluginManager().isPluginEnabled("MMOItems") || Bukkit.getPluginManager().isPluginEnabled("mmoitems");
         ItemStack item = new ItemStack(Material.PAPER);
         item.addUnsafeEnchantment(Enchantment.LURE, 1);
         ItemMeta meta = item.getItemMeta();
@@ -69,11 +75,37 @@ public class ItemAction extends ActionType {
 
         int amount = intOrDefault(mapValueOrDefault(map, 1, "amount", "amt"), 1);
         ItemStack item;
-        Material mat = Material.getMaterial(material);
-        if (mat != null) {
-            item = new ItemStack(mat, amount);
+        if (material.toLowerCase().startsWith("oraxen:")) {
+            String[] part = material.split(":", 2);
+            if (part.length < 2) {
+                return buildDefaultItem("Unknown ID for Oraxen item");
+            }
+            String id = part[1];
+            if (OraxenItems.exists(id)) {
+                item = OraxenItems.getItemById(id).setAmount(amount).build();
+            } else {
+                return buildDefaultItem("Invalid ID for Oraxen item");
+            }
+        } else if (material.toLowerCase().startsWith("mmoitems:") && MMOITEMS_COMPATIBILITY) {
+            String[] part = material.split(":", 3);
+            if (part.length < 2) {
+                return buildDefaultItem("Unknown Type for MMOItems item");
+            } else if (part.length < 3) {
+                return buildDefaultItem("Unknown ID for MMOItems item");
+            }
+            String type = part[1];
+            String id = part[2];
+            item = MMOItems.plugin.getItem(type, id);
+            if (item == null) {
+                return buildDefaultItem("Invalid MMOItems item");
+            }
         } else {
-            return buildDefaultItem("Unkown material");
+            Material mat = Material.getMaterial(material);
+            if (mat != null) {
+                item = new ItemStack(mat, amount);
+            } else {
+                return buildDefaultItem("Unknown material");
+            }
         }
 
         ItemMeta meta = item.hasItemMeta() ? item.getItemMeta() : Bukkit.getItemFactory().getItemMeta(item.getType());
