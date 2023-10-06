@@ -14,7 +14,7 @@ import java.util.Map;
  * Obtained from spigotmc.org/threads/467776
  * ConfigurationSerializableAdapter
  */
-public class GsonAdapter implements JsonSerializer<ConfigurationSerializable>, JsonDeserializer<ConfigurationSerializable> {
+public class ConfigAdapter implements JsonSerializer<ConfigurationSerializable>, JsonDeserializer<ConfigurationSerializable> {
 
     final Type objectStringMapType = new TypeToken<Map<String, Object>>() {}.getType();
 

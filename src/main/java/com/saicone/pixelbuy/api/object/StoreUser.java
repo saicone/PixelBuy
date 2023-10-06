@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PlayerData {
+public class StoreUser {
 
     private String player;
     private double donated;
     private List<Order> orders;
 
-    public PlayerData(String player, double donated, List<Order> orders) {
+    public StoreUser(String player, double donated, List<Order> orders) {
         this.player = player;
         this.donated = donated;
         this.orders = orders;

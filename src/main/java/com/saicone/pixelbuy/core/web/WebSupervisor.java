@@ -2,7 +2,7 @@ package com.saicone.pixelbuy.core.web;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
-import com.saicone.pixelbuy.api.object.PlayerData;
+import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.util.Utils;
 
 import com.google.gson.Gson;
@@ -18,7 +18,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
 
-public class OrderManager {
+public class WebSupervisor {
 
     private final PixelBuy pl = PixelBuy.get();
 
@@ -26,7 +26,7 @@ public class OrderManager {
 
     private boolean on = false;
 
-    public OrderManager() {
+    public WebSupervisor() {
         reload(true);
     }
 
@@ -143,7 +143,7 @@ public class OrderManager {
                 }
             });
             Bukkit.getScheduler().runTask(pl, () -> {
-                OrderProcessedEvent event = new OrderProcessedEvent(webOrder.getPlayer(), new PlayerData.Order(webOrder.getOrderId(), items));
+                OrderProcessedEvent event = new OrderProcessedEvent(webOrder.getPlayer(), new StoreUser.Order(webOrder.getOrderId(), items));
                 Bukkit.getPluginManager().callEvent(event);
             });
             savedOrders.add(webOrder.getOrderId());

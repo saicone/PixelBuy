@@ -1,6 +1,6 @@
 package com.saicone.pixelbuy.api.object;
 
-import com.saicone.pixelbuy.core.StoreManager;
+import com.saicone.pixelbuy.core.PixelStore;
 import com.saicone.pixelbuy.module.action.ActionType;
 
 import java.util.List;
@@ -50,14 +50,14 @@ public class StoreItem {
 
     public void buy(String player, Integer orderID) {
         actions.forEach(string -> {
-            ActionType action = StoreManager.parseAction(string, getPrice());
+            ActionType action = PixelStore.parseAction(string, getPrice());
             if (action != null) action.executeBuy(player, orderID);
         });
     }
 
     public void refund(String player, Integer orderID) {
         actions.forEach(string -> {
-            ActionType action = StoreManager.parseAction(string, getPrice());
+            ActionType action = PixelStore.parseAction(string, getPrice());
             if (action != null && action.isRefundable()) action.executeRefund(player, orderID);
         });
     }

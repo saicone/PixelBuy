@@ -1,8 +1,8 @@
 package com.saicone.pixelbuy.module.data.client;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.module.data.DatabaseType;
-import com.saicone.pixelbuy.api.object.PlayerData;
+import com.saicone.pixelbuy.module.data.DataClient;
+import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.util.Utils;
 
 import com.google.gson.Gson;
@@ -12,7 +12,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MySQL implements DatabaseType {
+public class MySQLDatabase implements DataClient {
 
     private final PixelBuy pl = PixelBuy.get();
 
@@ -57,21 +57,21 @@ public class MySQL implements DatabaseType {
         return true;
     }
 
-    public void saveData(PlayerData data) {
+    public void saveData(StoreUser data) {
         String player = data.getPlayer().toLowerCase();
         Gson gson = new Gson();
         String json = gson.toJson(data);
         query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';", data);
     }
 
-    public PlayerData getData(String player) {
-        PlayerData data = null;
+    public StoreUser getData(String player) {
+        StoreUser data = null;
         try {
             Statement stmt = con.createStatement();
             ResultSet rS = stmt.executeQuery("SELECT `DATA` FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';");
             rS.last();
             Gson gson = new Gson();
-            data = gson.fromJson(rS.getString("DATA"), PlayerData.class);
+            data = gson.fromJson(rS.getString("DATA"), StoreUser.class);
             stmt.close();
             rS.close();
         } catch (SQLException | NullPointerException e) {
@@ -82,14 +82,14 @@ public class MySQL implements DatabaseType {
         return data;
     }
 
-    public List<PlayerData> getAllData() {
-        List<PlayerData> datas = new ArrayList<>();
+    public List<StoreUser> getAllData() {
+        List<StoreUser> datas = new ArrayList<>();
         try {
             PreparedStatement stmt = con.prepareStatement("SELECT `DATA` FROM `PlayerOrders`");
             ResultSet rS = stmt.executeQuery();
             Gson gson = new Gson();
             while (rS.next()) {
-                datas.add(gson.fromJson(rS.getString("DATA"), PlayerData.class));
+                datas.add(gson.fromJson(rS.getString("DATA"), StoreUser.class));
             }
         } catch (SQLException ignored) { }
         return datas;
@@ -99,7 +99,7 @@ public class MySQL implements DatabaseType {
         query("DELETE FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';", null);
     }
 
-    public void query(String sql, PlayerData data) {
+    public void query(String sql, StoreUser data) {
         Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
             try {
                 Statement stmt = con.createStatement();

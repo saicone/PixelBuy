@@ -9,7 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 
-public class FilesManager {
+public class YamlSettings {
 
     private final PixelBuy pl = PixelBuy.get();
     private final File langFolder = new File(pl.getDataFolder() + File.separator + "lang");
@@ -17,7 +17,7 @@ public class FilesManager {
     private FileConfiguration settings;
     private FileConfiguration messages;
 
-    public FilesManager(CommandSender sender) {
+    public YamlSettings(CommandSender sender) {
         reloadSettings(sender, true);
         reloadLang(sender, getConfig().getString("Language", "en"));
     }

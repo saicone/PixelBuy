@@ -2,7 +2,7 @@ package com.saicone.pixelbuy.core.command.sub;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.core.command.SubCommand;
-import com.saicone.pixelbuy.api.object.PlayerData;
+import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.util.Utils;
 
 import org.bukkit.command.CommandSender;
@@ -38,14 +38,14 @@ public class PlayerDataCommand extends SubCommand {
                 if (args.length <= 2) {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Use").replace("%cmd%", cmd)));
                 } else {
-                    PlayerData data = pl.getPlayerManager().getPlayerData(args[2]);
+                    StoreUser data = pl.getPlayerManager().getPlayerData(args[2]);
                     if (data == null) {
                         sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Not-Have")));
                         break;
                     }
 
                     int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
-                    final List<PlayerData.Order> orders = data.getOrders();
+                    final List<StoreUser.Order> orders = data.getOrders();
                     final int max = page * 10 + 10;
 
                     sender.sendMessage(" ");
@@ -56,7 +56,7 @@ public class PlayerDataCommand extends SubCommand {
                             .replace("%maxpage%", String.valueOf((orders.size() - 1) / 10 + 1))));
                     int orderNum = 1;
                     for (int i = page * 10; i < orders.size() && i < max; i++) {
-                        final PlayerData.Order order = orders.get(i);
+                        final StoreUser.Order order = orders.get(i);
                         for (String string : pl.langStringList("Command.Playerdata.Info.Order")) {
                             sender.sendMessage(Utils.color(string).replace("%num%", String.valueOf(orderNum)).replace("%id%", String.valueOf(order.getId())));
                         }
@@ -94,7 +94,7 @@ public class PlayerDataCommand extends SubCommand {
                     for (String item : args[4].split(",")) {
                         items.put(item, (byte) 1);
                     }
-                    pl.getPlayerManager().processOrder(args[2], new PlayerData.Order(Integer.valueOf(args[3]), items));
+                    pl.getPlayerManager().processOrder(args[2], new StoreUser.Order(Integer.valueOf(args[3]), items));
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Order.Done").replace("%orderID%", args[3]).replace("%player%", args[2]).replace("%items%", args[4])));
                 }
                 break;
@@ -105,13 +105,13 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 4) {
                     sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Recover.Use", "&6Debes usar &e/%cmd% player recover <jugador> <id de compra>").replace("%cmd%", cmd)));
                 } else {
-                    PlayerData data = pl.getPlayerManager().getPlayerData(args[2]);
+                    StoreUser data = pl.getPlayerManager().getPlayerData(args[2]);
                     if (data == null) {
                         sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Info.Not-Have")));
                         break;
                     }
 
-                    final PlayerData.Order order = data.getOrder(Integer.parseInt(args[3]));
+                    final StoreUser.Order order = data.getOrder(Integer.parseInt(args[3]));
                     if (order == null) {
                         sender.sendMessage(Utils.color(pl.langString("Command.Playerdata.Recover.Not-Found", "&cLa orden de compra con el ID &6%orderID% &cno existe")));
                         break;

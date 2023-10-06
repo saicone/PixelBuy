@@ -3,8 +3,8 @@ package com.saicone.pixelbuy.module.data.client;
 import com.google.gson.Gson;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.module.data.DatabaseType;
-import com.saicone.pixelbuy.api.object.PlayerData;
+import com.saicone.pixelbuy.module.data.DataClient;
+import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.util.Utils;
 
 import java.io.*;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class FlatFile implements DatabaseType {
+public class FileDatabase implements DataClient {
 
     private final PixelBuy pl = PixelBuy.get();
     private final File dataFolder = new File(pl.getDataFolder() + File.separator + "playerdata");
@@ -31,7 +31,7 @@ public class FlatFile implements DatabaseType {
         return true;
     }
 
-    public void saveData(PlayerData data) {
+    public void saveData(StoreUser data) {
         String player = data.getPlayer().toLowerCase();
         if (dataFolder.mkdir() && debug) Utils.info(pl.langString("Debug.FlatFile.Folder"));
         File dataFile = new File(dataFolder + File.separator + player + ".json");
@@ -60,19 +60,19 @@ public class FlatFile implements DatabaseType {
         //}
     }
 
-    public PlayerData getData(String player) {
-        PlayerData data = null;
+    public StoreUser getData(String player) {
+        StoreUser data = null;
         try {
             Reader reader = Files.newBufferedReader(Paths.get(dataFolder + File.separator + player + ".json"));
             Gson gson = new Gson();
-            if (!reader.toString().isEmpty()) data = gson.fromJson(reader, PlayerData.class);
+            if (!reader.toString().isEmpty()) data = gson.fromJson(reader, StoreUser.class);
             reader.close();
         } catch (IOException ignored) { }
         return data;
     }
 
-    public List<PlayerData> getAllData() {
-        List<PlayerData> datas = new ArrayList<>();
+    public List<StoreUser> getAllData() {
+        List<StoreUser> datas = new ArrayList<>();
         if (dataFolder.exists()) {
             for (File file : Objects.requireNonNull(dataFolder.listFiles())) {
                 String name = file.getName().toLowerCase();

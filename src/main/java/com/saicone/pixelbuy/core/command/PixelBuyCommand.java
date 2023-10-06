@@ -13,7 +13,7 @@ import org.bukkit.command.CommandSender;
 import java.util.Arrays;
 import java.util.List;
 
-public class MainCommand extends Command {
+public class PixelBuyCommand extends Command {
 
     private final PixelBuy pl = PixelBuy.get();
     private final String cmd;
@@ -25,7 +25,7 @@ public class MainCommand extends Command {
             new StoreCommand()
     );
 
-    public MainCommand(String cmd, List<String> aliases) {
+    public PixelBuyCommand(String cmd, List<String> aliases) {
         super(cmd);
         this.cmd = this.getName();
         setAliases(aliases);

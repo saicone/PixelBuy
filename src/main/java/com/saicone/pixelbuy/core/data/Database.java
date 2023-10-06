@@ -1,10 +1,10 @@
 package com.saicone.pixelbuy.core.data;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.module.data.client.FlatFile;
-import com.saicone.pixelbuy.module.data.client.MySQL;
-import com.saicone.pixelbuy.api.object.PlayerData;
-import com.saicone.pixelbuy.module.data.DatabaseType;
+import com.saicone.pixelbuy.module.data.client.FileDatabase;
+import com.saicone.pixelbuy.module.data.client.MySQLDatabase;
+import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.module.data.DataClient;
 import com.saicone.pixelbuy.util.Utils;
 
 import org.bukkit.Bukkit;
@@ -13,15 +13,15 @@ import org.bukkit.command.CommandSender;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DatabaseManager {
+public class Database {
 
     private final PixelBuy pl;
 
-    private DatabaseType database;
+    private DataClient database;
 
-    private final List<PlayerData> cachedData = new ArrayList<>();
+    private final List<StoreUser> cachedData = new ArrayList<>();
 
-    public DatabaseManager(PixelBuy pl) {
+    public Database(PixelBuy pl) {
         this.pl = pl;
         reload(Bukkit.getConsoleSender());
         Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
@@ -36,14 +36,14 @@ public class DatabaseManager {
     public void reload(CommandSender sender) {
         switch (pl.getFiles().getConfig().getString("Database.Type", "JSON").toUpperCase()) {
             case "JSON":
-                database = new FlatFile();
+                database = new FileDatabase();
                 break;
             case "MYSQL":
-                database = new MySQL();
+                database = new MySQLDatabase();
                 break;
             default:
                 sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Default")));
-                database = new FlatFile();
+                database = new FileDatabase();
         }
         if (database.setup()) {
             sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
@@ -55,7 +55,7 @@ public class DatabaseManager {
     }
 
     public void setDefault() {
-        database = new FlatFile();
+        database = new FileDatabase();
         database.setup();
     }
 
@@ -65,13 +65,13 @@ public class DatabaseManager {
             sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Same-Type")));
             return;
         }
-        DatabaseType base;
+        DataClient base;
         switch (from) {
             case "JSON":
-                base = new FlatFile();
+                base = new FileDatabase();
                 break;
             case "MYSQL":
-                base = new MySQL();
+                base = new MySQLDatabase();
                 break;
             default:
                 sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.No-Exist")));
@@ -83,7 +83,7 @@ public class DatabaseManager {
                 return;
             }
         }
-        for (PlayerData data : base.getAllData()) {
+        for (StoreUser data : base.getAllData()) {
             database.saveData(data);
             if (delete) base.deleteData(data.getPlayer().toLowerCase());
         }
@@ -93,11 +93,11 @@ public class DatabaseManager {
         return database.getType();
     }
 
-    public void saveData(PlayerData data) {
+    public void saveData(StoreUser data) {
         if (data != null) database.saveData(data);
     }
 
-    public PlayerData getData(String player) {
+    public StoreUser getData(String player) {
         player = player.toLowerCase();
         return database.getData(player);
     }
@@ -107,7 +107,7 @@ public class DatabaseManager {
         database.deleteData(player);
     }
 
-    public void addCachedData(PlayerData data) {
+    public void addCachedData(StoreUser data) {
         cachedData.add(data);
     }
 

@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class StoreManager {
+public class PixelStore {
 
     private FileConfiguration store;
 
@@ -38,7 +38,7 @@ public class StoreManager {
 
     private final List<StoreItem> items = new ArrayList<>();
 
-    public StoreManager() {
+    public PixelStore() {
         reload(Bukkit.getConsoleSender(), true);
     }
 

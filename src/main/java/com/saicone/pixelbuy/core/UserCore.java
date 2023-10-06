@@ -2,7 +2,7 @@ package com.saicone.pixelbuy.core;
 
 import com.saicone.pixelbuy.PixelBuy;
 
-import com.saicone.pixelbuy.api.object.PlayerData;
+import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.api.object.StoreItem;
 import com.saicone.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
@@ -10,13 +10,13 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 
-public class PlayerManager {
+public class UserCore {
 
     private final PixelBuy pl = PixelBuy.get();
 
-    private final Map<UUID, PlayerData> players = new HashMap<>();
+    private final Map<UUID, StoreUser> players = new HashMap<>();
 
-    public PlayerManager() {
+    public UserCore() {
         loadPlayers();
     }
 
@@ -30,7 +30,7 @@ public class PlayerManager {
     }
 
     public void loadPlayer(Player player) {
-        PlayerData pData = pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
+        StoreUser pData = pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
         if (pData != null) {
             players.put(player.getUniqueId(), processData(player, pData));
         }
@@ -41,22 +41,22 @@ public class PlayerManager {
         players.remove(player.getUniqueId());
     }
 
-    public void processOrder(String player, PlayerData.Order order) {
+    public void processOrder(String player, StoreUser.Order order) {
         Player p = Utils.getPlayer(player);
-        PlayerData pData = getPlayerData(player);
+        StoreUser pData = getPlayerData(player);
         if (pData != null) {
             if (isDuplicated(order.getId(), pData.getOrders())) return;
             pData.addOrder(order);
         } else {
-            pData = new PlayerData((pl.configBoolean("Database.UUID") ? (p == null ? Utils.getOfflineUUID(player) : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
+            pData = new StoreUser((pl.configBoolean("Database.UUID") ? (p == null ? Utils.getOfflineUUID(player) : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
         }
         saveDataChanges(p, processData(p, pData));
     }
 
-    public PlayerData processData(Player player, PlayerData data) {
+    public StoreUser processData(Player player, StoreUser data) {
         double donated = data.getDonated();
-        List<PlayerData.Order> orders = data.getOrders(false);
-        for (PlayerData.Order order : data.getOrders(true)) {
+        List<StoreUser.Order> orders = data.getOrders(false);
+        for (StoreUser.Order order : data.getOrders(true)) {
             if (!isDuplicated(order.getId(), orders)) {
                 Map<String, Byte> items = order.getItems((byte) 2);
                 for (Map.Entry<String, Byte> item : order.getItems((byte) 1).entrySet()) {
@@ -73,7 +73,7 @@ public class PlayerManager {
                         }
                     }
                 }
-                orders.add(new PlayerData.Order(order.getId(), items));
+                orders.add(new StoreUser.Order(order.getId(), items));
             }
         }
         data.setOrders(orders);
@@ -83,11 +83,11 @@ public class PlayerManager {
 
     public boolean refundOrder(String player, Integer orderID) {
         Player p = Utils.getPlayer(player);
-        PlayerData pData = getPlayerData(player);
+        StoreUser pData = getPlayerData(player);
         if (pData != null) {
             boolean exists = false;
-            List<PlayerData.Order> orders = new ArrayList<>();
-            for (PlayerData.Order order : pData.getOrders()) {
+            List<StoreUser.Order> orders = new ArrayList<>();
+            for (StoreUser.Order order : pData.getOrders()) {
                 if (order.getId().equals(orderID)) {
                     Map<String, Byte> items = new HashMap<>();
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
@@ -96,7 +96,7 @@ public class PlayerManager {
                         }
                         items.put(item.getKey(), (byte) 3);
                     }
-                    orders.add(new PlayerData.Order(order.getId(), items));
+                    orders.add(new StoreUser.Order(order.getId(), items));
                     exists = true;
                 } else {
                     orders.add(order);
@@ -109,16 +109,16 @@ public class PlayerManager {
         return false;
     }
 
-    public void saveDataChanges(Player player, PlayerData playerData) {
+    public void saveDataChanges(Player player, StoreUser storeUser) {
         if (player != null) {
             players.remove(player.getUniqueId());
-            players.put(player.getUniqueId(), playerData);
+            players.put(player.getUniqueId(), storeUser);
         } else {
-            pl.getDatabase().saveData(playerData);
+            pl.getDatabase().saveData(storeUser);
         }
     }
 
-    public void saveDataChanges(String name, PlayerData data) {
+    public void saveDataChanges(String name, StoreUser data) {
         Player player = Utils.getPlayer(name);
         if (player != null) {
             players.put(player.getUniqueId(), data);
@@ -126,13 +126,13 @@ public class PlayerManager {
         pl.getDatabase().saveData(data);
     }
 
-    public PlayerData getPlayerData(String player) {
+    public StoreUser getPlayerData(String player) {
         Player p = Utils.getPlayer(player);
         return (p != null ? players.getOrDefault(p.getUniqueId(), null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Utils.getOfflineUUID(player) : player)));
     }
 
-    private boolean isDuplicated(Integer id, List<PlayerData.Order> list) {
-        for (PlayerData.Order order : list) {
+    private boolean isDuplicated(Integer id, List<StoreUser.Order> list) {
+        for (StoreUser.Order order : list) {
             if (order.getId().equals(id)) return true;
         }
         return false;

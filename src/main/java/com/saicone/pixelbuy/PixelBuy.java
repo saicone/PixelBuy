@@ -1,13 +1,13 @@
 package com.saicone.pixelbuy;
 
-import com.saicone.pixelbuy.core.command.MainCommand;
-import com.saicone.pixelbuy.module.listener.EventManager;
-import com.saicone.pixelbuy.module.settings.FilesManager;
-import com.saicone.pixelbuy.core.data.DatabaseManager;
-import com.saicone.pixelbuy.core.web.OrderManager;
-import com.saicone.pixelbuy.core.PlayerManager;
+import com.saicone.pixelbuy.core.command.PixelBuyCommand;
+import com.saicone.pixelbuy.module.listener.BukkitListener;
+import com.saicone.pixelbuy.module.settings.YamlSettings;
+import com.saicone.pixelbuy.core.data.Database;
+import com.saicone.pixelbuy.core.web.WebSupervisor;
+import com.saicone.pixelbuy.core.UserCore;
 
-import com.saicone.pixelbuy.core.StoreManager;
+import com.saicone.pixelbuy.core.PixelStore;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -22,14 +22,14 @@ public final class PixelBuy extends JavaPlugin {
 
     private static PixelBuy pixelBuy;
     private CommandMap commandMap;
-    private MainCommand mainCommand;
+    private PixelBuyCommand pixelBuyCommand;
 
-    private FilesManager filesManager;
-    private StoreManager storeManager;
-    private DatabaseManager databaseManager;
-    private OrderManager orderManager;
-    private PlayerManager playerManager;
-    private EventManager eventManager;
+    private YamlSettings yamlSettings;
+    private PixelStore pixelStore;
+    private Database database;
+    private WebSupervisor webSupervisor;
+    private UserCore userCore;
+    private BukkitListener bukkitListener;
 
     private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
 
@@ -41,17 +41,17 @@ public final class PixelBuy extends JavaPlugin {
     public void onEnable() {
         pixelBuy = this;
 
-        filesManager = new FilesManager(Bukkit.getConsoleSender());
+        yamlSettings = new YamlSettings(Bukkit.getConsoleSender());
         getLogger().info(langString("Plugin.Init.FilesManager"));
-        storeManager = new StoreManager();
+        pixelStore = new PixelStore();
         getLogger().info(langString("Plugin.Init.StoreManager"));
-        databaseManager = new DatabaseManager(this);
+        database = new Database(this);
         getLogger().info(langString("Plugin.Init.DatabaseManager"));
-        playerManager = new PlayerManager();
+        userCore = new UserCore();
         getLogger().info(langString("Plugin.Init.PlayerManager"));
-        orderManager = new OrderManager();
+        webSupervisor = new WebSupervisor();
         getLogger().info(langString("Plugin.Init.OrderManager"));
-        eventManager = new EventManager();
+        bukkitListener = new BukkitListener();
         getLogger().info(langString("Plugin.Init.EventManager"));
 
         try {
@@ -68,35 +68,35 @@ public final class PixelBuy extends JavaPlugin {
     public void onDisable() {
         getLogger().info(langString("Plugin.Shut"));
         unregisterCommand();
-        eventManager.shut();
-        orderManager.shut();
-        playerManager.shut();
-        databaseManager.shut();
-        storeManager.shut();
+        bukkitListener.shut();
+        webSupervisor.shut();
+        userCore.shut();
+        database.shut();
+        pixelStore.shut();
     }
 
     public String configString(String path) {
-        return filesManager.getConfig().getString(path, "");
+        return yamlSettings.getConfig().getString(path, "");
     }
 
     public int configInt(String path) {
-        return filesManager.getConfig().getInt(path, 1000);
+        return yamlSettings.getConfig().getInt(path, 1000);
     }
 
     public boolean configBoolean(String path) {
-        return filesManager.getConfig().getBoolean(path, false);
+        return yamlSettings.getConfig().getBoolean(path, false);
     }
 
     public String langString(String path) {
-        return filesManager.getLang().getString(path, "");
+        return yamlSettings.getLang().getString(path, "");
     }
 
     public String langString(String path, String def) {
-        return filesManager.getLang().getString(path, def);
+        return yamlSettings.getLang().getString(path, def);
     }
 
     public List<String> langStringList(String path) {
-        return filesManager.getLang().getStringList(path);
+        return yamlSettings.getLang().getStringList(path);
     }
 
     public File getFolderData() {
@@ -104,28 +104,28 @@ public final class PixelBuy extends JavaPlugin {
         return folderData;
     }
 
-    public FilesManager getFiles() {
-        return filesManager;
+    public YamlSettings getFiles() {
+        return yamlSettings;
     }
 
-    public StoreManager getStore() {
-        return storeManager;
+    public PixelStore getStore() {
+        return pixelStore;
     }
 
-    public DatabaseManager getDatabase() {
-        return databaseManager;
+    public Database getDatabase() {
+        return database;
     }
 
-    public OrderManager getOrderManager() {
-        return orderManager;
+    public WebSupervisor getOrderManager() {
+        return webSupervisor;
     }
 
-    public PlayerManager getPlayerManager() {
-        return playerManager;
+    public UserCore getPlayerManager() {
+        return userCore;
     }
 
-    public EventManager getEventManager() {
-        return eventManager;
+    public BukkitListener getEventManager() {
+        return bukkitListener;
     }
 
     public void reloadCommand() {
@@ -135,9 +135,9 @@ public final class PixelBuy extends JavaPlugin {
 
     private void registerCommand() {
         if (commandMap != null) {
-            mainCommand = new MainCommand(filesManager.getConfig().getString("Commands.Main.Cmd", "pixelbuy"), filesManager.getConfig().getStringList("Commands.Main.Aliases"));
-            commandMap.register("pixelbuy", mainCommand);
-            mainCommand.isRegistered();
+            pixelBuyCommand = new PixelBuyCommand(yamlSettings.getConfig().getString("Commands.Main.Cmd", "pixelbuy"), yamlSettings.getConfig().getStringList("Commands.Main.Aliases"));
+            commandMap.register("pixelbuy", pixelBuyCommand);
+            pixelBuyCommand.isRegistered();
         }
     }
 
@@ -154,9 +154,9 @@ public final class PixelBuy extends JavaPlugin {
                 field.setAccessible(true);
 
                 Map<String, Command> knownCmds = (Map<String, Command>) field.get(commandMap);
-                knownCmds.remove(mainCommand.getName());
-                mainCommand.getAliases().forEach(alias -> {
-                    if (knownCmds.containsKey(alias) && knownCmds.get(alias).toString().contains(mainCommand.getName())) {
+                knownCmds.remove(pixelBuyCommand.getName());
+                pixelBuyCommand.getAliases().forEach(alias -> {
+                    if (knownCmds.containsKey(alias) && knownCmds.get(alias).toString().contains(pixelBuyCommand.getName())) {
                         knownCmds.remove(alias);
                     }
                 });
@@ -164,7 +164,7 @@ public final class PixelBuy extends JavaPlugin {
                 e.printStackTrace();
             }
 
-            mainCommand.unregister(commandMap);
+            pixelBuyCommand.unregister(commandMap);
         }
     }
 }

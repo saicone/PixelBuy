@@ -6,7 +6,7 @@ import com.google.gson.reflect.TypeToken;
 import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
-import com.saicone.pixelbuy.util.GsonAdapter;
+import com.saicone.pixelbuy.util.ConfigAdapter;
 import com.saicone.pixelbuy.util.Utils;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.EventHandler;
@@ -29,13 +29,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventManager implements Listener {
+public class BukkitListener implements Listener {
 
     private final PixelBuy pl = PixelBuy.get();
 
     private final List<RefundedItem> items = new ArrayList<>();
 
-    public EventManager() {
+    public BukkitListener() {
         pl.getServer().getPluginManager().registerEvents(this, pl);
         loadItems();
     }
@@ -107,7 +107,7 @@ public class EventManager implements Listener {
         if (refunded.exists()) {
             try {
                 Reader reader = Files.newBufferedReader(Paths.get(refunded.toString()));
-                final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new GsonAdapter()).create();
+                final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new ConfigAdapter()).create();
                 if (!reader.toString().isEmpty()) {
                     Type listType = new TypeToken<ArrayList<RefundedItem>>(){}.getType();
                     items.addAll(gson.fromJson(reader, listType));
@@ -127,7 +127,7 @@ public class EventManager implements Listener {
 
         try {
             FileWriter writer = new FileWriter(refunded);
-            final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new GsonAdapter()).create();
+            final Gson gson = new GsonBuilder().disableHtmlEscaping().registerTypeHierarchyAdapter(ConfigurationSerializable.class, new ConfigAdapter()).create();
             String dataString = gson.toJson(items);
             writer.write(dataString);
             writer.flush();
