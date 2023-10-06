@@ -1,13 +1,13 @@
 package com.saicone.pixelbuy;
 
-import com.saicone.pixelbuy.command.MainCommand;
-import com.saicone.pixelbuy.managers.EventManager;
-import com.saicone.pixelbuy.managers.FilesManager;
-import com.saicone.pixelbuy.managers.database.DatabaseManager;
-import com.saicone.pixelbuy.managers.order.OrderManager;
-import com.saicone.pixelbuy.managers.player.PlayerManager;
+import com.saicone.pixelbuy.core.command.MainCommand;
+import com.saicone.pixelbuy.module.listener.EventManager;
+import com.saicone.pixelbuy.module.settings.FilesManager;
+import com.saicone.pixelbuy.core.data.DatabaseManager;
+import com.saicone.pixelbuy.core.web.OrderManager;
+import com.saicone.pixelbuy.core.PlayerManager;
 
-import com.saicone.pixelbuy.managers.store.StoreManager;
+import com.saicone.pixelbuy.core.StoreManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
