@@ -4,7 +4,6 @@ import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.api.object.StoreItem;
-import com.saicone.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -42,13 +41,13 @@ public class UserCore {
     }
 
     public void processOrder(String player, StoreUser.Order order) {
-        Player p = Utils.getPlayer(player);
+        Player p = Bukkit.getPlayer(player);
         StoreUser pData = getPlayerData(player);
         if (pData != null) {
             if (isDuplicated(order.getId(), pData.getOrders())) return;
             pData.addOrder(order);
         } else {
-            pData = new StoreUser((pl.configBoolean("Database.UUID") ? (p == null ? Utils.getOfflineUUID(player) : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
+            pData = new StoreUser((pl.configBoolean("Database.UUID") ? (p == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
         }
         saveDataChanges(p, processData(p, pData));
     }
@@ -82,7 +81,7 @@ public class UserCore {
     }
 
     public boolean refundOrder(String player, Integer orderID) {
-        Player p = Utils.getPlayer(player);
+        Player p = Bukkit.getPlayer(player);
         StoreUser pData = getPlayerData(player);
         if (pData != null) {
             boolean exists = false;
@@ -119,7 +118,7 @@ public class UserCore {
     }
 
     public void saveDataChanges(String name, StoreUser data) {
-        Player player = Utils.getPlayer(name);
+        Player player = Bukkit.getPlayer(name);
         if (player != null) {
             players.put(player.getUniqueId(), data);
         }
@@ -127,8 +126,8 @@ public class UserCore {
     }
 
     public StoreUser getPlayerData(String player) {
-        Player p = Utils.getPlayer(player);
-        return (p != null ? players.getOrDefault(p.getUniqueId(), null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Utils.getOfflineUUID(player) : player)));
+        Player p = Bukkit.getPlayer(player);
+        return (p != null ? players.getOrDefault(p.getUniqueId(), null) : pl.getDatabase().getData((pl.configBoolean("Database.UUID") ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : player)));
     }
 
     private boolean isDuplicated(Integer id, List<StoreUser.Order> list) {

@@ -1,8 +1,8 @@
 package com.saicone.pixelbuy.core.command.sub;
 
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.SubCommand;
-import com.saicone.pixelbuy.util.Utils;
 
 import org.bukkit.command.CommandSender;
 
@@ -25,13 +25,13 @@ public class DatabaseCommand extends SubCommand {
     @Override
     public void execute(CommandSender sender, String cmd, String[] args) {
         if (args.length == 1) {
-            pl.langStringList("Command.Database.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+            Lang.COMMAND_DATABASE_HELP.sendTo(sender, cmd);
             return;
         }
         switch (args[1].toLowerCase()) {
             case "convert":
                 if (args.length == 2) {
-                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Use").replace("%cmd%", cmd)));
+                    Lang.COMMAND_DATABASE_CONVERT_USAGE.sendTo(sender, cmd);
                 } else if (args.length == 3) {
                     pl.getDatabase().convertData(sender, args[2], false);
                 } else {
@@ -40,14 +40,15 @@ public class DatabaseCommand extends SubCommand {
                 break;
             case "delete":
                 if (args.length == 2) {
-                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Use").replace("%cmd%", cmd)));
+                    Lang.COMMAND_DATABASE_DELETE_USAGE.sendTo(sender, cmd);
                 } else {
                     pl.getDatabase().deleteData(args[2]);
-                    sender.sendMessage(Utils.color(pl.langString("Command.Database.Delete.Success").replace("%player%", args[2])));
+                    Lang.COMMAND_DATABASE_DELETE_DONE.sendTo(sender, cmd);
                 }
                 break;
             default:
-                pl.langStringList("Command.Database.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+                Lang.COMMAND_DATABASE_HELP.sendTo(sender, cmd);
+                break;
         }
     }
 }

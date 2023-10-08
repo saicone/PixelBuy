@@ -1,5 +1,6 @@
 package com.saicone.pixelbuy;
 
+import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.module.listener.BukkitListener;
 import com.saicone.pixelbuy.module.settings.YamlSettings;
@@ -12,10 +13,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.List;
 import java.util.Map;
 
 public final class PixelBuy extends JavaPlugin {
@@ -25,6 +27,7 @@ public final class PixelBuy extends JavaPlugin {
     private PixelBuyCommand pixelBuyCommand;
 
     private YamlSettings yamlSettings;
+    private final Lang lang;
     private PixelStore pixelStore;
     private Database database;
     private WebSupervisor webSupervisor;
@@ -33,26 +36,41 @@ public final class PixelBuy extends JavaPlugin {
 
     private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
 
+    @NotNull
     public static PixelBuy get() {
         return pixelBuy;
+    }
+
+    public static void log(int level, @NotNull String msg, @Nullable Object... args) {
+        get().getLang().sendLog(level, msg, args);
+    }
+
+    public PixelBuy() {
+        lang = new Lang(this);
     }
 
     @Override
     public void onEnable() {
         pixelBuy = this;
 
-        yamlSettings = new YamlSettings(Bukkit.getConsoleSender());
-        getLogger().info(langString("Plugin.Init.FilesManager"));
+        yamlSettings = new YamlSettings();
+        lang.load();
+        log(4, "FilesManager loaded");
+
         pixelStore = new PixelStore();
-        getLogger().info(langString("Plugin.Init.StoreManager"));
+        log(4, "StoreManager loaded");
+
         database = new Database(this);
-        getLogger().info(langString("Plugin.Init.DatabaseManager"));
+        log(4, "DatabaseManager loaded");
+
         userCore = new UserCore();
-        getLogger().info(langString("Plugin.Init.PlayerManager"));
+        log(4, "PlayerManager loaded");
+
         webSupervisor = new WebSupervisor();
-        getLogger().info(langString("Plugin.Init.OrderManager"));
+        log(4, "OrderManager loaded");
+
         bukkitListener = new BukkitListener();
-        getLogger().info(langString("Plugin.Init.EventManager"));
+        log(4, "EventManager loaded");
 
         try {
             Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -66,7 +84,7 @@ public final class PixelBuy extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info(langString("Plugin.Shut"));
+        log(3, "Disabling plugin...");
         unregisterCommand();
         bukkitListener.shut();
         webSupervisor.shut();
@@ -87,18 +105,6 @@ public final class PixelBuy extends JavaPlugin {
         return yamlSettings.getConfig().getBoolean(path, false);
     }
 
-    public String langString(String path) {
-        return yamlSettings.getLang().getString(path, "");
-    }
-
-    public String langString(String path, String def) {
-        return yamlSettings.getLang().getString(path, def);
-    }
-
-    public List<String> langStringList(String path) {
-        return yamlSettings.getLang().getStringList(path);
-    }
-
     public File getFolderData() {
         if (!folderData.exists()) folderData.mkdir();
         return folderData;
@@ -106,6 +112,11 @@ public final class PixelBuy extends JavaPlugin {
 
     public YamlSettings getFiles() {
         return yamlSettings;
+    }
+
+    @NotNull
+    public Lang getLang() {
+        return lang;
     }
 
     public PixelStore getStore() {

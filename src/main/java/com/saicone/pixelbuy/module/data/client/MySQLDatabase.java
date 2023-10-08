@@ -3,7 +3,6 @@ package com.saicone.pixelbuy.module.data.client;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.data.DataClient;
 import com.saicone.pixelbuy.api.object.StoreUser;
-import com.saicone.pixelbuy.util.Utils;
 
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
@@ -18,8 +17,6 @@ public class MySQLDatabase implements DataClient {
 
     private boolean enabled = false;
 
-    private boolean debug = false;
-
     public Connection con = null;
 
     public String getType() {
@@ -28,7 +25,6 @@ public class MySQLDatabase implements DataClient {
 
     public boolean setup() {
         if (enabled) disable(false);
-        debug = pl.configBoolean("Database.Debug");
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
 
@@ -40,15 +36,15 @@ public class MySQLDatabase implements DataClient {
                     pl.configString("Database.Password"));
 
         } catch (ClassNotFoundException e) {
-            if (debug) Utils.info(pl.langString("Debug.MySQL.Not-Found"));
+            PixelBuy.log(1, "MySQL driver was not found");
             return false;
         } catch (SQLException e) {
-            if (debug) Utils.info(pl.langString("Debug.MySQL.Cant-Connect"));
+            PixelBuy.log(1, "Unable to connect to database, check configuration");
             return false;
         } catch (Exception e) {
-            if (debug) {
-                Utils.info(pl.langString("Debug.MySQL.Unknown"));
-                Utils.info(e.getMessage());
+            if (PixelBuy.get().getLang().getLogLevel() >= 1) {
+                PixelBuy.log(1, "There was an unknown error:");
+                e.printStackTrace();
             }
             return false;
         }
@@ -75,9 +71,7 @@ public class MySQLDatabase implements DataClient {
             stmt.close();
             rS.close();
         } catch (SQLException | NullPointerException e) {
-            if (debug) {
-                Utils.info(pl.langString("Debug.MySQL.No-Data").replace("%player%", player));
-            }
+            PixelBuy.log(2, "The data of player " + player + " does not exist");
         }
         return data;
     }
@@ -106,33 +100,35 @@ public class MySQLDatabase implements DataClient {
                 stmt.executeUpdate(sql);
                 stmt.close();
             } catch (SQLException e) {
-                if (debug) {
-                    Utils.info(pl.langString("Debug.MySQL.Query-Error"));
-                    Utils.info(e.getMessage());
+                if (PixelBuy.get().getLang().getLogLevel() >= 2) {
+                    PixelBuy.log(2, "There was an error trying to do the Query: '" + sql + "'");
+                    e.printStackTrace();
                 }
                 if (data != null) pl.getDatabase().addCachedData(data);
                 disable(true);
             } catch (NullPointerException e) {
-                if (debug) Utils.info(e.getMessage());
+                if (PixelBuy.get().getLang().getLogLevel() >= 1) {
+                    e.printStackTrace();
+                }
                 if (data != null) pl.getDatabase().addCachedData(data);
             }
         });
     }
 
     public void disable(boolean reconnect) {
-        if (debug) Utils.info(pl.langString("Debug.MySQL.Shutdown"));
+        PixelBuy.log(4, "Disconnecting database ...");
         try {
             con.close();
         } catch (SQLException e) {
-            if (debug) {
-                Utils.info(pl.langString("Debug.MySQL.Shut-Error"));
-                Utils.info(e.getMessage());
+            if (PixelBuy.get().getLang().getLogLevel() >= 2) {
+                PixelBuy.log(2, "There was an error trying to disconnect from the database:");
+                e.printStackTrace();
             }
         }
         if (reconnect) {
-            if (debug) Utils.info(pl.langString("Debug.MySQL.Reconnect"));
+            PixelBuy.log(3, "Reconnecting with the database...");
             if (!setup()) {
-                if (debug) Utils.info(pl.langString("Debug.MySQL.Reco-Error"));
+                PixelBuy.log(1, "Could not reconnect to database, JSON will be used as change");
                 pl.getDatabase().setDefault();
             }
         }

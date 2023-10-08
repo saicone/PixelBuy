@@ -7,7 +7,6 @@ import com.saicone.pixelbuy.module.action.type.CommandAction;
 import com.saicone.pixelbuy.module.action.type.ItemAction;
 import com.saicone.pixelbuy.module.action.type.MessageAction;
 import com.saicone.pixelbuy.module.action.ActionType;
-import com.saicone.pixelbuy.util.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -60,7 +59,7 @@ public class PixelStore {
             items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), store.getStringList("Items." + identifier + ".execute")));
             count++;
         }
-        sender.sendMessage(Utils.color(pl.langString("Messages.Store.Loaded").replace("%num%", String.valueOf(count))));
+        PixelBuy.log(3, count + " store items has been loaded");
     }
 
     public String getStoreName() {

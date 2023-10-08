@@ -1,0 +1,88 @@
+Command:
+  NoPermission: '&cYou don''t have permission to use this command'
+  Help:
+    - '&6PixelBuy &f[&e1.2&f]'
+    - '&6> &e/{0} database'
+    - '&6> &e/{0} playerdata'
+    - '&6> &e/{0} reload'
+    - '&6> &e/{0} store'
+  Database:
+    Help:
+      - '&6Database related commands &f(&e/{0} database ...&f)'
+      - '&6> &econvert <from> [true/false]'
+      - '&6> &edelete <player>'
+    Convert:
+      Usage: '&6Use &e/{0} database convert <from> [true/false]'
+      SameType: '&cYou can''t convert data from the current database type!'
+      Unknown: '&cThe database type {0} doesn''t exist!'
+      SetupError: '&6Database &e{0} &6can''t connect, enable debug and try again'
+    Delete:
+      Usage: '&6Use &e/{0} database delete <player>'
+      Done: '&aData from {0} has been deleted'
+  PlayerData:
+    Help:
+      - '&6Player data related commands &f(&e/{0} player ...&f)'
+      - '&6> &einfo <player>'
+      - '&6> &erefund <player> <order ID>'
+      - '&6> &efalse-order <player> <order ID> <item list>'
+      - '&6> &erecover <player> <order ID>'
+    Info:
+      Usage: '&6Use &e/{0} player info <player>'
+      Unknown: '&cPlayer &6{0} &cdoesn''t have data'
+      Player:
+        - '&ePlayer: &f{0}'
+        - '&eDonated: &a{1}'
+        - '&eList of orders [{2}/{3}]:'
+      Order:
+        - '&6{0}- &eOrder ID: &f{1}'
+        - '&e  List of Items:'
+      Items: '&6    {0}- &f{1} &7: {2}'
+    Refund:
+      Usage: '&6Use &e/{0} player refund <player> <order ID>'
+      Done: '&aA refund has been processed for player &f{0} &aand order &f{1}'
+      Error: '&cThe order isn''t processable, check the command or player data'
+    Order:
+      Usage: '&6Use &e/{0} player order <player> <order ID> <list of items separated by comma>'
+      Done: '&aOrder &f{0} &ahas been added to &f{1} &awith items &f{2}'
+    Recover:
+      Usage: '&6Use &e/{0} player recover <player> <order ID>'
+      Unknown: '&cThe order &6{0} &cdoes not exist'
+      Done: '&aOrder &f{0} &ahas been recovered to &f{1} &awith items &f{2}'
+  Reload:
+    Help:
+      - '&6Reload related commands &f(&e/{0} reload ...&f)'
+      - '&6> &efiles [settings, messages]'
+      - '&6> &estore'
+      - '&6> &edatabase'
+      - '&6> &ewebdata'
+      - '&6> &eall'
+    Files: '&aConfiguration reloaded!'
+    Database:
+      Default: '&6JSON database type will used because the specified type in configuration doesn''t exists'
+      Done: '&aDatabase type {0} has been loaded successfully'
+      Error: '&6Database type {0} has a error when load, the plugin will use JSON type'
+    Webdata: '&aWebdata manager reloaded!'
+    Command: '&aPlugin main command has been reloaded!'
+  Status:
+    - '&6------PixelBuy Status------'
+    - '&7OrderManager: {0}'
+    - ''
+  Store:
+    Help:
+      - '&6Store related commands&f(&e/{0} store ...&f)'
+      - '&6> &eitems'
+    Items:
+      Info:
+        - '&c{0}- &6Item: &f{1}'
+        - '&6  Price: &f{2}'
+        - '&6  Online: &f{3}'
+        - '&6  Actions:'
+      Enum: '&6-    &f{4}'
+
+Status:
+  On: '&aON'
+  Off: '&cOFF'
+  InProcess: '&3In process...'
+  Pending: '&3Pending'
+  Sent: '&aSent'
+  Refunded: '&cRefunded'

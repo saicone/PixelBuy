@@ -1,11 +1,11 @@
 package com.saicone.pixelbuy.core.data;
 
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.module.data.client.FileDatabase;
 import com.saicone.pixelbuy.module.data.client.MySQLDatabase;
 import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.module.data.DataClient;
-import com.saicone.pixelbuy.util.Utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -42,13 +42,13 @@ public class Database {
                 database = new MySQLDatabase();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Default")));
+                Lang.COMMAND_RELOAD_DATABASE_DEFAULT.sendTo(sender);
                 database = new FileDatabase();
         }
         if (database.setup()) {
-            sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Success").replace("%type%", getCurrentType())));
+            Lang.COMMAND_RELOAD_DATABASE_DONE.sendTo(sender, getCurrentType());
         } else {
-            sender.sendMessage(Utils.color(pl.langString("Command.Reload.Database.Error").replace("%type%", getCurrentType())));
+            Lang.COMMAND_RELOAD_DATABASE_ERROR.sendTo(sender, getCurrentType());
             setDefault();
         }
         if (pl.configBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
@@ -62,7 +62,7 @@ public class Database {
     public void convertData(CommandSender sender, String from, boolean delete) {
         from = from.toUpperCase();
         if (getCurrentType().equals(from)) {
-            sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Same-Type")));
+            Lang.COMMAND_DATABASE_CONVERT_SAME_TYPE.sendTo(sender);
             return;
         }
         DataClient base;
@@ -74,12 +74,12 @@ public class Database {
                 base = new MySQLDatabase();
                 break;
             default:
-                sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.No-Exist")));
+                Lang.COMMAND_DATABASE_CONVERT_UNKNOWN.sendTo(sender, from);
                 return;
         }
         if (!from.equals("JSON")) {
             if (!base.setup()) {
-                sender.sendMessage(Utils.color(pl.langString("Command.Database.Convert.Cant-Setup")));
+                Lang.COMMAND_DATABASE_CONVERT_SETUP_ERROR.sendTo(sender, from);
                 return;
             }
         }

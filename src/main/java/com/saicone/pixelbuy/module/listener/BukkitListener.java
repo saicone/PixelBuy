@@ -7,7 +7,6 @@ import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
 import com.saicone.pixelbuy.util.ConfigAdapter;
-import com.saicone.pixelbuy.util.Utils;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -112,7 +111,7 @@ public class BukkitListener implements Listener {
                     Type listType = new TypeToken<ArrayList<RefundedItem>>(){}.getType();
                     items.addAll(gson.fromJson(reader, listType));
                 }
-                Utils.info(pl.langString("Plugin.Init.Refunded-Items").replace("%num%", String.valueOf(items.size())));
+                PixelBuy.log(3, items.size() + " refunded items has been loaded");
             } catch (IOException ignored) { }
         }
     }

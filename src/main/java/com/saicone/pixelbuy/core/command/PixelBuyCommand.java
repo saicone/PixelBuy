@@ -1,11 +1,11 @@
 package com.saicone.pixelbuy.core.command;
 
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.sub.DatabaseCommand;
 import com.saicone.pixelbuy.core.command.sub.ReloadCommand;
 import com.saicone.pixelbuy.core.command.sub.PlayerDataCommand;
 import com.saicone.pixelbuy.core.command.sub.StoreCommand;
-import com.saicone.pixelbuy.util.Utils;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -35,7 +35,7 @@ public class PixelBuyCommand extends Command {
     public boolean execute(CommandSender sender, String label, String[] args) {
         if (!hasPerm(sender, pl.getFiles().getConfig().getString("Perms.Main", "pixelbuy.use"))) return true;
         if (args.length == 0) {
-            pl.langStringList("Command.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+            Lang.COMMAND_HELP.sendTo(sender, cmd);
             return true;
         }
         boolean matched = false;
@@ -48,13 +48,17 @@ public class PixelBuyCommand extends Command {
                 break;
             }
         }
-        if (!matched) pl.langStringList("Command.Help").forEach(string -> sender.sendMessage(Utils.color(string.replace("%cmd%", cmd))));
+        if (!matched) {
+            Lang.COMMAND_HELP.sendTo(sender, cmd);
+        }
         return true;
     }
 
     public boolean hasPerm(CommandSender sender, String perm) {
-        if (sender.hasPermission(perm) || sender.hasPermission(pl.getFiles().getConfig().getString("Perms.All", "pixelbuy.*"))) return true;
-        sender.sendMessage(Utils.color(pl.langString("Command.No-Perm")));
+        if (sender.hasPermission(perm) || sender.hasPermission(pl.getFiles().getConfig().getString("Perms.All", "pixelbuy.*"))) {
+            return true;
+        }
+        Lang.COMMAND_NO_PERM.sendTo(sender);
         return false;
     }
 }

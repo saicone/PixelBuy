@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.data.DataClient;
 import com.saicone.pixelbuy.api.object.StoreUser;
-import com.saicone.pixelbuy.util.Utils;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -19,26 +18,31 @@ public class FileDatabase implements DataClient {
     private final PixelBuy pl = PixelBuy.get();
     private final File dataFolder = new File(pl.getDataFolder() + File.separator + "playerdata");
 
-    private boolean debug = false;
-
     public String getType() {
         return "JSON";
     }
 
     public boolean setup() {
-        debug = pl.configBoolean("Database.Debug");
-        if (dataFolder.mkdir() && debug) Utils.info(pl.langString("Debug.FlatFile.Folder"));
+        if (dataFolder.mkdir()) {
+            PixelBuy.log(3, "playerdata folder was created because it didn't exist");
+        }
         return true;
     }
 
     public void saveData(StoreUser data) {
         String player = data.getPlayer().toLowerCase();
-        if (dataFolder.mkdir() && debug) Utils.info(pl.langString("Debug.FlatFile.Folder"));
+        if (dataFolder.mkdir()) {
+            PixelBuy.log(3, "playerdata folder was created because it didn't exist");
+        }
         File dataFile = new File(dataFolder + File.separator + player + ".json");
-        if (dataFile.delete() && debug) Utils.info(pl.langString("Debug.FlatFile.Delete").replace("%player%", player));
+        if (dataFile.delete()) {
+            PixelBuy.log(4, player + " data file was deleted");
+        }
 
         try {
-            if (dataFile.createNewFile() && debug) Utils.info(pl.langString("Debug.FlatFile.File").replace("%player%", player));
+            if (dataFile.createNewFile()) {
+                PixelBuy.log(4, player + " data file was created");
+            }
         } catch (IOException ignored) { }
 
         try {

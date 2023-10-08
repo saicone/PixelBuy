@@ -2,7 +2,7 @@ package com.saicone.pixelbuy.module.action.type;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.action.ActionType;
-import com.saicone.pixelbuy.util.Utils;
+import com.saicone.pixelbuy.util.MStrings;
 import io.th0rgal.oraxen.api.OraxenItems;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
@@ -31,8 +31,8 @@ public class ItemAction extends ActionType {
         item.addUnsafeEnchantment(Enchantment.LURE, 1);
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.setDisplayName(Utils.color("&e&lInvalid Item"));
-        meta.setLore(Utils.color(Arrays.asList(
+        meta.setDisplayName(MStrings.color("&e&lInvalid Item"));
+        meta.setLore(MStrings.color(Arrays.asList(
                 "",
                 "&7Reason&8: &f{reason}"
         )));
@@ -52,14 +52,14 @@ public class ItemAction extends ActionType {
 
     @Override
     public void executeBuy(String player, Integer orderID) {
-        ItemStack it = getItem(Utils.color(getExecutable(player, orderID)));
-        Player p = Utils.getPlayer(player);
+        ItemStack it = getItem(MStrings.color(getExecutable(player, orderID)));
+        Player p = Bukkit.getPlayer(player);
         if (p != null) p.getInventory().addItem(it);
     }
 
     @Override
     public void executeRefund(String player, Integer orderID) {
-        ItemStack it = getItem(Utils.color(getExecutable(player, orderID)));
+        ItemStack it = getItem(MStrings.color(getExecutable(player, orderID)));
         PixelBuy.get().getEventManager().addItem(it, it.getAmount());
     }
 
@@ -115,7 +115,7 @@ public class ItemAction extends ActionType {
         Object mapValue;
         if ((mapValue = mapValueOrDefault(map, 0, "custommodeldata", "modeldata", "model")) != null) {
             int model = intOrDefault(mapValue, 0);
-            if (model > 0 && Utils.verNumber >= 14) {
+            if (model > 0 && MStrings.verNumber >= 14) {
                 meta.setCustomModelData(model);
             }
         }
@@ -160,7 +160,11 @@ public class ItemAction extends ActionType {
     private ItemStack buildDefaultItem(String reason) {
         ItemStack item = new ItemStack(DEFAULT_ITEM);
         ItemMeta meta = item.getItemMeta();
-        meta.setLore(Utils.replace(meta.getLore(), "{reason}", reason));
+        List<String> finalLore = new ArrayList<>();
+        for (String s : meta.getLore()) {
+            finalLore.add(s.replace("{reason}", reason));
+        }
+        meta.setLore(finalLore);
         item.setItemMeta(meta);
         return item;
     }

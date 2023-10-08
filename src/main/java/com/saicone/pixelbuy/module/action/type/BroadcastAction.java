@@ -1,7 +1,7 @@
 package com.saicone.pixelbuy.module.action.type;
 
 import com.saicone.pixelbuy.module.action.ActionType;
-import com.saicone.pixelbuy.util.Utils;
+import com.saicone.pixelbuy.util.MStrings;
 import org.bukkit.Bukkit;
 
 public class BroadcastAction extends ActionType {
@@ -24,6 +24,6 @@ public class BroadcastAction extends ActionType {
     }
 
     private void broadcast(String s) {
-        Bukkit.getOnlinePlayers().forEach(player -> player.sendMessage(Utils.color(s)));
+        Bukkit.getOnlinePlayers().forEach(player -> player.sendMessage(MStrings.color(s)));
     }
 }

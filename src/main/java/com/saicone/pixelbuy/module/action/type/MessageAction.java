@@ -1,7 +1,8 @@
 package com.saicone.pixelbuy.module.action.type;
 
 import com.saicone.pixelbuy.module.action.ActionType;
-import com.saicone.pixelbuy.util.Utils;
+import com.saicone.pixelbuy.util.MStrings;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class MessageAction extends ActionType {
@@ -18,10 +19,10 @@ public class MessageAction extends ActionType {
 
     @Override
     public void executeBuy(String player, Integer orderID) {
-        Player p = Utils.getPlayer(player);
+        Player p = Bukkit.getPlayer(player);
         if (p != null) {
             for (String msg : getExecutable(player, orderID).split("\\|")) {
-                p.sendMessage(Utils.color(msg));
+                p.sendMessage(MStrings.color(msg));
             }
         }
     }

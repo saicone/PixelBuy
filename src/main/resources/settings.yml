@@ -1,9 +1,32 @@
+# Plugin configuration
+Plugin:
+  # 1 = errors, 2 = warnings, 3 = information, 4 = debug
+  # Set to 0 to disable
+  LogLevel: 3
+  # Available languages: en_US, es_ES
+  # If you want to use other language go to "lang" folder and create new file
+  Language: 'en_US'
 
-# Available languages: en, es
-# If you want to use other language go to "lang" folder and create new file
-Language: 'en'
+# Lang configuration
+Lang:
+  # Default player language
+  Default: 'en_US'
+  # Language aliases
+  Aliases:
+    en_US:
+      - 'en_AU'
+      - 'en_CA'
+      - 'en_GB'
+      - 'en_NZ'
+    es_ES:
+      - 'es_AR'
+      - 'es_CL'
+      - 'es_EC'
+      - 'es_MX'
+      - 'es_UY'
+      - 'es_VE'
 
-# Configuration about player data
+# Database configuration
 Database:
   # If false the data will be saved using player names (Recommended for No-Premium servers)
   UUID: false
@@ -18,9 +41,6 @@ Database:
   User: 'user'
   Password: 'pass'
   Flags: '?autoReconnect=true&verifyServerCertificate=false&useSSL=false'
-  # Set to true if you want to see more info in console about database
-  # actions and messages
-  Debug: false
   # Set to true to convert JSON files data automatically to external database data if you change
   # database type or the external database has an error who changes the database type to json
   Convert-Data: true
@@ -37,9 +57,6 @@ Web-Data:
   # This is a key that YOU set, both needing to be identical
   # in the WooCommerce configuration and in this config file
   Key: ''
-  # Set to true if you want to see more info in console about processed orders
-  # and errors about miss configured things
-  Debug: false
 
 # Configuration about orders
 Order:

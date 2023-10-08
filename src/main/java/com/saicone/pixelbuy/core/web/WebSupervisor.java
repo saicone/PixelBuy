@@ -3,7 +3,6 @@ package com.saicone.pixelbuy.core.web;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
 import com.saicone.pixelbuy.api.object.StoreUser;
-import com.saicone.pixelbuy.util.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -53,22 +52,20 @@ public class WebSupervisor {
     }
 
     public void checkWebData(CommandSender sender) {
-        boolean debug = pl.configBoolean("Web-Data.Debug");
-
         // Check if plugin is correctly configured
         if (pl.configString("Web-Data.URL").isEmpty()) {
             on = false;
-            if (debug) Utils.info(pl.langString("Debug.WebData.Empty-URL"));
+            PixelBuy.log(2, "The URL is empty");
             return;
         }
         if (pl.configString("Web-Data.Key").isEmpty()) {
             on = false;
-            if (debug) Utils.info(pl.langString("Debug.WebData.Empty-Key"));
+            PixelBuy.log(2, "The Key is empty");
             return;
         }
 
         // First debug message
-        if (debug) Utils.info(pl.langString("Debug.WebData.Check-URL"));
+        PixelBuy.log(4, "Checking purchase data...");
 
         // Check URL connection
         BufferedReader in;
@@ -77,12 +74,12 @@ public class WebSupervisor {
         } catch (FileNotFoundException e) {
             // Error about connection
             on = false;
-            if (debug) Utils.info(e.getMessage().replace(pl.configString( "Web-Data.Key"), "privateKey"));
+            PixelBuy.log(2, e.getMessage().replace(pl.configString( "Web-Data.Key"), "privateKey"));
             return;
         } catch (Exception e) {
             // Error about bad configured URL
             on = false;
-            if (debug) Utils.info(pl.langString("Debug.WebData.Invalid-URL"));
+            PixelBuy.log(2, "The URL is invalid");
             return;
         }
 
@@ -103,15 +100,15 @@ public class WebSupervisor {
         // Final checker
         if (buffer.toString().isEmpty()) {
             on = false;
-            if (debug) Utils.info(pl.langString("Debug.WebData.Empty-Page"));
+            PixelBuy.log(2, "The page with purchase orders is empty");
         } else {
-            processData(sender, buffer.toString(), debug);
+            processData(sender, buffer.toString());
         }
     }
 
-    public void processData(CommandSender sender, String webData, boolean debug) {
+    public void processData(CommandSender sender, String webData) {
         // First debug message
-        if (debug) Utils.info(pl.langString("Debug.WebData.Check-Data"));
+        PixelBuy.log(4, "Reviewing pending purchase orders...");
 
         // Read web data
         Gson gson = new GsonBuilder().create();
@@ -120,7 +117,7 @@ public class WebSupervisor {
         // Check if Wordpress plugin have no errors
         if (webString.getData() != null) {
             on = false;
-            if (debug) Utils.info(webString.getCode());
+            PixelBuy.log(2, webString.getCode());
             return;
         }
 
@@ -130,7 +127,7 @@ public class WebSupervisor {
         // Check if order list have orders
         if (webOrderList == null || webOrderList.isEmpty()) {
             on = false;
-            if (debug) Utils.info(pl.langString("Debug.WebData.Empty-Orders"));
+            PixelBuy.log(4, "There are no purchase orders to process");
             return;
         }
 
@@ -148,10 +145,10 @@ public class WebSupervisor {
             });
             savedOrders.add(webOrder.getOrderId());
         }
-        sendProcessedData(sender, savedOrders, debug);
+        sendProcessedData(sender, savedOrders);
     }
 
-    public void sendProcessedData(CommandSender sender, List<Integer> orders, boolean debug) {
+    public void sendProcessedData(CommandSender sender, List<Integer> orders) {
         // Build saved orders data to send
         Gson gson = new Gson();
         SavedOrders savedOrders = new SavedOrders(orders);
@@ -172,14 +169,14 @@ public class WebSupervisor {
         // Check if server has a connection
         if (response.body() == null) {
             on = false;
-            if (debug) Utils.info("Received empty response from your server, check connections.");
+            PixelBuy.log(2, "Received empty response from your server, check connections.");
             return;
         }
 
         // Check any existing errors from Wordpress
         //WebString webString = gson.fromJson(Objects.requireNonNull(response.body()).toString(), WebString.class);
         //if (webString.getCode() != null) {
-        //    if (debug) Utils.info("Received error when trying to send post data:" + webString.getCode());
+        //    PixelBuy.log(2, "Received error when trying to send post data:" + webString.getCode());
         //}
         on = false;
     }
