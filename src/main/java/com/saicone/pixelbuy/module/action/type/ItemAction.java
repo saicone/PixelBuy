@@ -115,7 +115,7 @@ public class ItemAction extends ActionType {
         Object mapValue;
         if ((mapValue = mapValueOrDefault(map, 0, "custommodeldata", "modeldata", "model")) != null) {
             int model = intOrDefault(mapValue, 0);
-            if (model > 0 && MStrings.verNumber >= 14) {
+            if (model > 0) {
                 meta.setCustomModelData(model);
             }
         }
