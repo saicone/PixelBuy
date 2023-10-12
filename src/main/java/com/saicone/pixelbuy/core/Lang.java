@@ -67,13 +67,13 @@ public class Lang extends LangLoader {
 
     @Override
     public void load(@NotNull File langFolder) {
-        logLevel = PixelBuy.get().configInt("Plugin.LogLevel");
+        logLevel = PixelBuy.settings().getInt("Plugin.LogLevel", 3);
         if (languageAliases != null) {
             languageAliases.clear();
         } else {
             languageAliases = new HashMap<>();
         }
-        final ConfigurationSection section = PixelBuy.get().getFiles().getConfig().getConfigurationSection("Lang.Aliases");
+        final ConfigurationSection section = PixelBuy.settings().getConfigurationSection("Lang.Aliases");
         if (section != null) {
             for (String key : section.getKeys(false)) {
                 final Object aliases = section.get(key);
@@ -86,8 +86,8 @@ public class Lang extends LangLoader {
                 }
             }
         }
-        pluginLanguage = PixelBuy.get().configString("Plugin.Language");
-        defaultLanguage = PixelBuy.get().configString("Lang.Default");
+        pluginLanguage = PixelBuy.settings().getString("Plugin.Language", "en_US");
+        defaultLanguage = PixelBuy.settings().getString("Lang.Default", "en_US");
         super.load(langFolder);
     }
 

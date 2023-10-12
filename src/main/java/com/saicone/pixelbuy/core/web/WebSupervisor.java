@@ -32,7 +32,7 @@ public class WebSupervisor {
     public void reload(boolean init) {
         on = false;
         if (checker > 0 && !init) Bukkit.getScheduler().cancelTask(checker);
-        int check = pl.configInt("Web-Data.Check-Interval");
+        int check = PixelBuy.settings().getInt("Web-Data.Check-Interval", 7);
         if (check >= 1) {
             checker = Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
                 if (!on) {
@@ -48,17 +48,17 @@ public class WebSupervisor {
     }
 
     public URL getURL() throws Exception {
-        return new URL(pl.configString("Web-Data.URL") + "/wp-json/wmc/v1/server/" + pl.configString("Web-Data.Key"));
+        return new URL(PixelBuy.settings().getString("Web-Data.URL", "") + "/wp-json/wmc/v1/server/" + PixelBuy.settings().getString("Web-Data.Key", ""));
     }
 
     public void checkWebData(CommandSender sender) {
         // Check if plugin is correctly configured
-        if (pl.configString("Web-Data.URL").isEmpty()) {
+        if (PixelBuy.settings().getString("Web-Data.URL", "").isEmpty()) {
             on = false;
             PixelBuy.log(2, "The URL is empty");
             return;
         }
-        if (pl.configString("Web-Data.Key").isEmpty()) {
+        if (PixelBuy.settings().getString("Web-Data.Key", "").isEmpty()) {
             on = false;
             PixelBuy.log(2, "The Key is empty");
             return;
@@ -74,7 +74,7 @@ public class WebSupervisor {
         } catch (FileNotFoundException e) {
             // Error about connection
             on = false;
-            PixelBuy.log(2, e.getMessage().replace(pl.configString( "Web-Data.Key"), "privateKey"));
+            PixelBuy.log(2, e.getMessage().replace(PixelBuy.settings().getString( "Web-Data.Key", ""), "privateKey"));
             return;
         } catch (Exception e) {
             // Error about bad configured URL

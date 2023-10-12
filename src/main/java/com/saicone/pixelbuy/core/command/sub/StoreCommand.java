@@ -19,7 +19,7 @@ public class StoreCommand extends SubCommand {
 
     @Override
     public String getPermission() {
-        return pl.getFiles().getConfig().getString("Perms.Store", "pixelbuy.store");
+        return PixelBuy.settings().getString("Perms.Store", "pixelbuy.store");
     }
 
     @Override

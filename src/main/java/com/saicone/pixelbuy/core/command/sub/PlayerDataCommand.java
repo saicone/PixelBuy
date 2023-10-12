@@ -24,7 +24,7 @@ public class PlayerDataCommand extends SubCommand {
 
     @Override
     public String getPermission() {
-        return pl.getFiles().getConfig().getString("Perms.PlayerData", "pixelbuy.playerdata");
+        return PixelBuy.settings().getString("Perms.PlayerData", "pixelbuy.playerdata");
     }
 
     @Override

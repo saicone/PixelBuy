@@ -29,11 +29,11 @@ public class MySQLDatabase implements DataClient {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
 
             con = DriverManager.getConnection("jdbc:mysql://" +
-                            pl.configString("Database.Host") + "/" +
-                            pl.configString("Database.Database") +
-                            pl.configString("Database.Flags"),
-                    pl.configString("Database.User"),
-                    pl.configString("Database.Password"));
+                            PixelBuy.settings().getString("Database.Host", "") + "/" +
+                            PixelBuy.settings().getString("Database.Database", "") +
+                            PixelBuy.settings().getString("Database.Flags", ""),
+                    PixelBuy.settings().getString("Database.User", ""),
+                    PixelBuy.settings().getString("Database.Password", ""));
 
         } catch (ClassNotFoundException e) {
             PixelBuy.log(1, "MySQL driver was not found");

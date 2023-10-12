@@ -3,12 +3,12 @@ package com.saicone.pixelbuy;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.module.listener.BukkitListener;
-import com.saicone.pixelbuy.module.settings.YamlSettings;
 import com.saicone.pixelbuy.core.data.Database;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.UserCore;
 
 import com.saicone.pixelbuy.core.PixelStore;
+import com.saicone.pixelbuy.module.settings.SettingsFile;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -23,10 +23,11 @@ import java.util.Map;
 public final class PixelBuy extends JavaPlugin {
 
     private static PixelBuy pixelBuy;
+
     private CommandMap commandMap;
     private PixelBuyCommand pixelBuyCommand;
 
-    private YamlSettings yamlSettings;
+    private final SettingsFile settings;
     private final Lang lang;
     private PixelStore pixelStore;
     private Database database;
@@ -41,11 +42,17 @@ public final class PixelBuy extends JavaPlugin {
         return pixelBuy;
     }
 
+    @NotNull
+    public static SettingsFile settings() {
+        return get().getSettings();
+    }
+
     public static void log(int level, @NotNull String msg, @Nullable Object... args) {
         get().getLang().sendLog(level, msg, args);
     }
 
     public PixelBuy() {
+        settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
     }
 
@@ -53,7 +60,7 @@ public final class PixelBuy extends JavaPlugin {
     public void onEnable() {
         pixelBuy = this;
 
-        yamlSettings = new YamlSettings();
+        settings.loadFrom(getDataFolder(), true);
         lang.load();
         log(4, "FilesManager loaded");
 
@@ -93,25 +100,14 @@ public final class PixelBuy extends JavaPlugin {
         pixelStore.shut();
     }
 
-    public String configString(String path) {
-        return yamlSettings.getConfig().getString(path, "");
-    }
-
-    public int configInt(String path) {
-        return yamlSettings.getConfig().getInt(path, 1000);
-    }
-
-    public boolean configBoolean(String path) {
-        return yamlSettings.getConfig().getBoolean(path, false);
-    }
-
     public File getFolderData() {
         if (!folderData.exists()) folderData.mkdir();
         return folderData;
     }
 
-    public YamlSettings getFiles() {
-        return yamlSettings;
+    @NotNull
+    public SettingsFile getSettings() {
+        return settings;
     }
 
     @NotNull
@@ -146,7 +142,7 @@ public final class PixelBuy extends JavaPlugin {
 
     private void registerCommand() {
         if (commandMap != null) {
-            pixelBuyCommand = new PixelBuyCommand(yamlSettings.getConfig().getString("Commands.Main.Cmd", "pixelbuy"), yamlSettings.getConfig().getStringList("Commands.Main.Aliases"));
+            pixelBuyCommand = new PixelBuyCommand(settings.getString("Commands.Main.Cmd", "pixelbuy"), settings.getStringList("Commands.Main.Aliases"));
             commandMap.register("pixelbuy", pixelBuyCommand);
             pixelBuyCommand.isRegistered();
         }

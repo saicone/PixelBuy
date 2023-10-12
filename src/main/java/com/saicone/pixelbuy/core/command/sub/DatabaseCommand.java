@@ -19,7 +19,7 @@ public class DatabaseCommand extends SubCommand {
 
     @Override
     public String getPermission() {
-        return pl.getFiles().getConfig().getString("Perms.Database", "pixelbuy.database");
+        return PixelBuy.settings().getString("Perms.Database", "pixelbuy.database");
     }
 
     @Override

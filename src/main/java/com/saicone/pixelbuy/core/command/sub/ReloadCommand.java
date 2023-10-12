@@ -19,7 +19,7 @@ public class ReloadCommand extends SubCommand {
 
     @Override
     public String getPermission() {
-        return pl.getFiles().getConfig().getString("Perms.Reload", "pixelbuy.reload");
+        return PixelBuy.settings().getString("Perms.Reload", "pixelbuy.reload");
     }
 
     @Override
@@ -31,7 +31,7 @@ public class ReloadCommand extends SubCommand {
         switch (args[1].toLowerCase()) {
             case "file":
             case "files":
-                pl.getFiles().reloadSettings();
+                pl.getSettings().loadFrom(pl.getDataFolder(), true);
                 Lang.COMMAND_RELOAD_FILES.sendTo(sender);
                 break;
             case "store":
@@ -49,7 +49,7 @@ public class ReloadCommand extends SubCommand {
                 Lang.COMMAND_RELOAD_COMMAND.sendTo(sender);
                 break;
             case "all":
-                pl.getFiles().reloadSettings();
+                pl.getSettings().loadFrom(pl.getDataFolder(), true);
                 pl.getStore().reload(sender, false);
                 pl.getDatabase().reload(sender);
                 pl.getOrderManager().reload(false);

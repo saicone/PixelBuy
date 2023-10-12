@@ -34,7 +34,7 @@ public class Database {
     }
 
     public void reload(CommandSender sender) {
-        switch (pl.getFiles().getConfig().getString("Database.Type", "JSON").toUpperCase()) {
+        switch (PixelBuy.settings().getString("Database.Type", "JSON").toUpperCase()) {
             case "JSON":
                 database = new FileDatabase();
                 break;
@@ -51,7 +51,7 @@ public class Database {
             Lang.COMMAND_RELOAD_DATABASE_ERROR.sendTo(sender, getCurrentType());
             setDefault();
         }
-        if (pl.configBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
+        if (PixelBuy.settings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
     }
 
     public void setDefault() {

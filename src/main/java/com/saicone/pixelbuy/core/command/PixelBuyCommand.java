@@ -33,7 +33,7 @@ public class PixelBuyCommand extends Command {
 
     @Override
     public boolean execute(CommandSender sender, String label, String[] args) {
-        if (!hasPerm(sender, pl.getFiles().getConfig().getString("Perms.Main", "pixelbuy.use"))) return true;
+        if (!hasPerm(sender, PixelBuy.settings().getString("Perms.Main", "pixelbuy.use"))) return true;
         if (args.length == 0) {
             Lang.COMMAND_HELP.sendTo(sender, cmd);
             return true;
@@ -55,7 +55,7 @@ public class PixelBuyCommand extends Command {
     }
 
     public boolean hasPerm(CommandSender sender, String perm) {
-        if (sender.hasPermission(perm) || sender.hasPermission(pl.getFiles().getConfig().getString("Perms.All", "pixelbuy.*"))) {
+        if (sender.hasPermission(perm) || sender.hasPermission(PixelBuy.settings().getString("Perms.All", "pixelbuy.*"))) {
             return true;
         }
         Lang.COMMAND_NO_PERM.sendTo(sender);
