@@ -2,11 +2,12 @@ package com.saicone.pixelbuy.module.action.type;
 
 import com.saicone.pixelbuy.module.action.ActionType;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
 
 public class CommandAction extends ActionType {
 
     @Override
-    public String getType() {
+    public @NotNull String getType() {
         return "COMMAND";
     }
 
@@ -16,12 +17,12 @@ public class CommandAction extends ActionType {
     }
 
     @Override
-    public void executeBuy(String player, Integer orderID) {
+    public void executeBuy(@NotNull String player, int orderID) {
         Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), getExecutable(player, orderID).split("\\|")[0]);
     }
 
     @Override
-    public void executeRefund(String player, Integer orderID) {
+    public void executeRefund(@NotNull String player, int orderID) {
         Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), getExecutable(player, orderID).split("\\|", 2)[1]);
     }
 }

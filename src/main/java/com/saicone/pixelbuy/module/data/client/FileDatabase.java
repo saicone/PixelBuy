@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.data.DataClient;
 import com.saicone.pixelbuy.api.object.StoreUser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -15,13 +17,15 @@ import java.util.Objects;
 
 public class FileDatabase implements DataClient {
 
-    private final PixelBuy pl = PixelBuy.get();
-    private final File dataFolder = new File(pl.getDataFolder() + File.separator + "playerdata");
+    private final PixelBuy plugin = PixelBuy.get();
+    private final File dataFolder = new File(plugin.getDataFolder() + File.separator + "playerdata");
 
-    public String getType() {
+    @Override
+    public @NotNull String getType() {
         return "JSON";
     }
 
+    @Override
     public boolean setup() {
         if (dataFolder.mkdir()) {
             PixelBuy.log(3, "playerdata folder was created because it didn't exist");
@@ -29,12 +33,13 @@ public class FileDatabase implements DataClient {
         return true;
     }
 
-    public void saveData(StoreUser data) {
-        String player = data.getPlayer().toLowerCase();
+    @Override
+    public void saveData(@NotNull StoreUser data) {
+        final String player = data.getPlayer().toLowerCase();
         if (dataFolder.mkdir()) {
             PixelBuy.log(3, "playerdata folder was created because it didn't exist");
         }
-        File dataFile = new File(dataFolder + File.separator + player + ".json");
+        final File dataFile = new File(dataFolder + File.separator + player + ".json");
         if (dataFile.delete()) {
             PixelBuy.log(4, player + " data file was deleted");
         }
@@ -45,14 +50,12 @@ public class FileDatabase implements DataClient {
             }
         } catch (IOException ignored) { }
 
-        try {
-            FileWriter writer = new FileWriter(dataFile);
-            String dataString = new Gson().toJson(data);
+        try (FileWriter writer = new FileWriter(dataFile)) {
+            final String dataString = new Gson().toJson(data);
             writer.write(dataString);
             writer.flush();
-            writer.close();
         } catch (IOException e) {
-            pl.getDatabase().addCachedData(data);
+            plugin.getDatabase().addCachedData(data);
             e.printStackTrace();
         }
         //try {
@@ -64,30 +67,35 @@ public class FileDatabase implements DataClient {
         //}
     }
 
-    public StoreUser getData(String player) {
+    @Override
+    public @Nullable StoreUser getData(@NotNull String player) {
         StoreUser data = null;
-        try {
-            Reader reader = Files.newBufferedReader(Paths.get(dataFolder + File.separator + player + ".json"));
-            Gson gson = new Gson();
-            if (!reader.toString().isEmpty()) data = gson.fromJson(reader, StoreUser.class);
-            reader.close();
+        try (Reader reader = Files.newBufferedReader(Paths.get(dataFolder + File.separator + player + ".json"))) {
+            final Gson gson = new Gson();
+            if (!reader.toString().isEmpty()) {
+                data = gson.fromJson(reader, StoreUser.class);
+            }
         } catch (IOException ignored) { }
         return data;
     }
 
-    public List<StoreUser> getAllData() {
-        List<StoreUser> datas = new ArrayList<>();
+    @Override
+    public @NotNull List<StoreUser> getAllData() {
+        final List<StoreUser> datas = new ArrayList<>();
         if (dataFolder.exists()) {
             for (File file : Objects.requireNonNull(dataFolder.listFiles())) {
-                String name = file.getName().toLowerCase();
-                if (name.endsWith(".json")) datas.add(getData(name.replace(".json", "")));
+                final String name = file.getName().toLowerCase();
+                if (name.endsWith(".json")) {
+                    datas.add(getData(name.replace(".json", "")));
+                }
             }
         }
         return datas;
     }
 
-    public void deleteData(String player) {
-        File dataFile = new File(dataFolder, player + ".json");
+    @Override
+    public void deleteData(@NotNull String player) {
+        final File dataFile = new File(dataFolder, player + ".json");
         dataFile.delete();
     }
 }

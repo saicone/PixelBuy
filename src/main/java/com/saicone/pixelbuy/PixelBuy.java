@@ -2,6 +2,7 @@ package com.saicone.pixelbuy;
 
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
+import com.saicone.pixelbuy.module.command.BukkitCommand;
 import com.saicone.pixelbuy.module.listener.BukkitListener;
 import com.saicone.pixelbuy.core.data.Database;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
@@ -9,37 +10,31 @@ import com.saicone.pixelbuy.core.UserCore;
 
 import com.saicone.pixelbuy.core.PixelStore;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandMap;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.util.Map;
 
 public final class PixelBuy extends JavaPlugin {
 
-    private static PixelBuy pixelBuy;
-
-    private CommandMap commandMap;
-    private PixelBuyCommand pixelBuyCommand;
+    private static PixelBuy instance;
 
     private final SettingsFile settings;
     private final Lang lang;
-    private PixelStore pixelStore;
+
+    private PixelStore store;
     private Database database;
-    private WebSupervisor webSupervisor;
+    private WebSupervisor supervisor;
     private UserCore userCore;
-    private BukkitListener bukkitListener;
+    private BukkitListener listener;
+    private PixelBuyCommand command;
 
     private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
 
     @NotNull
     public static PixelBuy get() {
-        return pixelBuy;
+        return instance;
     }
 
     @NotNull
@@ -58,13 +53,13 @@ public final class PixelBuy extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        pixelBuy = this;
+        instance = this;
 
         settings.loadFrom(getDataFolder(), true);
         lang.load();
         log(4, "FilesManager loaded");
 
-        pixelStore = new PixelStore();
+        store = new PixelStore();
         log(4, "StoreManager loaded");
 
         database = new Database(this);
@@ -73,19 +68,12 @@ public final class PixelBuy extends JavaPlugin {
         userCore = new UserCore();
         log(4, "PlayerManager loaded");
 
-        webSupervisor = new WebSupervisor();
+        supervisor = new WebSupervisor();
         log(4, "OrderManager loaded");
 
-        bukkitListener = new BukkitListener();
+        listener = new BukkitListener();
         log(4, "EventManager loaded");
 
-        try {
-            Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
-            bukkitCommandMap.setAccessible(true);
-            commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
-        } catch (IllegalAccessException | IllegalArgumentException | NoSuchFieldException | SecurityException e) {
-            e.printStackTrace();
-        }
         registerCommand();
     }
 
@@ -93,11 +81,16 @@ public final class PixelBuy extends JavaPlugin {
     public void onDisable() {
         log(3, "Disabling plugin...");
         unregisterCommand();
-        bukkitListener.shut();
-        webSupervisor.shut();
+        listener.shut();
+        supervisor.shut();
         userCore.shut();
         database.shut();
-        pixelStore.shut();
+        store.shut();
+    }
+
+    public void onReload() {
+        settings.loadFrom(getDataFolder(), true);
+        reloadCommand();
     }
 
     public File getFolderData() {
@@ -115,24 +108,29 @@ public final class PixelBuy extends JavaPlugin {
         return lang;
     }
 
+    @NotNull
     public PixelStore getStore() {
-        return pixelStore;
+        return store;
     }
 
+    @NotNull
     public Database getDatabase() {
         return database;
     }
 
-    public WebSupervisor getOrderManager() {
-        return webSupervisor;
+    @NotNull
+    public WebSupervisor getSupervisor() {
+        return supervisor;
     }
 
-    public UserCore getPlayerManager() {
+    @NotNull
+    public UserCore getUserCore() {
         return userCore;
     }
 
-    public BukkitListener getEventManager() {
-        return bukkitListener;
+    @NotNull
+    public BukkitListener getListener() {
+        return listener;
     }
 
     public void reloadCommand() {
@@ -141,37 +139,12 @@ public final class PixelBuy extends JavaPlugin {
     }
 
     private void registerCommand() {
-        if (commandMap != null) {
-            pixelBuyCommand = new PixelBuyCommand(settings.getString("Commands.Main.Cmd", "pixelbuy"), settings.getStringList("Commands.Main.Aliases"));
-            commandMap.register("pixelbuy", pixelBuyCommand);
-            pixelBuyCommand.isRegistered();
-        }
+        command = new PixelBuyCommand(settings.getString("Commands.Main.Cmd", "pixelbuy"), settings.getStringList("Commands.Main.Aliases"));
+        BukkitCommand.register(command);
+        command.isRegistered();
     }
 
     private void unregisterCommand() {
-        if (commandMap != null) {
-            try {
-                Class<? extends CommandMap> cmdMapClass = commandMap.getClass();
-                final Field field;
-                if (cmdMapClass.getSimpleName().equals("CraftCommandMap")) {
-                    field = cmdMapClass.getSuperclass().getDeclaredField("knownCommands");
-                } else {
-                    field = cmdMapClass.getDeclaredField("knownCommands");
-                }
-                field.setAccessible(true);
-
-                Map<String, Command> knownCmds = (Map<String, Command>) field.get(commandMap);
-                knownCmds.remove(pixelBuyCommand.getName());
-                pixelBuyCommand.getAliases().forEach(alias -> {
-                    if (knownCmds.containsKey(alias) && knownCmds.get(alias).toString().contains(pixelBuyCommand.getName())) {
-                        knownCmds.remove(alias);
-                    }
-                });
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-            pixelBuyCommand.unregister(commandMap);
-        }
+        BukkitCommand.unregister(command);
     }
 }

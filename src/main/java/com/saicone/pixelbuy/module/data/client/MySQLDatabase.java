@@ -6,6 +6,8 @@ import com.saicone.pixelbuy.api.object.StoreUser;
 
 import com.google.gson.Gson;
 import org.bukkit.Bukkit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -13,20 +15,22 @@ import java.util.List;
 
 public class MySQLDatabase implements DataClient {
 
-    private final PixelBuy pl = PixelBuy.get();
+    private final PixelBuy plugin = PixelBuy.get();
 
     private boolean enabled = false;
 
     public Connection con = null;
 
-    public String getType() {
+    @Override
+    public @NotNull String getType() {
         return "MYSQL";
     }
 
+    @Override
     public boolean setup() {
         if (enabled) disable(false);
         try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Class.forName("com.mysql.jdbc.Driver");
 
             con = DriverManager.getConnection("jdbc:mysql://" +
                             PixelBuy.settings().getString("Database.Host", "") + "/" +
@@ -53,22 +57,22 @@ public class MySQLDatabase implements DataClient {
         return true;
     }
 
-    public void saveData(StoreUser data) {
-        String player = data.getPlayer().toLowerCase();
-        Gson gson = new Gson();
-        String json = gson.toJson(data);
+    @Override
+    public void saveData(@NotNull StoreUser data) {
+        final String player = data.getPlayer().toLowerCase();
+        final Gson gson = new Gson();
+        final String json = gson.toJson(data);
         query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';", data);
     }
 
-    public StoreUser getData(String player) {
+    @Override
+    public @Nullable StoreUser getData(@NotNull String player) {
         StoreUser data = null;
-        try {
-            Statement stmt = con.createStatement();
-            ResultSet rS = stmt.executeQuery("SELECT `DATA` FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';");
+        try (Statement stmt = con.createStatement()) {
+            final ResultSet rS = stmt.executeQuery("SELECT `DATA` FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';");
             rS.last();
-            Gson gson = new Gson();
+            final Gson gson = new Gson();
             data = gson.fromJson(rS.getString("DATA"), StoreUser.class);
-            stmt.close();
             rS.close();
         } catch (SQLException | NullPointerException e) {
             PixelBuy.log(2, "The data of player " + player + " does not exist");
@@ -76,12 +80,12 @@ public class MySQLDatabase implements DataClient {
         return data;
     }
 
-    public List<StoreUser> getAllData() {
-        List<StoreUser> datas = new ArrayList<>();
-        try {
-            PreparedStatement stmt = con.prepareStatement("SELECT `DATA` FROM `PlayerOrders`");
-            ResultSet rS = stmt.executeQuery();
-            Gson gson = new Gson();
+    @Override
+    public @NotNull List<StoreUser> getAllData() {
+        final List<StoreUser> datas = new ArrayList<>();
+        try (PreparedStatement stmt = con.prepareStatement("SELECT `DATA` FROM `PlayerOrders`")) {
+            final ResultSet rS = stmt.executeQuery();
+            final Gson gson = new Gson();
             while (rS.next()) {
                 datas.add(gson.fromJson(rS.getString("DATA"), StoreUser.class));
             }
@@ -89,28 +93,31 @@ public class MySQLDatabase implements DataClient {
         return datas;
     }
 
-    public void deleteData(String player) {
+    @Override
+    public void deleteData(@NotNull String player) {
         query("DELETE FROM `PlayerOrders` WHERE `PLAYER` = '" + player + "';", null);
     }
 
     public void query(String sql, StoreUser data) {
-        Bukkit.getScheduler().runTaskAsynchronously(pl, () -> {
-            try {
-                Statement stmt = con.createStatement();
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate(sql);
-                stmt.close();
             } catch (SQLException e) {
                 if (PixelBuy.get().getLang().getLogLevel() >= 2) {
                     PixelBuy.log(2, "There was an error trying to do the Query: '" + sql + "'");
                     e.printStackTrace();
                 }
-                if (data != null) pl.getDatabase().addCachedData(data);
+                if (data != null) {
+                    plugin.getDatabase().addCachedData(data);
+                }
                 disable(true);
             } catch (NullPointerException e) {
                 if (PixelBuy.get().getLang().getLogLevel() >= 1) {
                     e.printStackTrace();
                 }
-                if (data != null) pl.getDatabase().addCachedData(data);
+                if (data != null) {
+                    plugin.getDatabase().addCachedData(data);
+                }
             }
         });
     }
@@ -129,7 +136,7 @@ public class MySQLDatabase implements DataClient {
             PixelBuy.log(3, "Reconnecting with the database...");
             if (!setup()) {
                 PixelBuy.log(1, "Could not reconnect to database, JSON will be used as change");
-                pl.getDatabase().setDefault();
+                plugin.getDatabase().setDefault();
             }
         }
     }

@@ -6,12 +6,14 @@ import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.api.object.StoreItem;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class UserCore {
 
-    private final PixelBuy pl = PixelBuy.get();
+    private final PixelBuy plugin = PixelBuy.get();
 
     private final Map<UUID, StoreUser> players = new HashMap<>();
 
@@ -28,44 +30,48 @@ public class UserCore {
         Bukkit.getOnlinePlayers().forEach(this::loadPlayer);
     }
 
-    public void loadPlayer(Player player) {
-        StoreUser pData = pl.getDatabase().getData((PixelBuy.settings().getBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
-        if (pData != null) {
-            players.put(player.getUniqueId(), processData(player, pData));
+    public void loadPlayer(@NotNull Player player) {
+        final StoreUser user = plugin.getDatabase().getData((PixelBuy.settings().getBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
+        if (user != null) {
+            players.put(player.getUniqueId(), processData(player, user));
         }
     }
 
-    public void unloadPlayer(Player player) {
-        pl.getDatabase().saveData(players.get(player.getUniqueId()));
+    public void unloadPlayer(@NotNull Player player) {
+        plugin.getDatabase().saveData(players.get(player.getUniqueId()));
         players.remove(player.getUniqueId());
     }
 
-    public void processOrder(String player, StoreUser.Order order) {
-        Player p = Bukkit.getPlayer(player);
-        StoreUser pData = getPlayerData(player);
-        if (pData != null) {
-            if (isDuplicated(order.getId(), pData.getOrders())) return;
-            pData.addOrder(order);
+    @SuppressWarnings("deprecation")
+    public void processOrder(@NotNull String player, @NotNull StoreUser.Order order) {
+        final Player onlinePlayer = Bukkit.getPlayer(player);
+        StoreUser user = getPlayerData(player);
+        if (user != null) {
+            if (isDuplicated(order.getId(), user.getOrders())) {
+                return;
+            }
+            user.addOrder(order);
         } else {
-            pData = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (p == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : p.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
+            user = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : onlinePlayer.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
         }
-        saveDataChanges(p, processData(p, pData));
+        saveDataChanges(onlinePlayer, processData(onlinePlayer, user));
     }
 
-    public StoreUser processData(Player player, StoreUser data) {
-        double donated = data.getDonated();
-        List<StoreUser.Order> orders = data.getOrders(false);
-        for (StoreUser.Order order : data.getOrders(true)) {
+    @NotNull
+    public StoreUser processData(@Nullable Player player, @NotNull StoreUser user) {
+        double donated = user.getDonated();
+        final List<StoreUser.Order> orders = user.getOrders(false);
+        for (StoreUser.Order order : user.getOrders(true)) {
             if (!isDuplicated(order.getId(), orders)) {
-                Map<String, Byte> items = order.getItems((byte) 2);
+                final Map<String, Byte> items = order.getItems((byte) 2);
                 for (Map.Entry<String, Byte> item : order.getItems((byte) 1).entrySet()) {
-                    StoreItem sItem = pl.getStore().getItem(item.getKey());
-                    if (sItem != null) {
-                        if (!sItem.isOnline() || player != null) {
-                            Bukkit.getScheduler().runTaskLater(pl, () -> sItem.buy(data.getPlayer(), order.getId()), PixelBuy.settings().getLong("Order.Delay", 5L) * 20);
+                    final StoreItem storeItem = plugin.getStore().getItem(item.getKey());
+                    if (storeItem != null) {
+                        if (!storeItem.isOnline() || player != null) {
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> storeItem.buy(user.getPlayer(), order.getId()), PixelBuy.settings().getLong("Order.Delay", 5L) * 20);
                             items.put(item.getKey(), (byte) 2);
-                            if (!sItem.getIdentifier().endsWith("-copy")) {
-                                donated = donated + Double.parseDouble(sItem.getPrice());
+                            if (!storeItem.getIdentifier().endsWith("-copy")) {
+                                donated = donated + Double.parseDouble(storeItem.getPrice());
                             }
                         } else {
                             items.put(item.getKey(), item.getValue());
@@ -75,23 +81,23 @@ public class UserCore {
                 orders.add(new StoreUser.Order(order.getId(), items));
             }
         }
-        data.setOrders(orders);
-        data.setDonated(donated);
-        return data;
+        user.setOrders(orders);
+        user.setDonated(donated);
+        return user;
     }
 
-    public boolean refundOrder(String player, Integer orderID) {
-        Player p = Bukkit.getPlayer(player);
-        StoreUser pData = getPlayerData(player);
-        if (pData != null) {
+    public boolean refundOrder(@NotNull String player, int orderID) {
+        final Player onlinePlayer = Bukkit.getPlayer(player);
+        final StoreUser user = getPlayerData(player);
+        if (user != null) {
             boolean exists = false;
-            List<StoreUser.Order> orders = new ArrayList<>();
-            for (StoreUser.Order order : pData.getOrders()) {
+            final List<StoreUser.Order> orders = new ArrayList<>();
+            for (StoreUser.Order order : user.getOrders()) {
                 if (order.getId().equals(orderID)) {
-                    Map<String, Byte> items = new HashMap<>();
+                    final Map<String, Byte> items = new HashMap<>();
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
                         if (item.getValue() == 2) {
-                            pl.getStore().getItem(item.getKey()).refund(player, orderID);
+                            plugin.getStore().getItem(item.getKey()).refund(player, orderID);
                         }
                         items.put(item.getKey(), (byte) 3);
                     }
@@ -101,38 +107,48 @@ public class UserCore {
                     orders.add(order);
                 }
             }
-            pData.setOrders(orders);
-            if (exists) saveDataChanges(p, pData);
+            user.setOrders(orders);
+            if (exists) {
+                saveDataChanges(onlinePlayer, user);
+            }
             return exists;
         }
         return false;
     }
 
-    public void saveDataChanges(Player player, StoreUser storeUser) {
+    public void saveDataChanges(@Nullable Player player, @NotNull StoreUser user) {
         if (player != null) {
             players.remove(player.getUniqueId());
-            players.put(player.getUniqueId(), storeUser);
+            players.put(player.getUniqueId(), user);
         } else {
-            pl.getDatabase().saveData(storeUser);
+            plugin.getDatabase().saveData(user);
         }
     }
 
-    public void saveDataChanges(String name, StoreUser data) {
-        Player player = Bukkit.getPlayer(name);
+    public void saveDataChanges(@NotNull String name, @NotNull StoreUser user) {
+        final Player player = Bukkit.getPlayer(name);
         if (player != null) {
-            players.put(player.getUniqueId(), data);
+            players.put(player.getUniqueId(), user);
         }
-        pl.getDatabase().saveData(data);
+        plugin.getDatabase().saveData(user);
     }
 
-    public StoreUser getPlayerData(String player) {
-        Player p = Bukkit.getPlayer(player);
-        return (p != null ? players.getOrDefault(p.getUniqueId(), null) : pl.getDatabase().getData((PixelBuy.settings().getBoolean("Database.UUID") ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : player)));
+    @Nullable
+    @SuppressWarnings("deprecation")
+    public StoreUser getPlayerData(@NotNull String player) {
+        final Player onlinePlayer = Bukkit.getPlayer(player);
+        if (onlinePlayer != null) {
+            return players.getOrDefault(onlinePlayer.getUniqueId(), null);
+        } else {
+            return plugin.getDatabase().getData(PixelBuy.settings().getBoolean("Database.UUID") ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : player);
+        }
     }
 
-    private boolean isDuplicated(Integer id, List<StoreUser.Order> list) {
+    private boolean isDuplicated(int id, @NotNull List<StoreUser.Order> list) {
         for (StoreUser.Order order : list) {
-            if (order.getId().equals(id)) return true;
+            if (order.getId().equals(id)) {
+                return true;
+            }
         }
         return false;
     }

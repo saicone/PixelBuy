@@ -5,25 +5,26 @@ import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.SubCommand;
 
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.regex.Pattern;
 
 public class ReloadCommand extends SubCommand {
 
-    private final PixelBuy pl = PixelBuy.get();
+    private final PixelBuy plugin = PixelBuy.get();
 
     @Override
-    public Pattern getAliases() {
+    public @NotNull Pattern getAliases() {
         return Pattern.compile("re(load|fresh)?");
     }
 
     @Override
-    public String getPermission() {
+    public @NotNull String getPermission() {
         return PixelBuy.settings().getString("Perms.Reload", "pixelbuy.reload");
     }
 
     @Override
-    public void execute(CommandSender sender, String cmd, String[] args) {
+    public void execute(@NotNull CommandSender sender, @NotNull String cmd, @NotNull String[] args) {
         if (args.length == 1) {
             Lang.COMMAND_RELOAD_HELP.sendTo(sender, cmd);
             return;
@@ -31,28 +32,28 @@ public class ReloadCommand extends SubCommand {
         switch (args[1].toLowerCase()) {
             case "file":
             case "files":
-                pl.getSettings().loadFrom(pl.getDataFolder(), true);
+                plugin.getSettings().loadFrom(plugin.getDataFolder(), true);
                 Lang.COMMAND_RELOAD_FILES.sendTo(sender);
                 break;
             case "store":
-                pl.getStore().reload(sender, false);
+                plugin.getStore().reload(sender, false);
                 break;
             case "database":
-                pl.getDatabase().reload(sender);
+                plugin.getDatabase().reload(sender);
                 break;
             case "webdata":
-                pl.getOrderManager().reload(false);
+                plugin.getSupervisor().reload(false);
                 Lang.COMMAND_RELOAD_WEBDATA.sendTo(sender);
                 break;
             case "command":
-                pl.reloadCommand();
+                plugin.reloadCommand();
                 Lang.COMMAND_RELOAD_COMMAND.sendTo(sender);
                 break;
             case "all":
-                pl.getSettings().loadFrom(pl.getDataFolder(), true);
-                pl.getStore().reload(sender, false);
-                pl.getDatabase().reload(sender);
-                pl.getOrderManager().reload(false);
+                plugin.onReload();
+                plugin.getStore().reload(sender, false);
+                plugin.getDatabase().reload(sender);
+                plugin.getSupervisor().reload(false);
                 Lang.COMMAND_RELOAD_WEBDATA.sendTo(sender);
                 break;
             default:

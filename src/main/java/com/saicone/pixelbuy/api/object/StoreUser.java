@@ -1,5 +1,8 @@
 package com.saicone.pixelbuy.api.object;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,17 +14,18 @@ public class StoreUser {
     private double donated;
     private List<Order> orders;
 
-    public StoreUser(String player, double donated, List<Order> orders) {
+    public StoreUser(@NotNull String player, double donated, @NotNull List<Order> orders) {
         this.player = player;
         this.donated = donated;
         this.orders = orders;
     }
 
+    @NotNull
     public String getPlayer() {
         return player;
     }
 
-    public void setPlayer(String player) {
+    public void setPlayer(@NotNull String player) {
         this.player = player;
     }
 
@@ -33,41 +37,43 @@ public class StoreUser {
         this.donated = donated;
     }
 
-    public Order getOrder(Integer id) {
-        for (int i = 0; i < orders.size(); i++) {
-            final Order order = orders.get(i);
-            if (order.getId().equals(id)) {
+    @Nullable
+    public Order getOrder(int id) {
+        for (final Order order : orders) {
+            if (order.getId() == id) {
                 return order;
             }
         }
         return null;
     }
 
+    @NotNull
     public List<Order> getOrders() {
         return orders;
     }
 
-    public void setOrders(List<Order> orders) {
+    public void setOrders(@NotNull List<Order> orders) {
         this.orders = orders;
     }
 
-    public void addOrders(List<Order> orders) {
+    public void addOrders(@NotNull List<Order> orders) {
         this.orders.addAll(orders);
     }
 
-    public void addOrder(Order order) {
+    public void addOrder(@NotNull Order order) {
         orders.add(order);
     }
 
-    public void updateOrder(Order order) {
+    public void updateOrder(@NotNull Order order) {
         removeOrder(order.getId());
         orders.add(order);
     }
 
-    public void removeOrder(Integer id) {
-        orders.removeIf(order -> order.getId().equals(id));
+    public void removeOrder(int id) {
+        orders.removeIf(order -> order.getId() == id);
     }
 
+    @NotNull
     public List<Order> getOrders(boolean pending) {
         return orders.stream().filter(order -> order.pending(pending)).collect(Collectors.toList());
     }
@@ -81,37 +87,39 @@ public class StoreUser {
         // 3 = Refunded
         private Map<String, Byte> items;
 
-        public Order(Integer id, Map<String, Byte> items) {
+        public Order(int id, @NotNull Map<String, Byte> items) {
             this.id = id;
             this.items = items;
         }
 
-        public Integer getId() {
+        public int getId() {
             return id;
         }
 
+        @NotNull
         public Map<String, Byte> getItems() {
             return items;
         }
 
+        @NotNull
         public Map<String, Byte> getItems(byte type) {
-            Map<String, Byte> items = new HashMap<>();
+            final Map<String, Byte> items = new HashMap<>();
             for (Map.Entry<String, Byte> item : this.items.entrySet()) {
                 if (item.getValue() >= type) items.put(item.getKey(), item.getValue());
             }
             return items;
         }
 
-        public void setItems(Map<String, Byte> items) {
+        public void setItems(@NotNull Map<String, Byte> items) {
             this.items = items;
         }
 
-        public void setItemState(String item, Byte state) {
+        public void setItemState(@NotNull String item, byte state) {
             items.remove(item);
             items.put(item, state);
         }
 
-        public void removeItem(String item) {
+        public void removeItem(@NotNull String item) {
             items.remove(item);
         }
 

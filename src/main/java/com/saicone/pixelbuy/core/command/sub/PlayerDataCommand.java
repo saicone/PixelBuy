@@ -6,6 +6,7 @@ import com.saicone.pixelbuy.core.command.SubCommand;
 import com.saicone.pixelbuy.api.object.StoreUser;
 
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,20 +16,20 @@ import java.util.regex.Pattern;
 
 public class PlayerDataCommand extends SubCommand {
 
-    private final PixelBuy pl = PixelBuy.get();
+    private final PixelBuy plugin = PixelBuy.get();
 
     @Override
-    public Pattern getAliases() {
+    public @NotNull Pattern getAliases() {
         return Pattern.compile("(p(layer)?)?data");
     }
 
     @Override
-    public String getPermission() {
+    public @NotNull String getPermission() {
         return PixelBuy.settings().getString("Perms.PlayerData", "pixelbuy.playerdata");
     }
 
     @Override
-    public void execute(CommandSender sender, String cmd, String[] args) {
+    public void execute(@NotNull CommandSender sender, @NotNull String cmd, @NotNull String[] args) {
         if (args.length == 1) {
             Lang.COMMAND_PLAYERDATA_HELP.sendTo(sender, cmd);
             return;
@@ -38,18 +39,18 @@ public class PlayerDataCommand extends SubCommand {
                 if (args.length <= 2) {
                     Lang.COMMAND_PLAYERDATA_INFO_USAGE.sendTo(sender, cmd);
                 } else {
-                    StoreUser data = pl.getPlayerManager().getPlayerData(args[2]);
-                    if (data == null) {
+                    final StoreUser user = plugin.getUserCore().getPlayerData(args[2]);
+                    if (user == null) {
                         Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender);
                         break;
                     }
 
-                    int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
-                    final List<StoreUser.Order> orders = data.getOrders();
+                    final int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
+                    final List<StoreUser.Order> orders = user.getOrders();
                     final int max = page * 10 + 10;
 
                     sender.sendMessage(" ");
-                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, data.getPlayer(), data.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
+                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getPlayer(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
                     int orderNum = 1;
                     for (int i = page * 10; i < orders.size() && i < max; i++) {
                         final StoreUser.Order order = orders.get(i);
@@ -70,7 +71,7 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 4) {
                     Lang.COMMAND_PLAYERDATA_REFUND_USAGE.sendTo(sender, cmd);
                 } else {
-                    if (pl.getPlayerManager().refundOrder(args[2], Integer.valueOf(args[3]))) {
+                    if (plugin.getUserCore().refundOrder(args[2], Integer.parseInt(args[3]))) {
                         Lang.COMMAND_PLAYERDATA_REFUND_DONE.sendTo(sender, args[2], args[3]);
                     } else {
                         Lang.COMMAND_PLAYERDATA_REFUND_ERROR.sendTo(sender);
@@ -84,11 +85,11 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 5) {
                     Lang.COMMAND_PLAYERDATA_ORDER_USAGE.sendTo(sender, cmd);
                 } else {
-                    Map<String, Byte> items = new HashMap<>();
+                    final Map<String, Byte> items = new HashMap<>();
                     for (String item : args[4].split(",")) {
                         items.put(item, (byte) 1);
                     }
-                    pl.getPlayerManager().processOrder(args[2], new StoreUser.Order(Integer.valueOf(args[3]), items));
+                    plugin.getUserCore().processOrder(args[2], new StoreUser.Order(Integer.parseInt(args[3]), items));
                     Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
                 }
                 break;
@@ -99,13 +100,13 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 4) {
                     Lang.COMMAND_PLAYERDATA_RECOVER_USAGE.sendTo(sender, cmd);
                 } else {
-                    StoreUser data = pl.getPlayerManager().getPlayerData(args[2]);
-                    if (data == null) {
+                    final StoreUser user = plugin.getUserCore().getPlayerData(args[2]);
+                    if (user == null) {
                         Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender, args[2]);
                         break;
                     }
 
-                    final StoreUser.Order order = data.getOrder(Integer.parseInt(args[3]));
+                    final StoreUser.Order order = user.getOrder(Integer.parseInt(args[3]));
                     if (order == null) {
                         Lang.COMMAND_PLAYERDATA_RECOVER_UNKNOWN.sendTo(sender, args[3]);
                         break;
@@ -114,7 +115,7 @@ public class PlayerDataCommand extends SubCommand {
                     final List<String> list = new ArrayList<>();
                     for (Map.Entry<String, Byte> entry : order.getItems((byte) 2).entrySet()) {
                         boolean hasRecovered = entry.getKey().endsWith("-copy");
-                        if (hasRecovered || pl.getStore().isItem(entry.getKey() + "-copy")) {
+                        if (hasRecovered || plugin.getStore().isItem(entry.getKey() + "-copy")) {
                             list.add(hasRecovered ? entry.getKey().substring(0, entry.getKey().length() - 5) : entry.getKey());
                             if (hasRecovered) {
                                 order.getItems().put(entry.getKey(), (byte) 1);
@@ -125,7 +126,7 @@ public class PlayerDataCommand extends SubCommand {
                         }
                     }
 
-                    pl.getPlayerManager().saveDataChanges(args[2], data);
+                    plugin.getUserCore().saveDataChanges(args[2], user);
                     Lang.COMMAND_PLAYERDATA_RECOVER_DONE.sendTo(sender, args[3], args[2],  list.isEmpty() ? "- nothing -" : String.join(", ", list));
                 }
                 break;
@@ -135,7 +136,8 @@ public class PlayerDataCommand extends SubCommand {
         }
     }
 
-    private String state(CommandSender sender, Byte state) {
+    @NotNull
+    private String state(@NotNull CommandSender sender, byte state) {
         if (state == 1) return Lang.STATUS_PENDING.getText(sender);
         if (state == 2) return Lang.STATUS_SENT.getText(sender);
         return Lang.STATUS_REFUNDED.getText(sender);

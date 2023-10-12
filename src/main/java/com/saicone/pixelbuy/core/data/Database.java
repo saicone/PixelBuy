@@ -9,22 +9,24 @@ import com.saicone.pixelbuy.module.data.DataClient;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Database {
 
-    private final PixelBuy pl;
-
-    private DataClient database;
+    private final PixelBuy plugin;
 
     private final List<StoreUser> cachedData = new ArrayList<>();
 
-    public Database(PixelBuy pl) {
-        this.pl = pl;
+    private DataClient database;
+
+    public Database(@NotNull PixelBuy plugin) {
+        this.plugin = plugin;
         reload(Bukkit.getConsoleSender());
-        Bukkit.getScheduler().runTaskTimerAsynchronously(pl, () -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             if (!cachedData.isEmpty()) saveCachedData();
         }, 12000, 12000);
     }
@@ -33,7 +35,7 @@ public class Database {
         cachedData.clear();
     }
 
-    public void reload(CommandSender sender) {
+    public void reload(@NotNull CommandSender sender) {
         switch (PixelBuy.settings().getString("Database.Type", "JSON").toUpperCase()) {
             case "JSON":
                 database = new FileDatabase();
@@ -51,7 +53,9 @@ public class Database {
             Lang.COMMAND_RELOAD_DATABASE_ERROR.sendTo(sender, getCurrentType());
             setDefault();
         }
-        if (PixelBuy.settings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) convertData(sender, "JSON", true);
+        if (PixelBuy.settings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) {
+            convertData(sender, "JSON", true);
+        }
     }
 
     public void setDefault() {
@@ -59,13 +63,13 @@ public class Database {
         database.setup();
     }
 
-    public void convertData(CommandSender sender, String from, boolean delete) {
+    public void convertData(@NotNull CommandSender sender, @NotNull String from, boolean delete) {
         from = from.toUpperCase();
         if (getCurrentType().equals(from)) {
             Lang.COMMAND_DATABASE_CONVERT_SAME_TYPE.sendTo(sender);
             return;
         }
-        DataClient base;
+        final DataClient base;
         switch (from) {
             case "JSON":
                 base = new FileDatabase();
@@ -83,32 +87,38 @@ public class Database {
                 return;
             }
         }
-        for (StoreUser data : base.getAllData()) {
-            database.saveData(data);
-            if (delete) base.deleteData(data.getPlayer().toLowerCase());
+        for (StoreUser user : base.getAllData()) {
+            database.saveData(user);
+            if (delete) {
+                base.deleteData(user.getPlayer().toLowerCase());
+            }
         }
     }
 
+    @NotNull
     public String getCurrentType() {
         return database.getType();
     }
 
-    public void saveData(StoreUser data) {
-        if (data != null) database.saveData(data);
+    public void saveData(@Nullable StoreUser user) {
+        if (user != null) {
+            database.saveData(user);
+        }
     }
 
-    public StoreUser getData(String player) {
+    @Nullable
+    public StoreUser getData(@NotNull String player) {
         player = player.toLowerCase();
         return database.getData(player);
     }
 
-    public void deleteData(String player) {
+    public void deleteData(@NotNull String player) {
         player = player.toLowerCase();
         database.deleteData(player);
     }
 
-    public void addCachedData(StoreUser data) {
-        cachedData.add(data);
+    public void addCachedData(@NotNull StoreUser user) {
+        cachedData.add(user);
     }
 
     public void saveCachedData() {

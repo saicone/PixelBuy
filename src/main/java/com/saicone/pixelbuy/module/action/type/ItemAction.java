@@ -12,6 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,9 +30,9 @@ public class ItemAction extends ActionType {
     static {
         ORAXEN_COMPATIBILITY = Bukkit.getPluginManager().isPluginEnabled("Oraxen") || Bukkit.getPluginManager().isPluginEnabled("oraxen");
         MMOITEMS_COMPATIBILITY = Bukkit.getPluginManager().isPluginEnabled("MMOItems") || Bukkit.getPluginManager().isPluginEnabled("mmoitems");
-        ItemStack item = new ItemStack(Material.PAPER);
+        final ItemStack item = new ItemStack(Material.PAPER);
         item.addUnsafeEnchantment(Enchantment.LURE, 1);
-        ItemMeta meta = item.getItemMeta();
+        final ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.setDisplayName(MStrings.color("&e&lInvalid Item"));
         meta.setLore(MStrings.color(Arrays.asList(
@@ -41,7 +44,7 @@ public class ItemAction extends ActionType {
     }
 
     @Override
-    public String getType() {
+    public @NotNull String getType() {
         return "ITEM";
     }
 
@@ -51,56 +54,62 @@ public class ItemAction extends ActionType {
     }
 
     @Override
-    public void executeBuy(String player, Integer orderID) {
-        ItemStack it = getItem(MStrings.color(getExecutable(player, orderID)));
-        Player p = Bukkit.getPlayer(player);
-        if (p != null) p.getInventory().addItem(it);
+    public void executeBuy(@NotNull String player, int orderID) {
+        final ItemStack item = getItem(MStrings.color(getExecutable(player, orderID)));
+        final Player onlinePlayer = Bukkit.getPlayer(player);
+        if (onlinePlayer != null) {
+            onlinePlayer.getInventory().addItem(item);
+        }
     }
 
     @Override
-    public void executeRefund(String player, Integer orderID) {
-        ItemStack it = getItem(MStrings.color(getExecutable(player, orderID)));
-        PixelBuy.get().getEventManager().addItem(it, it.getAmount());
+    public void executeRefund(@NotNull String player, int orderID) {
+        final ItemStack item = getItem(MStrings.color(getExecutable(player, orderID)));
+        PixelBuy.get().getListener().addItem(item, item.getAmount());
     }
 
-    private ItemStack getItem(String content) {
+    @NotNull
+    private ItemStack getItem(@NotNull String content) {
         return cache.computeIfAbsent(content, this::buildItem);
     }
 
+    @NotNull
     @SuppressWarnings("unchecked")
-    public ItemStack buildItem(String content) {
-        Map<String, Object> map = asMap(content);
-        String material = (String) mapValue(map, "material", "mat", "id");
-        if (material == null) return buildDefaultItem("There's no material");
+    public ItemStack buildItem(@NotNull String content) {
+        final Map<String, Object> map = asMap(content);
+        final String material = (String) mapValue(map, "material", "mat", "id");
+        if (material == null) {
+            return buildDefaultItem("There's no material");
+        }
 
-        int amount = intOrDefault(mapValueOrDefault(map, 1, "amount", "amt"), 1);
-        ItemStack item;
+        final int amount = intOrDefault(mapValueOrDefault(map, 1, "amount", "amt"), 1);
+        final ItemStack item;
         if (material.toLowerCase().startsWith("oraxen:")) {
-            String[] part = material.split(":", 2);
+            final String[] part = material.split(":", 2);
             if (part.length < 2) {
                 return buildDefaultItem("Unknown ID for Oraxen item");
             }
-            String id = part[1];
+            final String id = part[1];
             if (OraxenItems.exists(id)) {
                 item = OraxenItems.getItemById(id).setAmount(amount).build();
             } else {
                 return buildDefaultItem("Invalid ID for Oraxen item");
             }
         } else if (material.toLowerCase().startsWith("mmoitems:") && MMOITEMS_COMPATIBILITY) {
-            String[] part = material.split(":", 3);
+            final String[] part = material.split(":", 3);
             if (part.length < 2) {
                 return buildDefaultItem("Unknown Type for MMOItems item");
             } else if (part.length < 3) {
                 return buildDefaultItem("Unknown ID for MMOItems item");
             }
-            String type = part[1];
-            String id = part[2];
+            final String type = part[1];
+            final String id = part[2];
             item = MMOItems.plugin.getItem(type, id);
             if (item == null) {
                 return buildDefaultItem("Invalid MMOItems item");
             }
         } else {
-            Material mat = Material.getMaterial(material);
+            final Material mat = Material.getMaterial(material);
             if (mat != null) {
                 item = new ItemStack(mat, amount);
             } else {
@@ -108,10 +117,11 @@ public class ItemAction extends ActionType {
             }
         }
 
-        ItemMeta meta = item.hasItemMeta() ? item.getItemMeta() : Bukkit.getItemFactory().getItemMeta(item.getType());
+        final ItemMeta meta = item.hasItemMeta() ? item.getItemMeta() : Bukkit.getItemFactory().getItemMeta(item.getType());
         if (meta == null) {
             return buildDefaultItem("Invalid item meta");
         }
+
         Object mapValue;
         if ((mapValue = mapValueOrDefault(map, 0, "custommodeldata", "modeldata", "model")) != null) {
             int model = intOrDefault(mapValue, 0);
@@ -121,7 +131,7 @@ public class ItemAction extends ActionType {
         }
         if ((mapValue = mapValue(map, "enchantments", "enchants", "ench")) != null) {
             try {
-                Map<Enchantment, Integer> enchants = (Map<Enchantment, Integer>) mapValue;
+                final Map<Enchantment, Integer> enchants = (Map<Enchantment, Integer>) mapValue;
                 enchants.forEach((enchant, level) -> meta.addEnchant(enchant, level, true));
             } catch (ClassCastException e) {
                 return buildDefaultItem("Cannot set enchantments");
@@ -129,7 +139,7 @@ public class ItemAction extends ActionType {
         }
         if ((mapValue = mapValue(map, "description", "lorelines", "lore")) != null) {
             try {
-                List<String> lore = (List<String>) mapValue;
+                final List<String> lore = (List<String>) mapValue;
                 meta.setLore(lore);
             } catch (ClassCastException e) {
                 return buildDefaultItem("Cannot set lore");
@@ -137,8 +147,8 @@ public class ItemAction extends ActionType {
         }
         if ((mapValue = mapValue(map, "add-description", "add-lorelines", "add-lore")) != null) {
             try {
-                List<String> lore = (List<String>) mapValue;
-                List<String> metaLore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+                final List<String> lore = (List<String>) mapValue;
+                final List<String> metaLore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
                 metaLore.addAll(lore);
                 meta.setLore(metaLore);
             } catch (ClassCastException e) {
@@ -146,21 +156,22 @@ public class ItemAction extends ActionType {
             }
         }
         if ((mapValue = mapValue(map, "displayname", "name")) != null) {
-            String name = String.valueOf(mapValue);
+            final String name = String.valueOf(mapValue);
             meta.setDisplayName(name);
         }
         if ((mapValue = mapValue(map, "add-displayname", "add-name")) != null) {
-            String name = String.valueOf(mapValue);
+            final String name = String.valueOf(mapValue);
             meta.setDisplayName((meta.hasDisplayName() ? meta.getDisplayName() : "") + name);
         }
         item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack buildDefaultItem(String reason) {
-        ItemStack item = new ItemStack(DEFAULT_ITEM);
-        ItemMeta meta = item.getItemMeta();
-        List<String> finalLore = new ArrayList<>();
+    @NotNull
+    private ItemStack buildDefaultItem(@NotNull String reason) {
+        final ItemStack item = new ItemStack(DEFAULT_ITEM);
+        final ItemMeta meta = item.getItemMeta();
+        final List<String> finalLore = new ArrayList<>();
         for (String s : meta.getLore()) {
             finalLore.add(s.replace("{reason}", reason));
         }
@@ -169,25 +180,26 @@ public class ItemAction extends ActionType {
         return item;
     }
 
-    public static Map<String, Object> asMap(String string) {
-        Map<String, Object> map = new HashMap<>();
+    @NotNull
+    public static Map<String, Object> asMap(@NotNull String string) {
+        final Map<String, Object> map = new HashMap<>();
         for (String s : string.replace("<,>", "{pixelbuy:comma}").split(",")) {
-            String[] split = s.split(":", 2);
+            final String[] split = s.split(":", 2);
             if (split.length > 1) {
-                String key = split[0].trim().toLowerCase();
+                final String key = split[0].trim().toLowerCase();
                 if (key.isEmpty()) continue;
                 String value = split[1].replace("{pixelbuy:comma}", ",").replace("<|>", "{pixelbuy:separator}");
                 if (!value.isEmpty() && value.charAt(0) == ' ') {
                     value = value.substring(1);
                 }
                 if (key.contains("description") || key.contains("lore")) {
-                    List<String> lore = new ArrayList<>();
+                    final List<String> lore = new ArrayList<>();
                     for (String line : value.split("\\|")) {
                         lore.add(line.replace("{pixelbuy:separator}", "|"));
                     }
                     map.put(key, lore);
                 } else if (key.contains("enchant")) {
-                    Map<Enchantment, Integer> enchants = new HashMap<>();
+                    final Map<Enchantment, Integer> enchants = new HashMap<>();
                     for (String val : value.split("\\|")) {
                         String[] enchant = val.split("=", 2);
                         if (enchant.length > 1) {
@@ -210,7 +222,8 @@ public class ItemAction extends ActionType {
         return map;
     }
 
-    private static Object mapValue(Map<String, Object> map, String... keys) {
+    @Nullable
+    private static Object mapValue(@NotNull Map<String, Object> map, @NotNull String... keys) {
         for (String key : keys) {
             if (map.containsKey(key)) {
                 return map.get(key);
@@ -219,7 +232,9 @@ public class ItemAction extends ActionType {
         return null;
     }
 
-    private static Object mapValueOrDefault(Map<String, Object> map, Object def, String... keys) {
+    @Nullable
+    @Contract("_, !null, _ -> !null")
+    private static Object mapValueOrDefault(@NotNull Map<String, Object> map, @Nullable Object def, @NotNull String... keys) {
         for (String key : keys) {
             if (map.containsKey(key)) {
                 return map.get(key);
@@ -228,12 +243,12 @@ public class ItemAction extends ActionType {
         return def;
     }
 
-    private static Integer intOrDefault(Object o, int def) {
-        if (o instanceof Integer) {
-            return (Integer) o;
+    private static int intOrDefault(@NotNull Object object, int def) {
+        if (object instanceof Number) {
+            return ((Number) object).intValue();
         } else {
             try {
-                return Integer.parseInt(String.valueOf(o));
+                return Integer.parseInt(String.valueOf(object));
             } catch (NumberFormatException e) {
                 return def;
             }

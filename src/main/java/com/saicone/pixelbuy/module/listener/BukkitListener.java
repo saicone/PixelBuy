@@ -41,22 +41,22 @@ public class BukkitListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        pl.getPlayerManager().loadPlayer(e.getPlayer());
+        pl.getUserCore().loadPlayer(e.getPlayer());
     }
 
     @EventHandler
     public void onLeave(PlayerQuitEvent e) {
-        pl.getPlayerManager().unloadPlayer(e.getPlayer());
+        pl.getUserCore().unloadPlayer(e.getPlayer());
     }
 
     @EventHandler
     public void onKick(PlayerKickEvent e) {
-        pl.getPlayerManager().unloadPlayer(e.getPlayer());
+        pl.getUserCore().unloadPlayer(e.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onProcessOrder(OrderProcessedEvent e) {
-        pl.getPlayerManager().processOrder(e.getPlayer(), e.getOrder());
+        pl.getUserCore().processOrder(e.getPlayer(), e.getOrder());
     }
 
     @EventHandler

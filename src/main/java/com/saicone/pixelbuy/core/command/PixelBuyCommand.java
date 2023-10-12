@@ -9,52 +9,51 @@ import com.saicone.pixelbuy.core.command.sub.StoreCommand;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class PixelBuyCommand extends Command {
 
-    private final PixelBuy pl = PixelBuy.get();
-    private final String cmd;
-
-    private static final List<SubCommand> subCommands = Arrays.asList(
+    private static final List<SubCommand> SUB_COMMANDS = Arrays.asList(
             new DatabaseCommand(),
             new PlayerDataCommand(),
             new ReloadCommand(),
             new StoreCommand()
     );
 
-    public PixelBuyCommand(String cmd, List<String> aliases) {
+    private final PixelBuy plugin = PixelBuy.get();
+
+    public PixelBuyCommand(@NotNull String cmd, @NotNull List<String> aliases) {
         super(cmd);
-        this.cmd = this.getName();
         setAliases(aliases);
     }
 
     @Override
-    public boolean execute(CommandSender sender, String label, String[] args) {
+    public boolean execute(@NotNull CommandSender sender, @NotNull String label, @NotNull String[] args) {
         if (!hasPerm(sender, PixelBuy.settings().getString("Perms.Main", "pixelbuy.use"))) return true;
         if (args.length == 0) {
-            Lang.COMMAND_HELP.sendTo(sender, cmd);
+            Lang.COMMAND_HELP.sendTo(sender, getName());
             return true;
         }
         boolean matched = false;
-        for (SubCommand sub : subCommands) {
+        for (SubCommand sub : SUB_COMMANDS) {
             if (sub.getAliases().matcher(args[0].toLowerCase()).matches()) {
                 if (hasPerm(sender, sub.getPermission())) {
-                    sub.execute(sender, cmd, args);
+                    sub.execute(sender, getName(), args);
                 }
                 matched = true;
                 break;
             }
         }
         if (!matched) {
-            Lang.COMMAND_HELP.sendTo(sender, cmd);
+            Lang.COMMAND_HELP.sendTo(sender, getName());
         }
         return true;
     }
 
-    public boolean hasPerm(CommandSender sender, String perm) {
+    public boolean hasPerm(@NotNull CommandSender sender, @NotNull String perm) {
         if (sender.hasPermission(perm) || sender.hasPermission(PixelBuy.settings().getString("Perms.All", "pixelbuy.*"))) {
             return true;
         }

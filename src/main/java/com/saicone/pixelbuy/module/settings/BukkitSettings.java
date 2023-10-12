@@ -7,6 +7,7 @@ import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +37,18 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     private final ConfigurationSection delegate;
+
+    @Nullable
+    @Contract("!null -> !null")
+    public static BukkitSettings of(@Nullable ConfigurationSection section) {
+        if (section == null) {
+            return null;
+        }
+        if (section instanceof BukkitSettings) {
+            return (BukkitSettings) section;
+        }
+        return new BukkitSettings(section);
+    }
 
     public BukkitSettings() {
         this(null);
@@ -95,11 +108,16 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     @Nullable
+    @SuppressWarnings("unchecked")
     protected Object getIf(@NotNull Predicate<String> condition) {
-        for (var entry : map.entrySet()) {
-            if (condition.test(entry.getKey())) {
-                return get(entry.getKey());
+        try {
+            for (var entry : ((Map<String, ?>) MAP.invoke(this)).entrySet()) {
+                if (condition.test(entry.getKey())) {
+                    return get(entry.getKey());
+                }
             }
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
         return null;
     }
@@ -138,16 +156,14 @@ public class BukkitSettings extends YamlConfiguration {
     @Nullable
     @SuppressWarnings("unchecked")
     private static <T> Object getIfType(@NotNull MemorySection section, @NotNull BiPredicate<String, T> condition, @NotNull T type) {
-        final Map<String, ?> map;
         try {
-            map = (Map<String, ?>) MAP.invoke(section);
-        } catch (Throwable t) {
-            return null;
-        }
-        for (var entry : map.entrySet()) {
-            if (condition.test(entry.getKey(), type)) {
-                return section.get(entry.getKey());
+            for (var entry : ((Map<String, ?>) MAP.invoke(section)).entrySet()) {
+                if (condition.test(entry.getKey(), type)) {
+                    return section.get(entry.getKey());
+                }
             }
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
         return null;
     }
@@ -160,7 +176,7 @@ public class BukkitSettings extends YamlConfiguration {
     @Nullable
     @Override
     public BukkitSettings getConfigurationSection(@NotNull String path) {
-        return new BukkitSettings(super.getConfigurationSection(path));
+        return of(super.getConfigurationSection(path));
     }
 
     @NotNull

@@ -11,6 +11,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,22 +22,19 @@ import java.util.Objects;
 
 public class PixelStore {
 
-    private FileConfiguration store;
-
-    private String storeName = "";
-
-    private Double discount = 1D;
-
-    private final PixelBuy pl = PixelBuy.get();
-
-    private static List<ActionType> actions = Arrays.asList(
+    private static final List<ActionType> ACTION_TYPES = Arrays.asList(
             new BroadcastAction(),
             new CommandAction(),
             new ItemAction(),
             new MessageAction()
     );
 
+    private final PixelBuy plugin = PixelBuy.get();
     private final List<StoreItem> items = new ArrayList<>();
+
+    private FileConfiguration store;
+    private String storeName = "";
+    private Double discount = 1D;
 
     public PixelStore() {
         reload(Bukkit.getConsoleSender(), true);
@@ -45,15 +44,20 @@ public class PixelStore {
         items.clear();
     }
 
-    public void reload(CommandSender sender, boolean init) {
+    public void reload(@NotNull CommandSender sender, boolean init) {
         ItemAction.cache.clear();
-        if (!init) items.clear();
-        File cF = new File(pl.getDataFolder(), "store.yml");
-        if (!cF.exists()) pl.saveResource("store.yml", false);
-        store = YamlConfiguration.loadConfiguration(cF);
+        if (!init) {
+            items.clear();
+        }
+        final File file = new File(plugin.getDataFolder(), "store.yml");
+        if (!file.exists()) {
+            plugin.saveResource("store.yml", false);
+        }
+
+        store = YamlConfiguration.loadConfiguration(file);
         storeName = store.getString("Name", "");
-        String dis = store.getString("Global-Discount", "1");
-        discount = Double.parseDouble("0." + (dis.contains(".") ? dis.split("\\.", 2)[1] : dis.replace("%", "")));
+        final String discount = store.getString("Global-Discount", "1");
+        this.discount = Double.parseDouble("0." + (discount.contains(".") ? discount.split("\\.", 2)[1] : discount.replace("%", "")));
         int count = 0;
         for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
             items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), store.getStringList("Items." + identifier + ".execute")));
@@ -62,32 +66,38 @@ public class PixelStore {
         PixelBuy.log(3, count + " store items has been loaded");
     }
 
+    @NotNull
+    public List<StoreItem> getItems() {
+        return items;
+    }
+
+    @NotNull
     public String getStoreName() {
         return storeName;
     }
 
-    public static ActionType parseAction(String act, String price) {
-        String type = act.split(":", 2)[0].toUpperCase();
-        ActionType action = actions.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
+    @Nullable
+    public static ActionType parseAction(@NotNull String input, @NotNull String price) {
+        final String type = input.split(":", 2)[0].toUpperCase();
+        final ActionType action = ACTION_TYPES.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
         if (action != null) {
-            action.setParts(act.split(":", 2)[1], price);
+            action.setParts(input.split(":", 2)[1], price);
             return action;
         }
         return null;
     }
 
-    public StoreItem getItem(String identifier) {
+    @Nullable
+    public StoreItem getItem(@NotNull String identifier) {
         for (StoreItem item : items) {
-            if (item.getIdentifier().equals(identifier)) return item;
+            if (item.getIdentifier().equals(identifier)) {
+                return item;
+            }
         }
         return null;
     }
 
-    public List<StoreItem> getItems() {
-        return items;
-    }
-
-    public boolean isItem(String id) {
+    public boolean isItem(@NotNull String id) {
         return getItem(id) != null;
     }
 }
