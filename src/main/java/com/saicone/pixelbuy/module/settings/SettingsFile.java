@@ -55,6 +55,9 @@ public class SettingsFile extends BukkitSettings {
         final File file = new File(folder, path);
         try {
             load(file);
+            if (!save) {
+                return;
+            }
 
             final InputStream in = getResource(path);
             if (in == null) {

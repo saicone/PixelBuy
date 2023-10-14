@@ -3,10 +3,13 @@ package com.saicone.pixelbuy.core;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.lang.LangLoader;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,7 +96,17 @@ public class Lang extends LangLoader {
 
     @Override
     protected @NotNull Map<String, Object> getFileObjects(@NotNull File file) {
-        return null;
+        final Map<String, Object> map = new HashMap<>();
+        final YamlConfiguration config = new YamlConfiguration();
+        try {
+            config.load(file);
+            for (String path : config.getKeys(true)) {
+                map.put(path, config.get(path));
+            }
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+        }
+        return map;
     }
 
     @Override
