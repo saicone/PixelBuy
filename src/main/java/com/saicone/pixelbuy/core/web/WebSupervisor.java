@@ -1,201 +1,69 @@
 package com.saicone.pixelbuy.core.web;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
 import com.saicone.pixelbuy.api.object.StoreUser;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import okhttp3.*;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
+import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.util.*;
+import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class WebSupervisor {
+public abstract class WebSupervisor {
 
-    private final PixelBuy plugin = PixelBuy.get();
+    private final String id;
 
-    private int checker = 0;
-
-    private boolean onTask = false;
-
-    public WebSupervisor() {
-        reload(true);
-    }
-
-    public void reload(boolean init) {
-        onTask = false;
-        if (checker > 0 && !init) {
-            Bukkit.getScheduler().cancelTask(checker);
-        }
-        final int check = PixelBuy.settings().getInt("Web-Data.Check-Interval", 7);
-        if (check >= 1) {
-            checker = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-                if (!onTask) {
-                    onTask = true;
-                    checkWebData(null);
-                }
-            }, check * 20L, check * 20L).getTaskId();
-        }
-    }
-
-    public void shut() {
-        Bukkit.getScheduler().cancelTask(checker);
+    public WebSupervisor(@NotNull String id) {
+        this.id = id;
     }
 
     @NotNull
-    public URL getURL() throws Exception {
-        return new URL(PixelBuy.settings().getString("Web-Data.URL", "") + "/wp-json/wmc/v1/server/" + PixelBuy.settings().getString("Web-Data.Key", ""));
+    public String getId() {
+        return id;
     }
 
-    public void checkWebData(@Nullable CommandSender sender) {
-        // Check if plugin is correctly configured
-        if (PixelBuy.settings().getString("Web-Data.URL", "").isEmpty()) {
-            onTask = false;
-            PixelBuy.log(2, "The URL is empty");
-            return;
-        }
-        if (PixelBuy.settings().getString("Web-Data.Key", "").isEmpty()) {
-            onTask = false;
-            PixelBuy.log(2, "The Key is empty");
-            return;
-        }
+    @NotNull
+    public abstract WebType getType();
 
-        // First debug message
-        PixelBuy.log(4, "Checking purchase data...");
+    public void onLoad(@NotNull BukkitSettings config) {
+    }
 
-        // Check URL connection
-        final BufferedReader in;
+    public void onStart() {
+    }
+
+    public void onClose() {
+    }
+
+    public boolean process(@NotNull String player, int order, @NotNull List<String> items) {
+        final Map<String, Byte> map = new HashMap<>();
+        for (String item : items) {
+            map.put(item, (byte) 1);
+        }
+        return PixelBuy.get().getUserCore().processOrder(player, new StoreUser.Order(order, map), true);
+    }
+
+    @NotNull
+    protected JsonObject readJson(@NotNull URL url) {
         try {
-            in = new BufferedReader(new InputStreamReader(getURL().openStream()));
-        } catch (FileNotFoundException e) {
-            // Error about connection
-            onTask = false;
-            PixelBuy.log(2, e.getMessage().replace(PixelBuy.settings().getString( "Web-Data.Key", ""), "privateKey"));
-            return;
-        } catch (Exception e) {
-            // Error about bad configured URL
-            onTask = false;
-            PixelBuy.log(2, "The URL is invalid");
-            return;
-        }
-
-        // WebData string builder
-        final StringBuilder buffer = new StringBuilder();
-        String line;
-        try {
-            while ((line = in.readLine()) != null) {
-                buffer.append(line);
-            }
-            in.close();
+            return readJson(url.openConnection());
         } catch (IOException e) {
-            onTask = false;
-            e.printStackTrace();
-            return;
-        }
-
-        // Final checker
-        if (buffer.toString().isEmpty()) {
-            onTask = false;
-            PixelBuy.log(2, "The page with purchase orders is empty");
-        } else {
-            processData(sender, buffer.toString());
+            throw new RuntimeException("Cannot parse the URL as json data", e);
         }
     }
 
-    public void processData(@Nullable CommandSender sender, @NotNull String webData) {
-        // First debug message
-        PixelBuy.log(4, "Reviewing pending purchase orders...");
-
-        // Read web data
-        final Gson gson = new GsonBuilder().create();
-        final WebString webString = gson.fromJson(webData, WebString.class);
-
-        // Check if Wordpress plugin have no errors
-        if (webString.getData() != null) {
-            onTask = false;
-            PixelBuy.log(2, webString.getCode());
-            return;
-        }
-
-        // Create a list of available orders
-        final List<WebString.Order> webOrderList = webString.getOrders();
-
-        // Check if order list have orders
-        if (webOrderList == null || webOrderList.isEmpty()) {
-            onTask = false;
-            PixelBuy.log(4, "There are no purchase orders to process");
-            return;
-        }
-
-        final List<Integer> savedOrders = new ArrayList<>();
-        for (WebString.Order webOrder : webOrderList) {
-            final Map<String, Byte> items = new HashMap<>();
-            webOrder.getItems().forEach(item -> {
-                for (String it : item.split(",")) {
-                    items.put(it, (byte) 1);
-                }
-            });
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                OrderProcessedEvent event = new OrderProcessedEvent(webOrder.getPlayer(), new StoreUser.Order(webOrder.getOrderId(), items));
-                Bukkit.getPluginManager().callEvent(event);
-            });
-            savedOrders.add(webOrder.getOrderId());
-        }
-        sendProcessedData(sender, savedOrders);
-    }
-
-    public void sendProcessedData(@Nullable CommandSender sender, @NotNull List<Integer> orders) {
-        // Build saved orders data to send
-        final Gson gson = new Gson();
-        final SavedOrders savedOrders = new SavedOrders(orders);
-        final String ordersIds = gson.toJson(savedOrders);
-
-        // Build a request and get the response
-        final RequestBody body = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), ordersIds);
-        final Request request;
-        final Response response;
-        try {
-            request = new Request.Builder().url(getURL()).post(body).build();
-            response = new OkHttpClient().newCall(request).execute();
-        } catch (Exception e) {
-            onTask = false;
-            return;
-        }
-
-        // Check if server has a connection
-        if (response.body() == null) {
-            onTask = false;
-            PixelBuy.log(2, "Received empty response from your server, check connections.");
-            return;
-        }
-
-        // Check any existing errors from Wordpress
-        //WebString webString = gson.fromJson(Objects.requireNonNull(response.body()).toString(), WebString.class);
-        //if (webString.getCode() != null) {
-        //    PixelBuy.log(2, "Received error when trying to send post data:" + webString.getCode());
-        //}
-        onTask = false;
-    }
-
-    public static class SavedOrders {
-        private final List<Integer> processedOrders;
-
-        public SavedOrders(@NotNull List<Integer> processedOrders) {
-            this.processedOrders = processedOrders;
-        }
-
-        @NotNull
-        public List<Integer> getOrders() {
-            return processedOrders;
+    @NotNull
+    protected JsonObject readJson(@NotNull URLConnection con) throws IOException {
+        try (InputStreamReader reader = new InputStreamReader(new BufferedInputStream(con.getInputStream()), StandardCharsets.UTF_8)) {
+            return JsonParser.parseReader(reader).getAsJsonObject();
         }
     }
 }

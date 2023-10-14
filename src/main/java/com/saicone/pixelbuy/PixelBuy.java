@@ -2,6 +2,7 @@ package com.saicone.pixelbuy;
 
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
+import com.saicone.pixelbuy.core.web.WebType;
 import com.saicone.pixelbuy.module.command.BukkitCommand;
 import com.saicone.pixelbuy.module.listener.BukkitListener;
 import com.saicone.pixelbuy.core.data.Database;
@@ -9,12 +10,15 @@ import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.UserCore;
 
 import com.saicone.pixelbuy.core.PixelStore;
+import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class PixelBuy extends JavaPlugin {
 
@@ -22,10 +26,10 @@ public final class PixelBuy extends JavaPlugin {
 
     private final SettingsFile settings;
     private final Lang lang;
+    private final Map<String, WebSupervisor> supervisors = new HashMap<>();
 
     private PixelStore store;
     private Database database;
-    private WebSupervisor supervisor;
     private UserCore userCore;
     private BukkitListener listener;
     private PixelBuyCommand command;
@@ -57,7 +61,7 @@ public final class PixelBuy extends JavaPlugin {
 
         settings.loadFrom(getDataFolder(), true);
         lang.load();
-        log(4, "FilesManager loaded");
+        log(4, "Files loaded");
 
         store = new PixelStore();
         log(4, "StoreManager loaded");
@@ -68,8 +72,8 @@ public final class PixelBuy extends JavaPlugin {
         userCore = new UserCore();
         log(4, "PlayerManager loaded");
 
-        supervisor = new WebSupervisor();
-        log(4, "OrderManager loaded");
+        reloadSupervisors();
+        log(4, "WebSupervisors loaded");
 
         listener = new BukkitListener();
         log(4, "EventManager loaded");
@@ -82,14 +86,18 @@ public final class PixelBuy extends JavaPlugin {
         log(3, "Disabling plugin...");
         unregisterCommand();
         listener.shut();
-        supervisor.shut();
         userCore.shut();
         database.shut();
         store.shut();
+        for (var entry : supervisors.entrySet()) {
+            entry.getValue().onClose();
+        }
     }
 
     public void onReload() {
         settings.loadFrom(getDataFolder(), true);
+        lang.load();
+        reloadSupervisors();
         reloadCommand();
     }
 
@@ -118,9 +126,14 @@ public final class PixelBuy extends JavaPlugin {
         return database;
     }
 
+    @Nullable
+    public WebSupervisor getSupervisor(@NotNull String id) {
+        return supervisors.get(id);
+    }
+
     @NotNull
-    public WebSupervisor getSupervisor() {
-        return supervisor;
+    public Map<String, WebSupervisor> getSupervisors() {
+        return supervisors;
     }
 
     @NotNull
@@ -131,6 +144,53 @@ public final class PixelBuy extends JavaPlugin {
     @NotNull
     public BukkitListener getListener() {
         return listener;
+    }
+
+    public void reloadSupervisors() {
+        final BukkitSettings section = BukkitSettings.of(settings.getRegex("(?i)supervisors?").or(null));
+        if (section == null) {
+            for (var entry : supervisors.entrySet()) {
+                entry.getValue().onClose();
+            }
+            return;
+        }
+
+        // Disable removed or reload current supervisors
+        supervisors.entrySet().removeIf(entry -> {
+            entry.getValue().onClose();
+            if (section.contains(entry.getKey())) {
+                final BukkitSettings config = section.getConfigurationSection(entry.getKey());
+                if (config != null && WebType.of(config.getIgnoreCase("type").asString()) == entry.getValue().getType()) {
+                    entry.getValue().onLoad(config);
+                    entry.getValue().onStart();
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        // Load added supervisors
+        for (String key : section.getKeys(false)) {
+            if (supervisors.containsKey(key)) {
+                continue;
+            }
+
+            final BukkitSettings config = section.getConfigurationSection(key);
+            if (config == null) {
+                continue;
+            }
+
+            final WebType type = WebType.of(config.getIgnoreCase("type").asString());
+            final WebSupervisor supervisor = type.newSupervisor(key);
+            if (supervisor == null) {
+                log(2, "Unknown web type for '" + key + "' supervisor");
+                continue;
+            }
+
+            supervisor.onLoad(config);
+            supervisor.onStart();
+            supervisors.put(key, supervisor);
+        }
     }
 
     public void reloadCommand() {

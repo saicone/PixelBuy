@@ -54,11 +54,6 @@ public class BukkitListener implements Listener {
         pl.getUserCore().unloadPlayer(e.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onProcessOrder(OrderProcessedEvent e) {
-        pl.getUserCore().processOrder(e.getPlayer(), e.getOrder());
-    }
-
     @EventHandler
     public void onClick(InventoryClickEvent e) {
         if (items.isEmpty()) return;

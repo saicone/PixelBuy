@@ -89,7 +89,7 @@ public class PlayerDataCommand extends SubCommand {
                     for (String item : args[4].split(",")) {
                         items.put(item, (byte) 1);
                     }
-                    plugin.getUserCore().processOrder(args[2], new StoreUser.Order(Integer.parseInt(args[3]), items));
+                    plugin.getUserCore().processOrder(args[2], new StoreUser.Order(Integer.parseInt(args[3]), items), false);
                     Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
                 }
                 break;

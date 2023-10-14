@@ -2,6 +2,7 @@ package com.saicone.pixelbuy.core;
 
 import com.saicone.pixelbuy.PixelBuy;
 
+import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
 import com.saicone.pixelbuy.api.object.StoreUser;
 import com.saicone.pixelbuy.api.object.StoreItem;
 import org.bukkit.Bukkit;
@@ -43,18 +44,26 @@ public class UserCore {
     }
 
     @SuppressWarnings("deprecation")
-    public void processOrder(@NotNull String player, @NotNull StoreUser.Order order) {
+    public boolean processOrder(@NotNull String player, @NotNull StoreUser.Order order, boolean callEvent) {
+        if (callEvent) {
+            final OrderProcessedEvent event = new OrderProcessedEvent(player, order);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                return false;
+            }
+        }
         final Player onlinePlayer = Bukkit.getPlayer(player);
         StoreUser user = getPlayerData(player);
         if (user != null) {
             if (isDuplicated(order.getId(), user.getOrders())) {
-                return;
+                return true;
             }
             user.addOrder(order);
         } else {
             user = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : onlinePlayer.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
         }
         saveDataChanges(onlinePlayer, processData(onlinePlayer, user));
+        return true;
     }
 
     @NotNull
@@ -93,7 +102,7 @@ public class UserCore {
             boolean exists = false;
             final List<StoreUser.Order> orders = new ArrayList<>();
             for (StoreUser.Order order : user.getOrders()) {
-                if (order.getId().equals(orderID)) {
+                if (order.getId() == orderID) {
                     final Map<String, Byte> items = new HashMap<>();
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
                         if (item.getValue() == 2) {
@@ -146,7 +155,7 @@ public class UserCore {
 
     private boolean isDuplicated(int id, @NotNull List<StoreUser.Order> list) {
         for (StoreUser.Order order : list) {
-            if (order.getId().equals(id)) {
+            if (order.getId() == id) {
                 return true;
             }
         }

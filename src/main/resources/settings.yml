@@ -45,18 +45,24 @@ Database:
   # database type or the external database has an error who changes the database type to json
   Convert-Data: true
 
-# Configuration about WooCommerce connection
-Web-Data:
-  # Interval in seconds to check if exists new orders
-  # This checker don't require so much CPU, 7 seconds is recommended
-  # Set to -1 to disable
-  Check-Interval: 7
-  # URL of your site WITHOUT "/" at final
-  # For example http://shop.mysite.com
-  URL: ''
-  # This is a key that YOU set, both needing to be identical
-  # in the WooCommerce configuration and in this config file
-  Key: ''
+# Web supervisor configuration
+Supervisor:
+  # Supervisor unique ID
+  woominecraft-example:
+    # Supervisor types:
+    # WOOMINECRAFT = Check WordPress site with WooMinecraft plugin installed and
+    #                process every command separated by comma as store items.
+    Type: WOOMINECRAFT
+    # Interval in seconds to check new orders
+    # This checker don't require so much CPU, 7 seconds is recommended
+    # Set to -1 to disable
+    Check-Interval: 7
+    # URL of your site
+    # For example http://shop.mysite.com
+    URL: ''
+    # This is a key that YOU set, both needing to be identical
+    # in the WooCommerce configuration and in this config file
+    Key: ''
 
 # Configuration about orders
 Order:
