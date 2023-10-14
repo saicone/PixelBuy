@@ -1,6 +1,6 @@
 package com.saicone.pixelbuy.module.data;
 
-import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

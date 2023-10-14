@@ -1,10 +1,10 @@
-package com.saicone.pixelbuy.module.action.type;
+package com.saicone.pixelbuy.core.store.action;
 
-import com.saicone.pixelbuy.module.action.ActionType;
+import com.saicone.pixelbuy.api.store.StoreAction;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
-public class CommandAction extends ActionType {
+public class CommandAction extends StoreAction {
 
     @Override
     public @NotNull String getType() {

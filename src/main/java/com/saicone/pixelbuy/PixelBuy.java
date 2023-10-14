@@ -9,7 +9,7 @@ import com.saicone.pixelbuy.core.data.Database;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.UserCore;
 
-import com.saicone.pixelbuy.core.PixelStore;
+import com.saicone.pixelbuy.core.store.PixelStore;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import org.bukkit.plugin.java.JavaPlugin;

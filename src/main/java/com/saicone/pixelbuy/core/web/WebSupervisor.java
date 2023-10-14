@@ -3,10 +3,9 @@ package com.saicone.pixelbuy.core.web;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

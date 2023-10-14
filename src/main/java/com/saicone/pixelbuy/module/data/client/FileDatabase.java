@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.data.DataClient;
-import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

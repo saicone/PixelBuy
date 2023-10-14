@@ -1,8 +1,8 @@
-package com.saicone.pixelbuy.module.action;
+package com.saicone.pixelbuy.api.store;
 
 import org.jetbrains.annotations.NotNull;
 
-public abstract class ActionType {
+public abstract class StoreAction {
 
     private String executable;
     private String price;

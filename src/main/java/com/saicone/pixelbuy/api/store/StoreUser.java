@@ -1,4 +1,4 @@
-package com.saicone.pixelbuy.api.object;
+package com.saicone.pixelbuy.api.store;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

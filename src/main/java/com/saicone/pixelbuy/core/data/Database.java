@@ -4,7 +4,7 @@ import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.module.data.client.FileDatabase;
 import com.saicone.pixelbuy.module.data.client.MySQLDatabase;
-import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.DataClient;
 
 import org.bukkit.Bukkit;

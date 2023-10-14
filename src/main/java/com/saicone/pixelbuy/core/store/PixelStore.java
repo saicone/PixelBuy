@@ -1,12 +1,11 @@
-package com.saicone.pixelbuy.core;
+package com.saicone.pixelbuy.core.store;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.api.object.StoreItem;
-import com.saicone.pixelbuy.module.action.type.BroadcastAction;
-import com.saicone.pixelbuy.module.action.type.CommandAction;
-import com.saicone.pixelbuy.module.action.type.ItemAction;
-import com.saicone.pixelbuy.module.action.type.MessageAction;
-import com.saicone.pixelbuy.module.action.ActionType;
+import com.saicone.pixelbuy.core.store.action.BroadcastAction;
+import com.saicone.pixelbuy.core.store.action.CommandAction;
+import com.saicone.pixelbuy.core.store.action.ItemAction;
+import com.saicone.pixelbuy.core.store.action.MessageAction;
+import com.saicone.pixelbuy.api.store.StoreAction;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -22,7 +21,7 @@ import java.util.Objects;
 
 public class PixelStore {
 
-    private static final List<ActionType> ACTION_TYPES = Arrays.asList(
+    private static final List<StoreAction> ACTION_TYPES = Arrays.asList(
             new BroadcastAction(),
             new CommandAction(),
             new ItemAction(),
@@ -77,9 +76,9 @@ public class PixelStore {
     }
 
     @Nullable
-    public static ActionType parseAction(@NotNull String input, @NotNull String price) {
+    public static StoreAction parseAction(@NotNull String input, @NotNull String price) {
         final String type = input.split(":", 2)[0].toUpperCase();
-        final ActionType action = ACTION_TYPES.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
+        final StoreAction action = ACTION_TYPES.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
         if (action != null) {
             action.setParts(input.split(":", 2)[1], price);
             return action;

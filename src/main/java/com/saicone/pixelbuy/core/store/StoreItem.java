@@ -1,7 +1,7 @@
-package com.saicone.pixelbuy.api.object;
+package com.saicone.pixelbuy.core.store;
 
-import com.saicone.pixelbuy.core.PixelStore;
-import com.saicone.pixelbuy.module.action.ActionType;
+import com.saicone.pixelbuy.api.store.StoreAction;
+import com.saicone.pixelbuy.core.store.PixelStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -54,7 +54,7 @@ public class StoreItem {
 
     public void buy(@NotNull String player, int orderID) {
         actions.forEach(string -> {
-            final ActionType action = PixelStore.parseAction(string, getPrice());
+            final StoreAction action = PixelStore.parseAction(string, getPrice());
             if (action != null) {
                 action.executeBuy(player, orderID);
             }
@@ -63,7 +63,7 @@ public class StoreItem {
 
     public void refund(@NotNull String player, int orderID) {
         actions.forEach(string -> {
-            final ActionType action = PixelStore.parseAction(string, getPrice());
+            final StoreAction action = PixelStore.parseAction(string, getPrice());
             if (action != null && action.isRefundable()) {
                 action.executeRefund(player, orderID);
             }

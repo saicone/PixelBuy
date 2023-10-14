@@ -1,7 +1,7 @@
-package com.saicone.pixelbuy.module.action.type;
+package com.saicone.pixelbuy.core.store.action;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.module.action.ActionType;
+import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.util.MStrings;
 import io.th0rgal.oraxen.api.OraxenItems;
 import net.Indyuce.mmoitems.MMOItems;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ItemAction extends ActionType {
+public class ItemAction extends StoreAction {
 
     public static final boolean ORAXEN_COMPATIBILITY;
     public static final boolean MMOITEMS_COMPATIBILITY;

@@ -3,7 +3,7 @@ package com.saicone.pixelbuy.core.command.sub;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.SubCommand;
-import com.saicone.pixelbuy.api.object.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreUser;
 
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;

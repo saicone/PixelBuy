@@ -3,8 +3,8 @@ package com.saicone.pixelbuy.core;
 import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
-import com.saicone.pixelbuy.api.object.StoreUser;
-import com.saicone.pixelbuy.api.object.StoreItem;
+import com.saicone.pixelbuy.api.store.StoreUser;
+import com.saicone.pixelbuy.core.store.StoreItem;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
