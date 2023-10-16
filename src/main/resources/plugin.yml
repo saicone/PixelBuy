@@ -7,3 +7,5 @@ api-version: 1.13
 version: ${version}
 
 description: Free plugin for donation system
+
+softdepend: [PlaceholderAPI, Oraxen, MMOItems]

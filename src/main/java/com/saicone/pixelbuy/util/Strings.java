@@ -8,6 +8,15 @@ import java.util.stream.Collectors;
 
 public class Strings {
 
+    public static boolean isNumber(@NotNull String s) {
+        for (char c : s.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @NotNull
     public static String replaceArgs(@NotNull String s, @Nullable Object... args) {
         if (args.length < 1 || s.isBlank()) {

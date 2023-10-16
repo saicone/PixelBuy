@@ -13,8 +13,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -211,20 +214,105 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     public void set(@NotNull ConfigurationSection section) {
-        for (String key : section.getKeys(false)) {
-            set(key, section.get(key));
+        set(section, true);
+    }
+
+    public void set(@NotNull ConfigurationSection section, boolean copy) {
+        for (String path : section.getKeys(true)) {
+            final Object value = section.get(path);
+            if (copy && value instanceof List) {
+                set(path, new ArrayList<>((List<?>) value));
+            } else {
+                set(path, value);
+            }
         }
     }
 
-    public void set(@NotNull Map<String, Object> map) {
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
+    public void set(@NotNull Map<?, ?> map) {
+        set(map, true);
+    }
+
+    public void set(@NotNull Map<?, ?> map, boolean copy) {
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            final String key = String.valueOf(entry.getKey());
             final Object value = entry.getValue();
             if (value instanceof Map) {
-                createSection(entry.getKey(), (Map<?, ?>) value);
+                createSection(key, (Map<?, ?>) value);
+            } else if (copy && value instanceof List) {
+                set(key, new ArrayList<>((List<?>) value));
             } else {
-                set(entry.getKey(), value);
+                set(key, value);
             }
         }
+    }
+
+    public void merge(@NotNull ConfigurationSection section) {
+        merge(section, this);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void merge(@NotNull ConfigurationSection from, @NotNull ConfigurationSection to) {
+        for (String key : from.getKeys(false)) {
+            final Object value = from.get(key);
+            if (to.contains(key)) {
+                final Object currentValue = to.get(key);
+                if (currentValue instanceof ConfigurationSection) {
+                    if (value instanceof ConfigurationSection) {
+                        merge((ConfigurationSection) value, (ConfigurationSection) currentValue);
+                    }
+                } else if (currentValue instanceof List) {
+                    for (Object o : OptionalType.of(value)) {
+                        try {
+                            ((List<Object>) currentValue).add(o);
+                        } catch (Throwable ignored) { }
+                    }
+                }
+                continue;
+            }
+            if (value instanceof ConfigurationSection) {
+                merge((ConfigurationSection) value, to.createSection(key));
+            } else if (value instanceof List) {
+                to.set(key, new ArrayList<>((List<?>) value));
+            } else {
+                to.set(key, value);
+            }
+        }
+    }
+
+    @NotNull
+    @Contract("_ -> new")
+    public BukkitSettings parse(@NotNull Function<String, String> function) {
+        return parse(this, new BukkitSettings(), function);
+    }
+
+    @NotNull
+    @Contract("_ -> new")
+    public BukkitSettings parse(@NotNull BiFunction<String, String, String> function) {
+        return parse(this, new BukkitSettings(), function);
+    }
+
+    @NotNull
+    public static <T extends ConfigurationSection> T parse(@NotNull ConfigurationSection from, @NotNull T to, @NotNull Function<String, String> function) {
+        return parse(from, to, (path, s) -> function.apply(s));
+    }
+
+    @NotNull
+    public static <T extends ConfigurationSection> T parse(@NotNull ConfigurationSection section, @NotNull T to, @NotNull BiFunction<String, String, String> function) {
+        for (String path : section.getKeys(true)) {
+            final Object value = section.get(path);
+            if (value instanceof String) {
+                to.set(path, function.apply(path, (String) value));
+            } else if (value instanceof List) {
+                final List<Object> list = new ArrayList<>();
+                for (Object o : OptionalType.of(value)) {
+                    list.add(o);
+                }
+                to.set(path, list);
+            } else {
+                to.set(path, value);
+            }
+        }
+        return to;
     }
 
     @NotNull

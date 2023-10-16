@@ -10,6 +10,7 @@ repositories {
     maven { url 'https://repo.codemc.io/repository/nms/' }
     maven { url 'https://jitpack.io' }
     maven { url 'https://nexus.phoenixdevt.fr/repository/maven-public/' }
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     mavenCentral()
 }
 
@@ -26,9 +27,11 @@ dependencies {
 
     compileOnly 'com.github.oraxen:oraxen:1.162.0'
     compileOnly('net.Indyuce:MMOItems-API:6.9.2-SNAPSHOT') { transitive = false }
+    compileOnly 'me.clip:placeholderapi:2.11.3'
 
-    implementation 'com.squareup.okhttp3:okhttp:3.14.6'
-    implementation 'com.squareup.okio:okio:1.17.2'
+    implementation 'com.github.cryptomorin:XSeries:9.6.1.1'
+    implementation 'com.saicone.rtag:rtag:1.4.1'
+    implementation 'com.saicone.rtag:rtag-item:1.4.1'
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
@@ -51,7 +54,7 @@ jar {
 
 shadowJar {
     archiveClassifier.set('')
-    relocate 'okhttp3', project.group + '.lib.okhttp3'
-    relocate 'okio', project.group + '.lib.okio'
+    relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
+    relocate 'com.saicone.rtag', project.group + '.libs.rtag'
     minimize()
 }

@@ -32,7 +32,7 @@ public class StoreCommand extends SubCommand {
         int itemNum = 1;
         for (StoreItem item : plugin.getStore().getItems()) {
             Lang.COMMAND_STORE_ITEMS_INFO.sendTo(sender, itemNum, item.getIdentifier(), item.getPrice(), item.isOnline());
-            item.getActions().forEach(action -> Lang.COMMAND_STORE_ITEMS_ENUM.sendTo(sender, action));
+            item.getOnBuy().forEach(action -> Lang.COMMAND_STORE_ITEMS_ENUM.sendTo(sender, action.asString()));
             itemNum++;
         }
     }

@@ -14,18 +14,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class PixelStore {
 
-    private static final List<StoreAction> ACTION_TYPES = Arrays.asList(
-            new BroadcastAction(),
-            new CommandAction(),
-            new ItemAction(),
-            new MessageAction()
+    private static final List<StoreAction.Builder<?>> ACTION_TYPES = Arrays.asList(
+            BroadcastAction.BUILDER,
+            CommandAction.BUILDER,
+            ItemAction.BUILDER,
+            MessageAction.BUILDER
     );
 
     private final PixelBuy plugin = PixelBuy.get();
@@ -44,7 +41,6 @@ public class PixelStore {
     }
 
     public void reload(@NotNull CommandSender sender, boolean init) {
-        ItemAction.cache.clear();
         if (!init) {
             items.clear();
         }
@@ -59,7 +55,12 @@ public class PixelStore {
         this.discount = Double.parseDouble("0." + (discount.contains(".") ? discount.split("\\.", 2)[1] : discount.replace("%", "")));
         int count = 0;
         for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
-            items.add(new StoreItem(identifier, store.getString("Items." + identifier + ".price"), store.getBoolean("Items." + identifier + ".online", true), store.getStringList("Items." + identifier + ".execute")));
+            items.add(new StoreItem(
+                    identifier,
+                    store.getString("Items." + identifier + ".price"),
+                    store.getBoolean("Items." + identifier + ".online", true),
+                    parseAction(store.getList("Items." + identifier + ".onBuy")),
+                    parseAction(store.getList("Items." + identifier + ".onRefund"))));
             count++;
         }
         PixelBuy.log(3, count + " store items has been loaded");
@@ -75,13 +76,41 @@ public class PixelStore {
         return storeName;
     }
 
+    @NotNull
+    public static List<StoreAction> parseAction(@Nullable Object object) {
+        final List<StoreAction> actions = new ArrayList<>();
+        if (object == null) {
+            return actions;
+        }
+
+        if (object instanceof Map) {
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) object).entrySet()) {
+                final StoreAction action = parseAction(String.valueOf(entry.getKey()), entry.getValue());
+                if (action != null) {
+                    actions.add(action);
+                }
+            }
+        } else if (object instanceof List) {
+            for (Object o : (List<?>) object) {
+                actions.addAll(parseAction(o));
+            }
+        } else {
+            final String[] split = String.valueOf(object).split(":", 2);
+            final StoreAction action = parseAction(split[0].trim(), split.length > 1 ? split[1].trim() : null);
+            if (action != null) {
+                actions.add(action);
+            }
+        }
+
+        return actions;
+    }
+
     @Nullable
-    public static StoreAction parseAction(@NotNull String input, @NotNull String price) {
-        final String type = input.split(":", 2)[0].toUpperCase();
-        final StoreAction action = ACTION_TYPES.stream().filter(a -> a.getType().equals(type)).findFirst().orElse(null);
-        if (action != null) {
-            action.setParts(input.split(":", 2)[1], price);
-            return action;
+    public static StoreAction parseAction(@NotNull String id, @Nullable Object object) {
+        for (StoreAction.Builder<?> builder : ACTION_TYPES) {
+            if (builder.getPattern().matcher(id).matches()) {
+                return builder.build(object);
+            }
         }
         return null;
     }

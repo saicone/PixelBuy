@@ -1,7 +1,8 @@
 package com.saicone.pixelbuy.core.store;
 
 import com.saicone.pixelbuy.api.store.StoreAction;
-import com.saicone.pixelbuy.core.store.PixelStore;
+import com.saicone.pixelbuy.api.store.StoreClient;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -14,13 +15,15 @@ public class StoreItem {
 
     private final boolean online;
 
-    private List<String> actions;
+    private final List<StoreAction> onBuy;
+    private final List<StoreAction> onRefund;
 
-    public StoreItem(@NotNull String identifier, @NotNull String price, boolean online, @NotNull List<String> actions) {
+    public StoreItem(@NotNull String identifier, @NotNull String price, boolean online, @NotNull List<StoreAction> onBuy, @NotNull List<StoreAction> onRefund) {
         this.identifier = identifier;
         this.price = price;
         this.online = online;
-        this.actions = actions;
+        this.onBuy = onBuy;
+        this.onRefund = onRefund;
     }
 
     @NotNull
@@ -44,29 +47,37 @@ public class StoreItem {
     }
 
     @NotNull
-    public List<String> getActions() {
-        return actions;
+    public List<StoreAction> getOnBuy() {
+        return onBuy;
     }
 
-    public void setActions(@NotNull List<String> actions) {
-        this.actions = actions;
+    public List<StoreAction> getOnRefund() {
+        return onRefund;
     }
 
+    @SuppressWarnings("deprecation")
     public void buy(@NotNull String player, int orderID) {
-        actions.forEach(string -> {
-            final StoreAction action = PixelStore.parseAction(string, getPrice());
-            if (action != null) {
-                action.executeBuy(player, orderID);
-            }
-        });
+        final StoreClient client = new StoreClient(Bukkit.getOfflinePlayer(player))
+                .parser(s -> s
+                        .replace("{order_player}", player)
+                        .replace("{order_id}", String.valueOf(orderID))
+                        .replace("{item_price}", price)
+                );
+        for (StoreAction action : onBuy) {
+            action.run(client);
+        }
     }
 
+    @SuppressWarnings("deprecation")
     public void refund(@NotNull String player, int orderID) {
-        actions.forEach(string -> {
-            final StoreAction action = PixelStore.parseAction(string, getPrice());
-            if (action != null && action.isRefundable()) {
-                action.executeRefund(player, orderID);
-            }
-        });
+        final StoreClient client = new StoreClient(Bukkit.getOfflinePlayer(player))
+                .parser(s -> s
+                        .replace("{order_player}", player)
+                        .replace("{order_id}", String.valueOf(orderID))
+                        .replace("{item_price}", price)
+                );
+        for (StoreAction action : onRefund) {
+            action.run(client);
+        }
     }
 }
