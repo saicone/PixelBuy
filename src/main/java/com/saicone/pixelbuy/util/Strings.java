@@ -9,8 +9,13 @@ import java.util.stream.Collectors;
 public class Strings {
 
     public static boolean isNumber(@NotNull String s) {
+        boolean decimal = false;
         for (char c : s.toCharArray()) {
             if (!Character.isDigit(c)) {
+                if (!decimal && c == '.') {
+                    decimal = true;
+                    continue;
+                }
                 return false;
             }
         }

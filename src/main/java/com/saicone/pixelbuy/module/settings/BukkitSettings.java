@@ -43,14 +43,21 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     @Contract("!null -> !null")
-    public static BukkitSettings of(@Nullable ConfigurationSection section) {
-        if (section == null) {
+    public static BukkitSettings of(@Nullable Object object) {
+        if (object == null) {
             return null;
         }
-        if (section instanceof BukkitSettings) {
-            return (BukkitSettings) section;
+        if (object instanceof BukkitSettings) {
+            return (BukkitSettings) object;
+        } else if (object instanceof ConfigurationSection) {
+            return new BukkitSettings((ConfigurationSection) object);
+        } else if (object instanceof Map) {
+            final BukkitSettings settings = new BukkitSettings();
+            settings.set((Map<?, ?>) object);
+            return settings;
+        } else {
+            throw new IllegalArgumentException("The object type '" + object.getClass().getName() + "' cannot be converted to BukkitSettings instance");
         }
-        return new BukkitSettings(section);
     }
 
     public BukkitSettings() {
@@ -114,7 +121,7 @@ public class BukkitSettings extends YamlConfiguration {
     @SuppressWarnings("unchecked")
     protected Object getIf(@NotNull Predicate<String> condition) {
         try {
-            for (var entry : ((Map<String, ?>) MAP.invoke(this)).entrySet()) {
+            for (var entry : ((Map<String, ?>) MAP.invoke(getMemorySection())).entrySet()) {
                 if (condition.test(entry.getKey())) {
                     return get(entry.getKey());
                 }
@@ -127,7 +134,7 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     protected Object getIf(@NotNull BiPredicate<String, String> condition, @NotNull String... path) {
-        Object object = this;
+        Object object = getMemorySection();
         for (String key : path) {
             if (object instanceof MemorySection) {
                 object = getIfType((MemorySection) object, condition, key);
@@ -140,7 +147,7 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     protected <T> Object getIf(@NotNull Function<String, T> keyConversion, @NotNull BiPredicate<String, T> condition, @NotNull String... path) {
-        Object object = this;
+        Object object = getMemorySection();
         for (String key : path) {
             if (object instanceof MemorySection) {
                 object = getIfType((MemorySection) object, condition, keyConversion.apply(key));
@@ -153,7 +160,7 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     protected <T> Object getIfType(@NotNull BiPredicate<String, T> condition, @NotNull T type) {
-        return getIfType(this, condition, type);
+        return getIfType(getMemorySection(), condition, type);
     }
 
     @Nullable
@@ -172,6 +179,11 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     @NotNull
+    public MemorySection getMemorySection() {
+        return delegate instanceof MemorySection ? (MemorySection) delegate : this;
+    }
+
+    @NotNull
     public ConfigurationSection getConfigurationSection() {
         return delegate == null ? this : delegate;
     }
@@ -180,6 +192,15 @@ public class BukkitSettings extends YamlConfiguration {
     @Override
     public BukkitSettings getConfigurationSection(@NotNull String path) {
         return of(super.getConfigurationSection(path));
+    }
+
+    @Nullable
+    public BukkitSettings getConfigurationSection(@NotNull Function<BukkitSettings, Object> getter) {
+        final Object object = getter.apply(this);
+        if (object instanceof ConfigurationSection) {
+            return of(object);
+        }
+        return null;
     }
 
     @NotNull
@@ -211,6 +232,24 @@ public class BukkitSettings extends YamlConfiguration {
     @NotNull
     public OptionalType getRegex(@NotNull @Language("RegExp") String... regexPath) {
         return OptionalType.of(getIf(Pattern::compile, (s, pattern) -> pattern.matcher(s).matches(), regexPath));
+    }
+
+    @Nullable
+    public SettingsItem getItem(@NotNull String path) {
+        final ConfigurationSection section = super.getConfigurationSection(path);
+        if (section == null) {
+            return null;
+        }
+        return SettingsItem.of(section);
+    }
+
+    @Nullable
+    public SettingsItem getItem(@NotNull Function<BukkitSettings, Object> getter) {
+        final ConfigurationSection section = getConfigurationSection(getter);
+        if (section == null) {
+            return null;
+        }
+        return SettingsItem.of(section);
     }
 
     public void set(@NotNull ConfigurationSection section) {
@@ -247,7 +286,7 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     public void merge(@NotNull ConfigurationSection section) {
-        merge(section, this);
+        merge(section, getConfigurationSection());
     }
 
     @SuppressWarnings("unchecked")
@@ -282,13 +321,13 @@ public class BukkitSettings extends YamlConfiguration {
     @NotNull
     @Contract("_ -> new")
     public BukkitSettings parse(@NotNull Function<String, String> function) {
-        return parse(this, new BukkitSettings(), function);
+        return parse(getConfigurationSection(), new BukkitSettings(), function);
     }
 
     @NotNull
     @Contract("_ -> new")
     public BukkitSettings parse(@NotNull BiFunction<String, String, String> function) {
-        return parse(this, new BukkitSettings(), function);
+        return parse(getConfigurationSection(), new BukkitSettings(), function);
     }
 
     @NotNull

@@ -24,7 +24,11 @@ public class StoreClient {
     @NotNull
     @Contract("_ -> this")
     public StoreClient parser(@NotNull Function<String, String> parser) {
-        this.parser = parser;
+        if (this.parser == null) {
+            this.parser = parser;
+        } else {
+            this.parser = this.parser.andThen(parser);
+        }
         return this;
     }
 

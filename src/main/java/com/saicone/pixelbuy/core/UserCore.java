@@ -3,6 +3,7 @@ package com.saicone.pixelbuy.core;
 import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
+import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.core.store.StoreItem;
 import org.bukkit.Bukkit;
@@ -67,6 +68,7 @@ public class UserCore {
     }
 
     @NotNull
+    @SuppressWarnings("deprecation")
     public StoreUser processData(@Nullable Player player, @NotNull StoreUser user) {
         double donated = user.getDonated();
         final List<StoreUser.Order> orders = user.getOrders(false);
@@ -77,10 +79,12 @@ public class UserCore {
                     final StoreItem storeItem = plugin.getStore().getItem(item.getKey());
                     if (storeItem != null) {
                         if (!storeItem.isOnline() || player != null) {
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> storeItem.buy(user.getPlayer(), order.getId()), PixelBuy.settings().getLong("Order.Delay", 5L) * 20);
+                            final StoreClient client = new StoreClient(player != null ? player : Bukkit.getOfflinePlayer(user.getPlayer()));
+                            client.parser(s -> s.replace("{order_player}", user.getPlayer()).replace("{order_id}", String.valueOf(order.getId())));
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> storeItem.onBuy(client), PixelBuy.settings().getLong("Order.Delay", 5L) * 20);
                             items.put(item.getKey(), (byte) 2);
-                            if (!storeItem.getIdentifier().endsWith("-copy")) {
-                                donated = donated + Double.parseDouble(storeItem.getPrice());
+                            if (!storeItem.getId().endsWith("-copy")) {
+                                donated = donated + Float.valueOf(storeItem.getPrice()).doubleValue();
                             }
                         } else {
                             items.put(item.getKey(), item.getValue());
@@ -95,6 +99,7 @@ public class UserCore {
         return user;
     }
 
+    @SuppressWarnings("deprecation")
     public boolean refundOrder(@NotNull String player, int orderID) {
         final Player onlinePlayer = Bukkit.getPlayer(player);
         final StoreUser user = getPlayerData(player);
@@ -106,7 +111,9 @@ public class UserCore {
                     final Map<String, Byte> items = new HashMap<>();
                     for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
                         if (item.getValue() == 2) {
-                            plugin.getStore().getItem(item.getKey()).refund(player, orderID);
+                            final StoreClient client = new StoreClient(onlinePlayer != null ? onlinePlayer : Bukkit.getOfflinePlayer(player));
+                            client.parser(s -> s.replace("{order_player}", player).replace("{order_id}", String.valueOf(orderID)));
+                            plugin.getStore().getItem(item.getKey()).onRefund(client);
                         }
                         items.put(item.getKey(), (byte) 3);
                     }

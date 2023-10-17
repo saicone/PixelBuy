@@ -1,0 +1,70 @@
+# Item unique id
+super-pickaxe:
+  # Item price
+  price: 2.49
+  # Item categories
+  categories:
+    - 'items'
+  # Item display configuration on shop gui
+  display:
+    material: DIAMOND_PICKAXE
+    name: '&9&lSuper Pickaxe'
+    lore:
+      - ''
+      - '&7Price&8: &a{item_price}'
+      - ''
+      - '&7Get on the server store'
+  # Shop item options
+  options:
+    online: true
+  # Executable events on buy
+  onBuy:
+    - item:
+        material: DIAMOND_PICKAXE
+        amount: 1
+        name: '&9&lSuper Pickaxe'
+        lore:
+          - '&7Custom pickaxe'
+          - '&7from server store'
+          - ''
+          - '&6Buyer: &7%player_name%'
+          - '&6Order ID: &7{order_id}'
+        enchants:
+          SHARPNESS: 10
+          DIG_SPEED: 5
+          LOOT_BONUS_BLOCKS: 20
+    - message: '&e&lYou bought the &9&lSuper Pickaxe&e!'
+    - broadcast:
+        - '&e-----------------------------'
+        - '&fThe player &e{order_player} &fbought the super pickaxe!'
+        - '&e-----------------------------'
+
+rank-vip:
+  price: 3
+  category: 'ranks'
+  display:
+    material: DIAMOND
+    name: '&e&lVIP Rank'
+  onBuy:
+    - command: 'lp user {order_player} parent add vip'
+    - broadcast:
+        - '&e-----------------------------'
+        - '&fThe player &e{order_player} &fbought the VIP rank!'
+        - '&e-----------------------------'
+  # Executable events on refund
+  onRefund:
+    - command: 'lp user {order_player} parent remove vip'
+
+eco-bundle:
+  price: 1.99
+  display:
+    material: EMERALD
+    name: '&a&lEco Bundle'
+  onBuy:
+    - command: 'eco give {order_player} 1000'
+    - broadcast:
+        - '&e-----------------------------'
+        - '&fThe player &e{order_player} &fbought the eco bundle!'
+        - '&e-----------------------------'
+  onRefund:
+    - command: 'eco take {order_player} 1000'

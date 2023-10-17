@@ -1,57 +1,42 @@
+# Pixel store display name
 Name: 'Server Store Name'
 
-# You can make global discounts putting values
-# like 0.35 or 35% or .14
-Global-Discount: '0'
+# Shop categories
+Categories:
+  - global
+  - items:
+      # Apply discount
+      discount: '3%'
+  - hats
+  - skins
+  - ranks
 
-# Shop items
-# Every item need different name
+# Web supervisor configuration
+Supervisor:
+  # Supervisor unique ID
+  woominecraft-example:
+    # Supervisor types:
+    # WOOMINECRAFT = Check WordPress site with WooMinecraft plugin installed and
+    #                process every command separated by comma as store items.
+    # TEBEX        = Check Tebex/BuyCraft site and process every command separated
+    #                by comma as store items.
+    Type: WOOMINECRAFT
+    # Interval in seconds to check new orders
+    # This checker don't require so much CPU, 7 seconds is recommended
+    # Set to -1 to disable
+    Check-Interval: 7
+    # URL of your site
+    # For example http://shop.mysite.com
+    URL: ''
+    # This is a key that YOU set, both needing to be identical
+    # in the WooCommerce configuration and in this config file
+    Key: ''
+  tebex-example:
+    Type: TEBEX
+    URL: ''
+    Secret-Key: ''
+
+# Global configuration for all store items
 Items:
-  # Item name
-  item1:
-    # Item price
-    # To apply a price modifier put 'price->newPrice'
-    # For example: '10->8.99'
-    price: '10'
-    # Leave in true if you only want to execute the actions below if
-    # player is online when the orders is processed
-    online: true
-    # List of executable actions on buy
-    # Available types:
-    # COMMAND   = Run command
-    # ITEM      = Give item
-    # MESSAGE   = Send message
-    # BROADCAST = Send message to all online players
-    onBuy:
-      # Available placeholders: {order_player}, {order_id}, {item_price}
-      - command: 'lp user {order_player} parent add vip'
-      - item:
-          material: DIAMOND_PICKAXE
-          amount: 1
-          name: '&9&lSuper Pickaxe'
-          lore:
-            - '&7Custom pickaxe'
-            - '&7from server store'
-            - ''
-            - '&6Buyer: &7{order_player}'
-            - '&6Order ID: &7{order_id}'
-          enchants:
-            SHARPNESS: 10
-            DIG_SPEED: 5
-            LOOT_BONUS_BLOCKS: 20
-      - broadcast:
-          - '&7The player &e{order_player} %7was bought'
-          - '&bSuper Pickaxe &7and VIP rank!'
-    # List of executable actions on refund
-    onRefund:
-      - command: 'lp user {order_player} parent remove vip'
-  eco10000:
-    price: '5.99->3.99'
-    online: false
-    onBuy:
-      - command: 'eco give {order_player} 10000'
-      - message:
-          - '&fYou order has received'
-          - '&eThanks for support us!'
-    onRefund:
-      - command: 'eco take {order_player} 10000'
+  categories:
+    - global

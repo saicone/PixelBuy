@@ -6,126 +6,226 @@ import com.saicone.pixelbuy.core.store.action.CommandAction;
 import com.saicone.pixelbuy.core.store.action.ItemAction;
 import com.saicone.pixelbuy.core.store.action.MessageAction;
 import com.saicone.pixelbuy.api.store.StoreAction;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
+import com.saicone.pixelbuy.core.web.WebSupervisor;
+import com.saicone.pixelbuy.core.web.WebType;
+import com.saicone.pixelbuy.module.settings.BukkitSettings;
+import com.saicone.pixelbuy.module.settings.SettingsFile;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class PixelStore {
 
-    private static final List<StoreAction.Builder<?>> ACTION_TYPES = Arrays.asList(
-            BroadcastAction.BUILDER,
-            CommandAction.BUILDER,
-            ItemAction.BUILDER,
-            MessageAction.BUILDER
-    );
+    private final SettingsFile config = new SettingsFile("store.yml");
+    private final Map<String, StoreAction.Builder<?>> actionTypes = new HashMap<>();
 
-    private final PixelBuy plugin = PixelBuy.get();
-    private final List<StoreItem> items = new ArrayList<>();
-
-    private FileConfiguration store;
-    private String storeName = "";
-    private Double discount = 1D;
+    private String name;
+    private final Map<String, StoreCategory> categories = new HashMap<>();
+    private final Map<String, WebSupervisor> supervisors = new HashMap<>();
+    private BukkitSettings baseItem;
+    private final Map<String, StoreItem> items = new HashMap<>();
 
     public PixelStore() {
-        reload(Bukkit.getConsoleSender(), true);
+        registerAction("pixelbuy:broadcast", BroadcastAction.BUILDER);
+        registerAction("pixelbuy:command", CommandAction.BUILDER);
+        registerAction("pixelbuy:item", ItemAction.BUILDER);
+        registerAction("pixelbuy:message", MessageAction.BUILDER);
     }
 
-    public void shut() {
-        items.clear();
+    public void onLoad() {
+        config.loadFrom(PixelBuy.get().getDataFolder(), true);
+        name = config.getIgnoreCase("name").asString("");
+        categories.clear();
+        loadCategories(config.getRegex("(?i)categor(y|ies)").getValue());
+        loadSupervisors();
+        baseItem = config.getConfigurationSection(settings -> settings.getRegex("(?i)(def(ault)?-?)items?"));
+        final Set<String> loadedItems = new HashSet<>();
+        loadItems(new File(PixelBuy.get().getDataFolder(), "storeitems"), loadedItems);
+        items.entrySet().removeIf(entry -> !loadedItems.contains(entry.getKey()));
     }
 
-    public void reload(@NotNull CommandSender sender, boolean init) {
-        if (!init) {
-            items.clear();
+    public void loadCategories(@Nullable Object object) {
+        if (object instanceof ConfigurationSection) {
+            for (String id : ((ConfigurationSection) object).getKeys(false)) {
+                loadCategory(id, ((ConfigurationSection) object).get(id));
+            }
+        } else if (object instanceof Map) {
+            for (var entry : ((Map<?, ?>) object).entrySet()) {
+                loadCategory(String.valueOf(entry.getKey()), entry.getValue());
+            }
+        } else if (object instanceof Iterable) {
+            for (Object o : (Iterable<?>) object) {
+                loadCategories(o);
+            }
+        } else if (object instanceof String) {
+            categories.put((String) object, new StoreCategory((String) object));
         }
-        final File file = new File(plugin.getDataFolder(), "store.yml");
-        if (!file.exists()) {
-            plugin.saveResource("store.yml", false);
-        }
-
-        store = YamlConfiguration.loadConfiguration(file);
-        storeName = store.getString("Name", "");
-        final String discount = store.getString("Global-Discount", "1");
-        this.discount = Double.parseDouble("0." + (discount.contains(".") ? discount.split("\\.", 2)[1] : discount.replace("%", "")));
-        int count = 0;
-        for (String identifier : Objects.requireNonNull(store.getConfigurationSection("Items")).getKeys(false)) {
-            items.add(new StoreItem(
-                    identifier,
-                    store.getString("Items." + identifier + ".price"),
-                    store.getBoolean("Items." + identifier + ".online", true),
-                    parseAction(store.getList("Items." + identifier + ".onBuy")),
-                    parseAction(store.getList("Items." + identifier + ".onRefund"))));
-            count++;
-        }
-        PixelBuy.log(3, count + " store items has been loaded");
     }
 
-    @NotNull
-    public List<StoreItem> getItems() {
-        return items;
+    public void loadCategory(@NotNull String id, @Nullable Object value) {
+        final StoreCategory category = new StoreCategory(id);
+        if (value instanceof Map || value instanceof ConfigurationSection) {
+            category.onReload(BukkitSettings.of(value));
+        }
+        categories.put(id, category);
     }
 
-    @NotNull
-    public String getStoreName() {
-        return storeName;
-    }
-
-    @NotNull
-    public static List<StoreAction> parseAction(@Nullable Object object) {
-        final List<StoreAction> actions = new ArrayList<>();
-        if (object == null) {
-            return actions;
+    public void loadSupervisors() {
+        final BukkitSettings section = BukkitSettings.of(config.getRegex("(?i)supervisors?").or(null));
+        if (section == null) {
+            for (var entry : supervisors.entrySet()) {
+                entry.getValue().onClose();
+            }
+            return;
         }
 
-        if (object instanceof Map) {
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) object).entrySet()) {
-                final StoreAction action = parseAction(String.valueOf(entry.getKey()), entry.getValue());
-                if (action != null) {
-                    actions.add(action);
+        // Disable removed or reload current supervisors
+        supervisors.entrySet().removeIf(entry -> {
+            entry.getValue().onClose();
+            if (section.contains(entry.getKey())) {
+                final BukkitSettings config = section.getConfigurationSection(entry.getKey());
+                if (config != null && WebType.of(config.getIgnoreCase("type").asString()) == entry.getValue().getType()) {
+                    entry.getValue().onLoad(config);
+                    entry.getValue().onStart();
+                    return false;
                 }
             }
-        } else if (object instanceof List) {
-            for (Object o : (List<?>) object) {
-                actions.addAll(parseAction(o));
+            return true;
+        });
+
+        // Load added supervisors
+        for (String key : section.getKeys(false)) {
+            if (supervisors.containsKey(key)) {
+                continue;
             }
-        } else {
-            final String[] split = String.valueOf(object).split(":", 2);
-            final StoreAction action = parseAction(split[0].trim(), split.length > 1 ? split[1].trim() : null);
-            if (action != null) {
-                actions.add(action);
+
+            final BukkitSettings config = section.getConfigurationSection(key);
+            if (config == null) {
+                continue;
             }
+
+            final WebType type = WebType.of(config.getIgnoreCase("type").asString());
+            final WebSupervisor supervisor = type.newSupervisor(key);
+            if (supervisor == null) {
+                PixelBuy.log(2, "Unknown web type for '" + key + "' supervisor");
+                continue;
+            }
+
+            supervisor.onLoad(config);
+            supervisor.onStart();
+            supervisors.put(key, supervisor);
+        }
+    }
+
+    public void loadItems(@NotNull File file, @NotNull Set<String> loaded) {
+        if (file.isDirectory()) {
+            final File[] list = file.listFiles();
+            if (list != null) {
+                for (File child : list) {
+                    loadItems(child, loaded);
+                }
+            }
+            return;
         }
 
-        return actions;
+        final YamlConfiguration yaml = new YamlConfiguration();
+        try {
+            yaml.load(file);
+        } catch (IOException | InvalidConfigurationException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        for (String id : yaml.getKeys(false)) {
+            if (loaded.contains(id)) {
+                PixelBuy.log(2, "Duplicated store item id '" + id + "' from file " + file.getPath());
+                continue;
+            }
+            loaded.add(id);
+
+            final StoreItem item = new StoreItem(id);
+            final ConfigurationSection section = yaml.getConfigurationSection(id);
+            if (section != null) {
+                final BukkitSettings config = BukkitSettings.of(section);
+                config.merge(baseItem);
+                item.onReload(config);
+            }
+            items.put(id, item);
+        }
+    }
+
+    public void onDisable() {
+        for (var entry : supervisors.entrySet()) {
+            entry.getValue().onClose();
+        }
+        supervisors.clear();
+        categories.clear();
+    }
+
+    @NotNull
+    public String getName() {
+        return name;
     }
 
     @Nullable
-    public static StoreAction parseAction(@NotNull String id, @Nullable Object object) {
-        for (StoreAction.Builder<?> builder : ACTION_TYPES) {
-            if (builder.getPattern().matcher(id).matches()) {
-                return builder.build(object);
-            }
-        }
-        return null;
+    public StoreCategory getCategory(@NotNull String id) {
+        return categories.get(id);
+    }
+
+    @NotNull
+    public Map<String, StoreCategory> getCategories() {
+        return categories;
     }
 
     @Nullable
-    public StoreItem getItem(@NotNull String identifier) {
-        for (StoreItem item : items) {
-            if (item.getIdentifier().equals(identifier)) {
-                return item;
-            }
-        }
-        return null;
+    public WebSupervisor getSupervisor(@NotNull String id) {
+        return supervisors.get(id);
+    }
+
+    @NotNull
+    public Map<String, WebSupervisor> getSupervisors() {
+        return supervisors;
+    }
+
+    @Nullable
+    public StoreItem getItem(@NotNull String id) {
+        return items.get(id);
+    }
+
+    @NotNull
+    public Map<String, StoreItem> getItems() {
+        return items;
     }
 
     public boolean isItem(@NotNull String id) {
         return getItem(id) != null;
+    }
+
+    public boolean registerAction(@NotNull String id, @NotNull StoreAction.Builder<?> builder) {
+        return actionTypes.put(id, builder) != null;
+    }
+
+    public boolean unregisterAction(@NotNull String id) {
+        return actionTypes.remove(id) != null;
+    }
+
+    public boolean unregisterAction(@NotNull StoreAction.Builder<?> builder) {
+        return actionTypes.entrySet().removeIf(entry -> entry.getValue().equals(builder));
+    }
+
+    @Nullable
+    public StoreAction buildAction(@NotNull String id, @Nullable Object object) {
+        for (var entry : actionTypes.entrySet()) {
+            if (entry.getValue().getPattern().matcher(id).matches()) {
+                return entry.getValue().build(object);
+            }
+        }
+        return null;
     }
 }

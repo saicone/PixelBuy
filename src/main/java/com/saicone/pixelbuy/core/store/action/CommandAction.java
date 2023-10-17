@@ -1,5 +1,6 @@
 package com.saicone.pixelbuy.core.store.action;
 
+import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.util.OptionalType;
@@ -46,8 +47,16 @@ public class CommandAction extends StoreAction {
             return;
         }
         final List<String> cmds = client.parse(getCommands());
-        for (String cmd : cmds) {
-            Bukkit.getServer().dispatchCommand(sender, cmd);
+        if (Bukkit.isPrimaryThread()) {
+            for (String cmd : cmds) {
+                Bukkit.getServer().dispatchCommand(sender, cmd);
+            }
+        } else {
+            Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
+                for (String cmd : cmds) {
+                    Bukkit.getServer().dispatchCommand(sender, cmd);
+                }
+            });
         }
     }
 

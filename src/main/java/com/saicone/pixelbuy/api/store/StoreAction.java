@@ -58,15 +58,11 @@ public abstract class StoreAction {
             final BukkitSettings config;
             if (object instanceof BukkitSettings) {
                 config = (BukkitSettings) object;
-            } else if (object instanceof ConfigurationSection) {
-                config = BukkitSettings.of((ConfigurationSection) object);
+            } else if (object instanceof ConfigurationSection || object instanceof Map) {
+                config = BukkitSettings.of(object);
             } else {
                 config = new BukkitSettings();
-                if (object instanceof Map) {
-                    config.set((Map<?, ?>) object);
-                } else if (object != null) {
-                    config.set("value", object);
-                }
+                config.set("value", object);
             }
             try {
                 return accept.apply(config);

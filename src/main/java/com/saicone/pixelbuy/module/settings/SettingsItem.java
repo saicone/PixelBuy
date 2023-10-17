@@ -26,7 +26,7 @@ import java.util.function.Function;
 public class SettingsItem extends BukkitSettings {
 
     @NotNull
-    public static SettingsItem of(@NotNull Object object) {
+    public static SettingsItem of(@Nullable Object object) {
         if (object instanceof ConfigurationSection) {
             return new SettingsItem((ConfigurationSection) object);
         } else if (object instanceof Map) {
