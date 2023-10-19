@@ -1,6 +1,6 @@
 package com.saicone.pixelbuy.api.event;
 
-import com.saicone.pixelbuy.api.store.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -11,7 +11,7 @@ public class OrderProcessedEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
     private final String player;
-    private final StoreUser.Order order;
+    private final StoreOrder order;
     private boolean isCancelled;
 
     @NotNull
@@ -19,7 +19,7 @@ public class OrderProcessedEvent extends Event implements Cancellable {
         return HANDLERS;
     }
 
-    public OrderProcessedEvent(@NotNull String player, @NotNull StoreUser.Order order) {
+    public OrderProcessedEvent(@NotNull String player, @NotNull StoreOrder order) {
         this.player = player;
         this.order = order;
         this.isCancelled = false;
@@ -44,7 +44,7 @@ public class OrderProcessedEvent extends Event implements Cancellable {
     }
 
     @NotNull
-    public StoreUser.Order getOrder() {
+    public StoreOrder getOrder() {
         return order;
     }
 }

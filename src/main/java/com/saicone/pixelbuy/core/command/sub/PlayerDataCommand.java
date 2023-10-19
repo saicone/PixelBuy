@@ -1,6 +1,7 @@
 package com.saicone.pixelbuy.core.command.sub;
 
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.SubCommand;
 import com.saicone.pixelbuy.api.store.StoreUser;
@@ -8,10 +9,7 @@ import com.saicone.pixelbuy.api.store.StoreUser;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class PlayerDataCommand extends SubCommand {
@@ -46,18 +44,25 @@ public class PlayerDataCommand extends SubCommand {
                     }
 
                     final int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
-                    final List<StoreUser.Order> orders = user.getOrders();
-                    final int max = page * 10 + 10;
+                    final Set<StoreOrder> orders = user.getOrders();
 
                     sender.sendMessage(" ");
                     Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getPlayer(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
                     int orderNum = 1;
-                    for (int i = page * 10; i < orders.size() && i < max; i++) {
-                        final StoreUser.Order order = orders.get(i);
+                    int start = page * 10;
+                    int i = 0;
+                    for (StoreOrder order : orders) {
+                        if (i < start) {
+                            i++;
+                            continue;
+                        }
+                        if (orderNum >= 10) {
+                            break;
+                        }
                         Lang.COMMAND_PLAYERDATA_INFO_ORDER.sendTo(sender, orderNum, order.getId());
                         int cmdNum = 1;
-                        for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
-                            Lang.COMMAND_PLAYERDATA_INFO_ITEMS.sendTo(sender, cmdNum, item.getKey(), state(sender, item.getValue()));
+                        for (StoreOrder.Item item : order.getItems()) {
+                            Lang.COMMAND_PLAYERDATA_INFO_ITEMS.sendTo(sender, cmdNum, item.getId(), state(sender, item));
                             cmdNum++;
                         }
                         orderNum++;
@@ -85,11 +90,11 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 5) {
                     Lang.COMMAND_PLAYERDATA_ORDER_USAGE.sendTo(sender, cmd);
                 } else {
-                    final Map<String, Byte> items = new HashMap<>();
+                    final StoreOrder order = new StoreOrder(Integer.parseInt(args[3]));
                     for (String item : args[4].split(",")) {
-                        items.put(item, (byte) 1);
+                        order.addItem(item);
                     }
-                    plugin.getUserCore().processOrder(args[2], new StoreUser.Order(Integer.parseInt(args[3]), items), false);
+                    plugin.getUserCore().processOrder(args[2], order, false);
                     Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
                 }
                 break;
@@ -106,24 +111,20 @@ public class PlayerDataCommand extends SubCommand {
                         break;
                     }
 
-                    final StoreUser.Order order = user.getOrder(Integer.parseInt(args[3]));
+                    final StoreOrder order = user.getOrder(Integer.parseInt(args[3]));
                     if (order == null) {
                         Lang.COMMAND_PLAYERDATA_RECOVER_UNKNOWN.sendTo(sender, args[3]);
                         break;
                     }
 
                     final List<String> list = new ArrayList<>();
-                    for (Map.Entry<String, Byte> entry : order.getItems((byte) 2).entrySet()) {
-                        boolean hasRecovered = entry.getKey().endsWith("-copy");
-                        if (hasRecovered || plugin.getStore().isItem(entry.getKey() + "-copy")) {
-                            list.add(hasRecovered ? entry.getKey().substring(0, entry.getKey().length() - 5) : entry.getKey());
-                            if (hasRecovered) {
-                                order.getItems().put(entry.getKey(), (byte) 1);
-                            } else {
-                                order.getItems().remove(entry.getKey());
-                                order.getItems().put(entry.getKey() + "-copy", (byte) 1);
-                            }
+                    for (StoreOrder.Item item : order.getItems()) {
+                        if (item.getState() == StoreOrder.State.PENDING) {
+                            item.execution(StoreOrder.Execution.RECOVER);
+                            continue;
                         }
+                        item.execution(StoreOrder.Execution.RECOVER).state(StoreOrder.State.PENDING);
+                        list.add(item.getId());
                     }
 
                     plugin.getUserCore().saveDataChanges(args[2], user);
@@ -137,9 +138,16 @@ public class PlayerDataCommand extends SubCommand {
     }
 
     @NotNull
-    private String state(@NotNull CommandSender sender, byte state) {
-        if (state == 1) return Lang.STATUS_PENDING.getText(sender);
-        if (state == 2) return Lang.STATUS_SENT.getText(sender);
-        return Lang.STATUS_REFUNDED.getText(sender);
+    private String state(@NotNull CommandSender sender, @NotNull StoreOrder.Item item) {
+        if (item.getState() == StoreOrder.State.DONE) {
+            return Lang.STATUS_SENT.getText(sender);
+        }
+        if (item.getState() == StoreOrder.State.PENDING) {
+            return Lang.STATUS_PENDING.getText(sender);
+        }
+        if (item.getExecution() == StoreOrder.Execution.REFUND) {
+            return Lang.STATUS_REFUNDED.getText(sender);
+        }
+        return "";
     }
 }

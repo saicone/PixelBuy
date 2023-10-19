@@ -3,7 +3,7 @@ package com.saicone.pixelbuy.core.web;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.api.store.StoreUser;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,9 +13,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class WebSupervisor {
 
@@ -42,12 +40,12 @@ public abstract class WebSupervisor {
     public void onClose() {
     }
 
-    public boolean process(@NotNull String player, int order, @NotNull List<String> items) {
-        final Map<String, Byte> map = new HashMap<>();
+    public boolean process(@NotNull String player, int id, @NotNull List<String> items) {
+        final StoreOrder order = new StoreOrder(id);
         for (String item : items) {
-            map.put(item, (byte) 1);
+            order.addItem(item);
         }
-        return PixelBuy.get().getUserCore().processOrder(player, new StoreUser.Order(order, map), true);
+        return PixelBuy.get().getUserCore().processOrder(player, order, true);
     }
 
     @NotNull

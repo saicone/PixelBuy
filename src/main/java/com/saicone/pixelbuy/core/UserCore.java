@@ -4,6 +4,7 @@ import com.saicone.pixelbuy.PixelBuy;
 
 import com.saicone.pixelbuy.api.event.OrderProcessedEvent;
 import com.saicone.pixelbuy.api.store.StoreClient;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.core.store.StoreItem;
 import org.bukkit.Bukkit;
@@ -45,7 +46,7 @@ public class UserCore {
     }
 
     @SuppressWarnings("deprecation")
-    public boolean processOrder(@NotNull String player, @NotNull StoreUser.Order order, boolean callEvent) {
+    public boolean processOrder(@NotNull String player, @NotNull StoreOrder order, boolean callEvent) {
         if (callEvent) {
             final OrderProcessedEvent event = new OrderProcessedEvent(player, order);
             Bukkit.getPluginManager().callEvent(event);
@@ -61,7 +62,9 @@ public class UserCore {
             }
             user.addOrder(order);
         } else {
-            user = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : onlinePlayer.getUniqueId().toString()) : player), 0.00, Collections.singletonList(order));
+            final LinkedHashSet<StoreOrder> orders = new LinkedHashSet<>();
+            orders.add(order);
+            user = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : onlinePlayer.getUniqueId().toString()) : player), 0.00, orders);
         }
         saveDataChanges(onlinePlayer, processData(onlinePlayer, user));
         return true;
@@ -70,64 +73,70 @@ public class UserCore {
     @NotNull
     @SuppressWarnings("deprecation")
     public StoreUser processData(@Nullable Player player, @NotNull StoreUser user) {
-        double donated = user.getDonated();
-        final List<StoreUser.Order> orders = user.getOrders(false);
-        for (StoreUser.Order order : user.getOrders(true)) {
-            if (!isDuplicated(order.getId(), orders)) {
-                final Map<String, Byte> items = order.getItems((byte) 2);
-                for (Map.Entry<String, Byte> item : order.getItems((byte) 1).entrySet()) {
-                    final StoreItem storeItem = plugin.getStore().getItem(item.getKey());
-                    if (storeItem != null) {
-                        if (!storeItem.isOnline() || player != null) {
-                            final StoreClient client = new StoreClient(player != null ? player : Bukkit.getOfflinePlayer(user.getPlayer()));
-                            client.parser(s -> s.replace("{order_player}", user.getPlayer()).replace("{order_id}", String.valueOf(order.getId())));
-                            Bukkit.getScheduler().runTaskLater(plugin, () -> storeItem.onBuy(client), PixelBuy.settings().getLong("Order.Delay", 5L) * 20);
-                            items.put(item.getKey(), (byte) 2);
-                            if (!storeItem.getId().endsWith("-copy")) {
-                                donated = donated + Float.valueOf(storeItem.getPrice()).doubleValue();
-                            }
-                        } else {
-                            items.put(item.getKey(), item.getValue());
-                        }
-                    }
+        float donated = Double.valueOf(user.getDonated()).floatValue();
+        for (StoreOrder order : user.getOrders()) {
+            for (StoreOrder.Item value : order.getItems()) {
+                if (value.getState() != StoreOrder.State.PENDING) {
+                    continue;
                 }
-                orders.add(new StoreUser.Order(order.getId(), items));
+
+                final StoreItem item = plugin.getStore().getItem(value.getId());
+                if (item == null) {
+                    value.state(StoreOrder.State.ERROR).error("The Store item '" + value.getId() + "' doesn't exist");
+                    continue;
+                }
+
+                if (item.isOnline() && player == null) {
+                    continue;
+                }
+
+                final StoreClient client = new StoreClient(player != null ? player : Bukkit.getOfflinePlayer(user.getPlayer()));
+                client.parser(s -> s.replace("{order_player}", user.getPlayer()).replace("{order_id}", String.valueOf(order.getId())));
+                Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+                    try {
+                        switch (value.getExecution()) {
+                            case BUY:
+                                item.onBuy(client);
+                                break;
+                            case RECOVER:
+                                item.onRecover(client);
+                                break;
+                            case REFUND:
+                                item.onRefund(client);
+                                break;
+                            default:
+                                break;
+                        }
+                    } catch (Throwable t) {
+                        value.state(StoreOrder.State.ERROR).error(t.getClass().getName() + " | " + t.getMessage());
+                    }
+                }, PixelBuy.settings().getLong("Order.Delay", 5L) * 20L);
+
+                value.state(StoreOrder.State.DONE);
+
+                if (value.getExecution() == StoreOrder.Execution.BUY) {
+                    value.price(item.getPrice());
+                    donated = donated + item.getPrice();
+                }
             }
         }
-        user.setOrders(orders);
         user.setDonated(donated);
         return user;
     }
 
-    @SuppressWarnings("deprecation")
-    public boolean refundOrder(@NotNull String player, int orderID) {
-        final Player onlinePlayer = Bukkit.getPlayer(player);
+    public boolean refundOrder(@NotNull String player, int id) {
         final StoreUser user = getPlayerData(player);
         if (user != null) {
-            boolean exists = false;
-            final List<StoreUser.Order> orders = new ArrayList<>();
-            for (StoreUser.Order order : user.getOrders()) {
-                if (order.getId() == orderID) {
-                    final Map<String, Byte> items = new HashMap<>();
-                    for (Map.Entry<String, Byte> item : order.getItems().entrySet()) {
-                        if (item.getValue() == 2) {
-                            final StoreClient client = new StoreClient(onlinePlayer != null ? onlinePlayer : Bukkit.getOfflinePlayer(player));
-                            client.parser(s -> s.replace("{order_player}", player).replace("{order_id}", String.valueOf(orderID)));
-                            plugin.getStore().getItem(item.getKey()).onRefund(client);
-                        }
-                        items.put(item.getKey(), (byte) 3);
+            final Player onlinePlayer = Bukkit.getPlayer(player);
+            for (StoreOrder order : user.getOrders()) {
+                if (order.getId() == id) {
+                    for (StoreOrder.Item item : order.getItems()) {
+                        item.execution(StoreOrder.Execution.REFUND).state(StoreOrder.State.PENDING);
                     }
-                    orders.add(new StoreUser.Order(order.getId(), items));
-                    exists = true;
-                } else {
-                    orders.add(order);
+                    processData(onlinePlayer, user);
+                    return true;
                 }
             }
-            user.setOrders(orders);
-            if (exists) {
-                saveDataChanges(onlinePlayer, user);
-            }
-            return exists;
         }
         return false;
     }
@@ -160,8 +169,8 @@ public class UserCore {
         }
     }
 
-    private boolean isDuplicated(int id, @NotNull List<StoreUser.Order> list) {
-        for (StoreUser.Order order : list) {
+    private boolean isDuplicated(int id, @NotNull Set<StoreOrder> list) {
+        for (StoreOrder order : list) {
             if (order.getId() == id) {
                 return true;
             }
