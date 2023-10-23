@@ -1,6 +1,9 @@
 # Pixel store display name
 Name: 'Server Store Name'
 
+# Current shop group, must be different between server modes
+Group: 'survival'
+
 # Shop categories
 Categories:
   - global
@@ -21,6 +24,8 @@ Supervisor:
     # TEBEX        = Check Tebex/BuyCraft site and process every command separated
     #                by comma as store items.
     Type: WOOMINECRAFT
+    # Supervisor group, can be equal as current shop group or different like "global"
+    Group: 'survival'
     # Interval in seconds to check new orders
     # This checker don't require so much CPU, 7 seconds is recommended
     # Set to -1 to disable
@@ -33,6 +38,7 @@ Supervisor:
     Key: ''
   tebex-example:
     Type: TEBEX
+    Group: 'survival'
     URL: ''
     Secret-Key: ''
 

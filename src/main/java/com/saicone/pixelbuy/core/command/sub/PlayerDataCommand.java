@@ -47,7 +47,7 @@ public class PlayerDataCommand extends SubCommand {
                     final Set<StoreOrder> orders = user.getOrders();
 
                     sender.sendMessage(" ");
-                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getPlayer(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
+                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getName(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
                     int orderNum = 1;
                     int start = page * 10;
                     int i = 0;
@@ -62,7 +62,7 @@ public class PlayerDataCommand extends SubCommand {
                         Lang.COMMAND_PLAYERDATA_INFO_ORDER.sendTo(sender, orderNum, order.getId());
                         int cmdNum = 1;
                         for (StoreOrder.Item item : order.getItems()) {
-                            Lang.COMMAND_PLAYERDATA_INFO_ITEMS.sendTo(sender, cmdNum, item.getId(), state(sender, item));
+                            Lang.COMMAND_PLAYERDATA_INFO_ITEMS.sendTo(sender, cmdNum, item.getId(), state(sender, order, item));
                             cmdNum++;
                         }
                         orderNum++;
@@ -90,7 +90,7 @@ public class PlayerDataCommand extends SubCommand {
                 } else if (args.length < 5) {
                     Lang.COMMAND_PLAYERDATA_ORDER_USAGE.sendTo(sender, cmd);
                 } else {
-                    final StoreOrder order = new StoreOrder(Integer.parseInt(args[3]));
+                    final StoreOrder order = new StoreOrder("command", Integer.parseInt(args[3]), PixelBuy.get().getStore().getGroup());
                     for (String item : args[4].split(",")) {
                         order.addItem(item);
                     }
@@ -117,13 +117,13 @@ public class PlayerDataCommand extends SubCommand {
                         break;
                     }
 
+                    order.setExecution(StoreOrder.Execution.RECOVER);
                     final List<String> list = new ArrayList<>();
                     for (StoreOrder.Item item : order.getItems()) {
                         if (item.getState() == StoreOrder.State.PENDING) {
-                            item.execution(StoreOrder.Execution.RECOVER);
                             continue;
                         }
-                        item.execution(StoreOrder.Execution.RECOVER).state(StoreOrder.State.PENDING);
+                        item.state(StoreOrder.State.PENDING);
                         list.add(item.getId());
                     }
 
@@ -138,14 +138,14 @@ public class PlayerDataCommand extends SubCommand {
     }
 
     @NotNull
-    private String state(@NotNull CommandSender sender, @NotNull StoreOrder.Item item) {
+    private String state(@NotNull CommandSender sender, @NotNull StoreOrder order, @NotNull StoreOrder.Item item) {
         if (item.getState() == StoreOrder.State.DONE) {
             return Lang.STATUS_SENT.getText(sender);
         }
         if (item.getState() == StoreOrder.State.PENDING) {
             return Lang.STATUS_PENDING.getText(sender);
         }
-        if (item.getExecution() == StoreOrder.Execution.REFUND) {
+        if (order.getExecution() == StoreOrder.Execution.REFUND) {
             return Lang.STATUS_REFUNDED.getText(sender);
         }
         return "";

@@ -49,8 +49,8 @@ public class WooMinecraftWeb extends WebSupervisor {
     private int getTask;
     private boolean onTask;
 
-    public WooMinecraftWeb(@NotNull String id) {
-        super(id);
+    public WooMinecraftWeb(@NotNull String id, @NotNull String group) {
+        super(id, group);
     }
 
     @Override

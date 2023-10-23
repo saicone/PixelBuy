@@ -59,7 +59,7 @@ public class MySQLDatabase implements DataClient {
 
     @Override
     public void saveData(@NotNull StoreUser data) {
-        final String player = data.getPlayer().toLowerCase();
+        final String player = data.getName().toLowerCase();
         final Gson gson = new Gson();
         final String json = gson.toJson(data);
         query("INSERT INTO `PlayerOrders` (PLAYER, DATA) VALUES ('" + player + "','" + json + "') " + "ON DUPLICATE KEY UPDATE `DATA` = '" + json + "';", data);

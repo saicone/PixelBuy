@@ -64,7 +64,7 @@ public class UserCore {
         } else {
             final LinkedHashSet<StoreOrder> orders = new LinkedHashSet<>();
             orders.add(order);
-            user = new StoreUser((PixelBuy.settings().getBoolean("Database.UUID") ? (onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : onlinePlayer.getUniqueId().toString()) : player), 0.00, orders);
+            user = new StoreUser(onlinePlayer == null ? Bukkit.getOfflinePlayer(player).getUniqueId() : onlinePlayer.getUniqueId(), player, 0.00, orders);
         }
         saveDataChanges(onlinePlayer, processData(onlinePlayer, user));
         return true;
@@ -90,11 +90,11 @@ public class UserCore {
                     continue;
                 }
 
-                final StoreClient client = new StoreClient(player != null ? player : Bukkit.getOfflinePlayer(user.getPlayer()));
-                client.parser(s -> s.replace("{order_player}", user.getPlayer()).replace("{order_id}", String.valueOf(order.getId())));
+                final StoreClient client = new StoreClient(player != null ? player : Bukkit.getOfflinePlayer(user.getName()));
+                client.parser(s -> s.replace("{order_player}", user.getName()).replace("{order_id}", String.valueOf(order.getId())));
                 Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
                     try {
-                        switch (value.getExecution()) {
+                        switch (order.getExecution()) {
                             case BUY:
                                 item.onBuy(client);
                                 break;
@@ -114,7 +114,7 @@ public class UserCore {
 
                 value.state(StoreOrder.State.DONE);
 
-                if (value.getExecution() == StoreOrder.Execution.BUY) {
+                if (order.getExecution() == StoreOrder.Execution.BUY) {
                     value.price(item.getPrice());
                     donated = donated + item.getPrice();
                 }
@@ -130,8 +130,9 @@ public class UserCore {
             final Player onlinePlayer = Bukkit.getPlayer(player);
             for (StoreOrder order : user.getOrders()) {
                 if (order.getId() == id) {
+                    order.setExecution(StoreOrder.Execution.REFUND);
                     for (StoreOrder.Item item : order.getItems()) {
-                        item.execution(StoreOrder.Execution.REFUND).state(StoreOrder.State.PENDING);
+                        item.state(StoreOrder.State.PENDING);
                     }
                     processData(onlinePlayer, user);
                     return true;

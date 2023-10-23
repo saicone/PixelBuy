@@ -90,7 +90,7 @@ public class Database {
         for (StoreUser user : base.getAllData()) {
             database.saveData(user);
             if (delete) {
-                base.deleteData(user.getPlayer().toLowerCase());
+                base.deleteData(user.getName().toLowerCase());
             }
         }
     }

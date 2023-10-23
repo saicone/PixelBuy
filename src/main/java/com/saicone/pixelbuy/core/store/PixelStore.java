@@ -26,6 +26,7 @@ public class PixelStore {
     private final Map<String, StoreAction.Builder<?>> actionTypes = new HashMap<>();
 
     private String name;
+    private String group;
     private final Map<String, StoreCategory> categories = new HashMap<>();
     private final Map<String, WebSupervisor> supervisors = new HashMap<>();
     private BukkitSettings baseItem;
@@ -41,6 +42,7 @@ public class PixelStore {
     public void onLoad() {
         config.loadFrom(PixelBuy.get().getDataFolder(), true);
         name = config.getIgnoreCase("name").asString("");
+        group = config.getIgnoreCase("group").asString("global");
         categories.clear();
         loadCategories(config.getRegex("(?i)categor(y|ies)").getValue());
         loadSupervisors();
@@ -111,7 +113,7 @@ public class PixelStore {
             }
 
             final WebType type = WebType.of(config.getIgnoreCase("type").asString());
-            final WebSupervisor supervisor = type.newSupervisor(key);
+            final WebSupervisor supervisor = type.newSupervisor(key, config.getIgnoreCase("group").asString(group));
             if (supervisor == null) {
                 PixelBuy.log(2, "Unknown web type for '" + key + "' supervisor");
                 continue;
@@ -171,6 +173,11 @@ public class PixelStore {
     @NotNull
     public String getName() {
         return name;
+    }
+
+    @NotNull
+    public String getGroup() {
+        return group;
     }
 
     @Nullable

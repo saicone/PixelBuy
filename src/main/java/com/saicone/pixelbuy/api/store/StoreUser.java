@@ -6,27 +6,31 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 public class StoreUser {
 
-    private String player;
+    private final UUID uuid;
+    // username
+    private final String name;
     private double donated;
     private Set<StoreOrder> orders;
 
-    public StoreUser(@NotNull String player, double donated, @NotNull Set<StoreOrder> orders) {
-        this.player = player;
+    public StoreUser(@NotNull UUID uuid, @NotNull String name, double donated, @NotNull Set<StoreOrder> orders) {
+        this.uuid = uuid;
+        this.name = name;
         this.donated = donated;
         this.orders = orders instanceof LinkedHashSet ? orders : new LinkedHashSet<>(orders);
     }
 
     @NotNull
-    public String getPlayer() {
-        return player;
+    public UUID getUniqueId() {
+        return uuid;
     }
 
-    public void setPlayer(@NotNull String player) {
-        this.player = player;
+    @NotNull
+    public String getName() {
+        return name;
     }
 
     public double getDonated() {
@@ -50,11 +54,6 @@ public class StoreUser {
     @NotNull
     public Set<StoreOrder> getOrders() {
         return orders;
-    }
-
-    @NotNull
-    public Set<StoreOrder> getOrders(@NotNull StoreOrder.State state) {
-        return orders.stream().filter(order -> order.has(state)).collect(Collectors.toSet());
     }
 
     public void setOrders(@NotNull Set<StoreOrder> orders) {

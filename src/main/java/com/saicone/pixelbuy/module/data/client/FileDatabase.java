@@ -35,7 +35,7 @@ public class FileDatabase implements DataClient {
 
     @Override
     public void saveData(@NotNull StoreUser data) {
-        final String player = data.getPlayer().toLowerCase();
+        final String player = data.getName().toLowerCase();
         if (dataFolder.mkdir()) {
             PixelBuy.log(3, "playerdata folder was created because it didn't exist");
         }

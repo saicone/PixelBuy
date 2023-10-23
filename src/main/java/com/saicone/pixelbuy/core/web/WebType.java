@@ -23,9 +23,9 @@ public enum WebType {
     }
 
     @Nullable
-    public WebSupervisor newSupervisor(@NotNull String id) {
+    public WebSupervisor newSupervisor(@NotNull String id, @NotNull String group) {
         if (this == WOO_MINECRAFT) {
-            return new WooMinecraftWeb(id);
+            return new WooMinecraftWeb(id, group);
         }
         return null;
     }

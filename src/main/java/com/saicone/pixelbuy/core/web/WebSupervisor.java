@@ -5,6 +5,7 @@ import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -18,14 +19,21 @@ import java.util.List;
 public abstract class WebSupervisor {
 
     private final String id;
+    private final String group;
 
-    public WebSupervisor(@NotNull String id) {
+    public WebSupervisor(@NotNull String id, @NotNull String group) {
         this.id = id;
+        this.group = group;
     }
 
     @NotNull
     public String getId() {
         return id;
+    }
+
+    @NotNull
+    public String getGroup() {
+        return group;
     }
 
     @NotNull
@@ -40,10 +48,12 @@ public abstract class WebSupervisor {
     public void onClose() {
     }
 
+    @SuppressWarnings("deprecation")
     public boolean process(@NotNull String player, int id, @NotNull List<String> items) {
-        final StoreOrder order = new StoreOrder(id);
+        final StoreOrder order = new StoreOrder(getId(), id, getGroup());
+        order.setBuyer(Bukkit.getOfflinePlayer(player).getUniqueId());
         for (String item : items) {
-            order.addItem(item);
+            order.addItem(getGroup(), item);
         }
         return PixelBuy.get().getUserCore().processOrder(player, order, true);
     }

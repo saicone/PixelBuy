@@ -5,17 +5,32 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
 
 public class StoreOrder {
 
-    private final int id;
-    private final Set<Item> items = new HashSet<>();
+    private static final int EXECUTION_SIZE = Execution.values().length;
 
-    public StoreOrder(int id) {
+    private final String provider;
+    private final int id;
+    // Main group used to identify order precedence
+    private final String group;
+    private UUID buyer;
+    private final LocalDate[] dates = new LocalDate[EXECUTION_SIZE];
+    private Execution execution = Execution.BUY;
+    private final Map<String, Set<Item>> items = new HashMap<>();
+
+    public StoreOrder(@NotNull String provider, int id, @NotNull String group) {
+        this.provider = provider;
         this.id = id;
+        this.group = group;
+        setDate();
+    }
+
+    @NotNull
+    public String getProvider() {
+        return provider;
     }
 
     public int getId() {
@@ -23,22 +38,75 @@ public class StoreOrder {
     }
 
     @NotNull
+    public String getGroup() {
+        return group;
+    }
+
+    @Nullable
+    public UUID getBuyer() {
+        return buyer;
+    }
+
+    @NotNull
+    public LocalDate getDate() {
+        return dates[execution.ordinal()];
+    }
+
+    @Nullable
+    public LocalDate getDate(@NotNull Execution execution) {
+        return dates[execution.ordinal()];
+    }
+
+    @NotNull
+    public Execution getExecution() {
+        return execution;
+    }
+
+    @NotNull
     public Set<Item> getItems() {
-        return items;
+        return items.getOrDefault(group, Set.of());
     }
 
     public boolean has(@NotNull State state) {
-        for (Item item : items) {
-            if (item.getState() == state) {
-                return true;
+        for (var entry : items.entrySet()) {
+            for (Item item : entry.getValue()) {
+                if (item.getState() == state) {
+                    return true;
+                }
             }
         }
         return false;
     }
 
+    public void setBuyer(@NotNull UUID buyer) {
+        this.buyer = buyer;
+    }
+
+    public void setDate() {
+        setDate(LocalDate.now());
+    }
+
+    public void setDate(@NotNull LocalDate date) {
+        setDate(execution, date);
+    }
+
+    public void setDate(@NotNull Execution execution, @NotNull LocalDate date) {
+        this.dates[execution.ordinal()] = date;
+    }
+
+    public void setExecution(@NotNull Execution execution) {
+        this.execution = execution;
+        setDate();
+    }
+
     @NotNull
     public Item addItem(@NotNull Item item) {
-        items.add(item);
+        return addItem(group, item);
+    }
+
+    @NotNull
+    public Item addItem(@NotNull String group, @NotNull Item item) {
+        items.computeIfAbsent(group, __ -> new HashSet<>()).add(item);
         return item;
     }
 
@@ -48,8 +116,18 @@ public class StoreOrder {
     }
 
     @NotNull
+    public Item addItem(@NotNull String group, @NotNull String id) {
+        return addItem(group, new Item(id));
+    }
+
+    @NotNull
     public Item addItem(@NotNull String id, float price) {
         return addItem(new Item(id, price));
+    }
+
+    @NotNull
+    public Item addItem(@NotNull String group, @NotNull String id, float price) {
+        return addItem(group, new Item(id, price));
     }
 
     @Override
@@ -59,12 +137,17 @@ public class StoreOrder {
 
         StoreOrder that = (StoreOrder) o;
 
-        return id == that.id;
+        if (id != that.id) return false;
+        if (!provider.equals(that.provider)) return false;
+        return group.equals(that.group);
     }
 
     @Override
     public int hashCode() {
-        return id;
+        int result = provider.hashCode();
+        result = 31 * result + id;
+        result = 31 * result + group.hashCode();
+        return result;
     }
 
     public enum State {
@@ -83,7 +166,6 @@ public class StoreOrder {
         private final String id;
         private float price;
         private State state = State.PENDING;
-        private Execution execution = Execution.BUY;
 
         private String error;
 
@@ -110,11 +192,6 @@ public class StoreOrder {
             return state;
         }
 
-        @NotNull
-        public Execution getExecution() {
-            return execution;
-        }
-
         @Nullable
         public String getError() {
             return error == null ? null : new String(Base64.getDecoder().decode(error));
@@ -131,13 +208,6 @@ public class StoreOrder {
         @Contract("_ -> this")
         public Item state(@NotNull State state) {
             this.state = state;
-            return this;
-        }
-
-        @NotNull
-        @Contract("_ -> this")
-        public Item execution(@NotNull Execution execution) {
-            this.execution = execution;
             return this;
         }
 
