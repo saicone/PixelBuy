@@ -28,22 +28,38 @@ Lang:
 
 # Database configuration
 Database:
-  # If false the data will be saved using player names (Recommended for No-Premium servers)
-  UUID: false
-  # Available types: JSON, MYSQL
-  # JSON: Data will be saved on json files in "playerdata" folder
-  # MYSQL: Data will be saved on external database
-  Type: JSON
-  # Configuration about MySQL database
-  # Don't edit this if you are using JSON database type
-  Host: 'localhost:3306'
-  Database: 'database'
-  User: 'user'
-  Password: 'pass'
-  Flags: '?autoReconnect=true&verifyServerCertificate=false&useSSL=false'
-  # Set to true to convert JSON files data automatically to external database data if you change
-  # database type or the external database has an error who changes the database type to json
-  Convert-Data: true
+  # Database types:
+  # - SQL
+  Type: SQL
+  # Load or not all players data to generate top donors
+  LoadAll: true
+  # Sql database configuration
+  Sql:
+    # Local sql databases (no additional config needed):
+    # - H2 (recommended)
+    # - SQLITE
+    #
+    # External sql databases:
+    # - MYSQL
+    # - MARIADB
+    # - POSTGRESQL
+    Type: H2
+    # Table prefix
+    TablePrefix: 'pixelbuy_'
+    # Database host
+    Host: localhost
+    # Database port
+    Port: 3306
+    # Database name
+    Database: database
+    # Username credential for connection
+    Username: root
+    # Password credential for connection
+    Password: password
+    # Database flags
+    Flags:
+      - 'useSSL=false'
+      - 'verifyServerCertificate=false'
 
 # Configuration about orders
 Order:

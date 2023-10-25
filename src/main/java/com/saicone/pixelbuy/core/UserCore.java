@@ -34,7 +34,7 @@ public class UserCore {
     }
 
     public void loadPlayer(@NotNull Player player) {
-        final StoreUser user = plugin.getDatabase().getData((PixelBuy.settings().getBoolean("Database.UUID") ? player.getUniqueId().toString() : player.getName()));
+        final StoreUser user = plugin.getDatabase().getData(player.getUniqueId(), player.getName());
         if (user != null) {
             players.put(player.getUniqueId(), processData(player, user));
         }
@@ -73,7 +73,7 @@ public class UserCore {
     @NotNull
     @SuppressWarnings("deprecation")
     public StoreUser processData(@Nullable Player player, @NotNull StoreUser user) {
-        float donated = Double.valueOf(user.getDonated()).floatValue();
+        float donated = Double.valueOf(user.getDonatedOld()).floatValue();
         for (StoreOrder order : user.getOrders()) {
             for (StoreOrder.Item value : order.getItems()) {
                 if (value.getState() != StoreOrder.State.PENDING) {
@@ -166,7 +166,7 @@ public class UserCore {
         if (onlinePlayer != null) {
             return players.getOrDefault(onlinePlayer.getUniqueId(), null);
         } else {
-            return plugin.getDatabase().getData(PixelBuy.settings().getBoolean("Database.UUID") ? Bukkit.getOfflinePlayer(player).getUniqueId().toString() : player);
+            return plugin.getDatabase().getData(Bukkit.getOfflinePlayer(player).getUniqueId(), player);
         }
     }
 

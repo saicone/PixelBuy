@@ -29,27 +29,7 @@ public class DatabaseCommand extends SubCommand {
             Lang.COMMAND_DATABASE_HELP.sendTo(sender, cmd);
             return;
         }
-        switch (args[1].toLowerCase()) {
-            case "convert":
-                if (args.length == 2) {
-                    Lang.COMMAND_DATABASE_CONVERT_USAGE.sendTo(sender, cmd);
-                } else if (args.length == 3) {
-                    plugin.getDatabase().convertData(sender, args[2], false);
-                } else {
-                    plugin.getDatabase().convertData(sender, args[2], Boolean.getBoolean(args[3]));
-                }
-                break;
-            case "delete":
-                if (args.length == 2) {
-                    Lang.COMMAND_DATABASE_DELETE_USAGE.sendTo(sender, cmd);
-                } else {
-                    plugin.getDatabase().deleteData(args[2]);
-                    Lang.COMMAND_DATABASE_DELETE_DONE.sendTo(sender, cmd);
-                }
-                break;
-            default:
-                Lang.COMMAND_DATABASE_HELP.sendTo(sender, cmd);
-                break;
-        }
+
+        Lang.COMMAND_DATABASE_HELP.sendTo(sender, cmd);
     }
 }

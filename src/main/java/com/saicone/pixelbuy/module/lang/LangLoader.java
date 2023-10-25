@@ -329,6 +329,17 @@ public abstract class LangLoader implements Listener {
         return getDisplay(getLanguage(sender), path).get(0);
     }
 
+    public void printStackTrace(int level, @NotNull Throwable throwable) {
+        if (getLogLevel() >= level) {
+            throwable.printStackTrace();
+        }
+    }
+
+    public void printStackTrace(int level, @NotNull Throwable throwable, @NotNull String msg, @Nullable Object... args) {
+        sendLog(level, msg, args);
+        printStackTrace(level, throwable);
+    }
+
     public void sendLog(int level, @NotNull String msg, @Nullable Object... args) {
         if (getLogLevel() < level) {
             return;

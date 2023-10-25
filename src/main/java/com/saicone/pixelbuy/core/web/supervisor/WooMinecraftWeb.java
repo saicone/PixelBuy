@@ -102,9 +102,7 @@ public class WooMinecraftWeb extends WebSupervisor {
             try {
                 getOrders();
             } catch (Throwable t) {
-                if (PixelBuy.get().getLang().getLogLevel() >= 1) {
-                    t.printStackTrace();
-                }
+                PixelBuy.logException(1, t);
             }
             onTask = false;
         }, delay, delay).getTaskId();
@@ -179,10 +177,7 @@ public class WooMinecraftWeb extends WebSupervisor {
             con.getInputStream().close();
             con.disconnect();
         } catch (IOException e) {
-            PixelBuy.log(2, "There's an exception while updating the processed orders");
-            if (PixelBuy.get().getLang().getLogLevel() >= 2) {
-                e.printStackTrace();
-            }
+            PixelBuy.logException(2, e, "There's an exception while updating the processed orders");
         }
     }
 }

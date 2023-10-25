@@ -12,6 +12,7 @@ public class StoreOrder {
 
     private static final int EXECUTION_SIZE = Execution.values().length;
 
+    private int dataId = -1;
     private final String provider;
     private final int id;
     // Main group used to identify order precedence
@@ -21,11 +22,17 @@ public class StoreOrder {
     private Execution execution = Execution.BUY;
     private final Map<String, Set<Item>> items = new HashMap<>();
 
+    private transient boolean edited;
+
     public StoreOrder(@NotNull String provider, int id, @NotNull String group) {
         this.provider = provider;
         this.id = id;
         this.group = group;
-        setDate();
+        this.dates[0] = LocalDate.now();
+    }
+
+    public int getDataId() {
+        return dataId;
     }
 
     @NotNull
@@ -58,6 +65,11 @@ public class StoreOrder {
     }
 
     @NotNull
+    public LocalDate[] getDates() {
+        return dates;
+    }
+
+    @NotNull
     public Execution getExecution() {
         return execution;
     }
@@ -65,6 +77,10 @@ public class StoreOrder {
     @NotNull
     public Set<Item> getItems() {
         return items.getOrDefault(group, Set.of());
+    }
+
+    public boolean isEdited() {
+        return edited;
     }
 
     public boolean has(@NotNull State state) {
@@ -78,7 +94,12 @@ public class StoreOrder {
         return false;
     }
 
+    public void setDataId(int dataId) {
+        this.dataId = dataId;
+    }
+
     public void setBuyer(@NotNull UUID buyer) {
+        this.edited = true;
         this.buyer = buyer;
     }
 
@@ -91,12 +112,23 @@ public class StoreOrder {
     }
 
     public void setDate(@NotNull Execution execution, @NotNull LocalDate date) {
-        this.dates[execution.ordinal()] = date;
+        setDate(execution.ordinal(), date);
+    }
+
+    public void setDate(int ordinal, @NotNull LocalDate date) {
+        this.edited = true;
+        if (ordinal < dates.length) {
+            this.dates[ordinal] = date;
+        }
     }
 
     public void setExecution(@NotNull Execution execution) {
         this.execution = execution;
         setDate();
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
     }
 
     @NotNull
@@ -106,6 +138,7 @@ public class StoreOrder {
 
     @NotNull
     public Item addItem(@NotNull String group, @NotNull Item item) {
+        this.edited = true;
         items.computeIfAbsent(group, __ -> new HashSet<>()).add(item);
         return item;
     }

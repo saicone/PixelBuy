@@ -32,6 +32,7 @@ dependencies {
     implementation 'com.github.cryptomorin:XSeries:9.6.1.1'
     implementation 'com.saicone.rtag:rtag:1.4.1'
     implementation 'com.saicone.rtag:rtag-item:1.4.1'
+    implementation 'com.zaxxer:HikariCP:5.0.1'
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
@@ -56,5 +57,6 @@ shadowJar {
     archiveClassifier.set('')
     relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
     relocate 'com.saicone.rtag', project.group + '.libs.rtag'
+    relocate 'com.zaxxer.hikari', project.group + '.libs.hikari'
     minimize()
 }

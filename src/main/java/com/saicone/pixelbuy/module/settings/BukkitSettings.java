@@ -196,7 +196,10 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     public BukkitSettings getConfigurationSection(@NotNull Function<BukkitSettings, Object> getter) {
-        final Object object = getter.apply(this);
+        Object object = getter.apply(this);
+        if (object instanceof OptionalType) {
+            object = ((OptionalType) object).getValue();
+        }
         if (object instanceof ConfigurationSection) {
             return of(object);
         }

@@ -21,9 +21,9 @@ public final class PixelBuy extends JavaPlugin {
 
     private final SettingsFile settings;
     private final Lang lang;
-    private PixelStore store;
-
+    private final PixelStore store;
     private Database database;
+
     private UserCore userCore;
     private BukkitListener listener;
     private PixelBuyCommand command;
@@ -44,9 +44,19 @@ public final class PixelBuy extends JavaPlugin {
         get().getLang().sendLog(level, msg, args);
     }
 
+    public static void logException(int level, @NotNull Throwable throwable) {
+        get().getLang().printStackTrace(level, throwable);
+    }
+
+    public static void logException(int level, @NotNull Throwable throwable, @NotNull String msg, @Nullable Object... args) {
+        get().getLang().printStackTrace(level, throwable, msg, args);
+    }
+
     public PixelBuy() {
         settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
+        store = new PixelStore();
+        database = new Database();
     }
 
     @Override
@@ -57,11 +67,10 @@ public final class PixelBuy extends JavaPlugin {
         lang.load();
         log(4, "Files loaded");
 
-        store = new PixelStore();
         store.onLoad();
         log(4, "StoreManager loaded");
 
-        database = new Database(this);
+        database.onLoad();
         log(4, "DatabaseManager loaded");
 
         userCore = new UserCore();
@@ -79,7 +88,7 @@ public final class PixelBuy extends JavaPlugin {
         unregisterCommand();
         listener.shut();
         userCore.shut();
-        database.shut();
+        database.onDisable();
         store.onDisable();
     }
 
@@ -87,6 +96,7 @@ public final class PixelBuy extends JavaPlugin {
         settings.loadFrom(getDataFolder(), true);
         lang.load();
         store.onLoad();
+        database.onLoad();
         reloadCommand();
     }
 

@@ -40,7 +40,7 @@ public class ReloadCommand extends SubCommand {
                 plugin.getStore().onLoad();
                 break;
             case "database":
-                plugin.getDatabase().reload(sender);
+                plugin.getDatabase().onLoad();
                 break;
             case "command":
                 plugin.reloadCommand();
@@ -48,7 +48,6 @@ public class ReloadCommand extends SubCommand {
                 break;
             case "all":
                 plugin.onReload();
-                plugin.getDatabase().reload(sender);
                 Lang.COMMAND_RELOAD_WEBDATA.sendTo(sender);
                 break;
             default:

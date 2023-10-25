@@ -10,14 +10,20 @@ import java.util.UUID;
 
 public class StoreUser {
 
-    private final UUID uuid;
+    private final UUID uniqueId;
     // username
     private final String name;
     private double donated;
     private Set<StoreOrder> orders;
 
-    public StoreUser(@NotNull UUID uuid, @NotNull String name, double donated, @NotNull Set<StoreOrder> orders) {
-        this.uuid = uuid;
+    private transient boolean edited;
+
+    public StoreUser(@NotNull UUID uniqueId, @NotNull String name, double donated) {
+        this(uniqueId, name, donated, new LinkedHashSet<>());
+    }
+
+    public StoreUser(@NotNull UUID uniqueId, @NotNull String name, double donated, @NotNull Set<StoreOrder> orders) {
+        this.uniqueId = uniqueId;
         this.name = name;
         this.donated = donated;
         this.orders = orders instanceof LinkedHashSet ? orders : new LinkedHashSet<>(orders);
@@ -25,7 +31,7 @@ public class StoreUser {
 
     @NotNull
     public UUID getUniqueId() {
-        return uuid;
+        return uniqueId;
     }
 
     @NotNull
@@ -33,12 +39,25 @@ public class StoreUser {
         return name;
     }
 
-    public double getDonated() {
+    public float getDonated() {
+        return 0.0f;
+    }
+
+    public double getDonatedOld() {
         return donated;
     }
 
+    public boolean isEdited() {
+        return edited;
+    }
+
     public void setDonated(double donated) {
+        this.edited = true;
         this.donated = donated;
+    }
+
+    public void setEdited(boolean edited) {
+        this.edited = edited;
     }
 
     @Nullable

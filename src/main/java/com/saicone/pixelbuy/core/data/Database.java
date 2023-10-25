@@ -1,128 +1,78 @@
 package com.saicone.pixelbuy.core.data;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.core.Lang;
-import com.saicone.pixelbuy.module.data.client.FileDatabase;
-import com.saicone.pixelbuy.module.data.client.MySQLDatabase;
+import com.saicone.pixelbuy.module.data.client.HikariDatabase;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.DataClient;
 
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
+import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Database {
 
-    private final PixelBuy plugin;
+    private final Map<UUID, StoreUser> cached = new ConcurrentHashMap<>();
 
-    private final List<StoreUser> cachedData = new ArrayList<>();
+    private DataClient client;
 
-    private DataClient database;
-
-    public Database(@NotNull PixelBuy plugin) {
-        this.plugin = plugin;
-        reload(Bukkit.getConsoleSender());
-        Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if (!cachedData.isEmpty()) saveCachedData();
-        }, 12000, 12000);
-    }
-
-    public void shut() {
-        cachedData.clear();
-    }
-
-    public void reload(@NotNull CommandSender sender) {
-        switch (PixelBuy.settings().getString("Database.Type", "JSON").toUpperCase()) {
-            case "JSON":
-                database = new FileDatabase();
-                break;
-            case "MYSQL":
-                database = new MySQLDatabase();
-                break;
-            default:
-                Lang.COMMAND_RELOAD_DATABASE_DEFAULT.sendTo(sender);
-                database = new FileDatabase();
-        }
-        if (database.setup()) {
-            Lang.COMMAND_RELOAD_DATABASE_DONE.sendTo(sender, getCurrentType());
-        } else {
-            Lang.COMMAND_RELOAD_DATABASE_ERROR.sendTo(sender, getCurrentType());
-            setDefault();
-        }
-        if (PixelBuy.settings().getBoolean("Database.Convert-Data") && !getCurrentType().equals("JSON")) {
-            convertData(sender, "JSON", true);
-        }
-    }
-
-    public void setDefault() {
-        database = new FileDatabase();
-        database.setup();
-    }
-
-    public void convertData(@NotNull CommandSender sender, @NotNull String from, boolean delete) {
-        from = from.toUpperCase();
-        if (getCurrentType().equals(from)) {
-            Lang.COMMAND_DATABASE_CONVERT_SAME_TYPE.sendTo(sender);
+    public void onLoad() {
+        final String type = PixelBuy.settings().getIgnoreCase("database", "type").asString("SQL");
+        if (!type.equalsIgnoreCase("SQL")) {
+            PixelBuy.log(1, "The database type '" + type + "' doesn't exist");
             return;
         }
-        final DataClient base;
-        switch (from) {
-            case "JSON":
-                base = new FileDatabase();
-                break;
-            case "MYSQL":
-                base = new MySQLDatabase();
-                break;
-            default:
-                Lang.COMMAND_DATABASE_CONVERT_UNKNOWN.sendTo(sender, from);
-                return;
+
+        final BukkitSettings config = PixelBuy.settings().getConfigurationSection(settings -> settings.getIgnoreCase("database", type));
+        if (config == null) {
+            PixelBuy.log(1, "Cannot find configuration for database type: " + type);
+            return;
         }
-        if (!from.equals("JSON")) {
-            if (!base.setup()) {
-                Lang.COMMAND_DATABASE_CONVERT_SETUP_ERROR.sendTo(sender, from);
-                return;
-            }
+
+        client = new HikariDatabase();
+        client.onLoad(config);
+        client.onStart();
+
+        if (PixelBuy.settings().getIgnoreCase("database", "loadall").asBoolean(true)) {
+            client.getUsers(user -> cached.put(user.getUniqueId(), user));
         }
-        for (StoreUser user : base.getAllData()) {
-            database.saveData(user);
-            if (delete) {
-                base.deleteData(user.getName().toLowerCase());
-            }
+    }
+
+    public void onDisable() {
+        if (client != null) {
+            client.saveUsers(cached.values());
+            client.onClose();
         }
     }
 
     @NotNull
-    public String getCurrentType() {
-        return database.getType();
+    public Map<UUID, StoreUser> getCached() {
+        return cached;
+    }
+
+    @NotNull
+    public DataClient getClient() {
+        return client;
     }
 
     public void saveData(@Nullable StoreUser user) {
         if (user != null) {
-            database.saveData(user);
+            client.saveUser(user);
         }
     }
 
     @Nullable
-    public StoreUser getData(@NotNull String player) {
-        player = player.toLowerCase();
-        return database.getData(player);
+    public StoreUser getData(@NotNull UUID uniqueId, @NotNull String username) {
+        return cached.computeIfAbsent(uniqueId, id -> {
+            client.getUser(uniqueId, username, user -> {
+                cached.put(uniqueId, user);
+                client.getOrders(uniqueId, user::addOrder);
+            });
+            return new StoreUser(uniqueId, username, 0.0f);
+        });
     }
 
-    public void deleteData(@NotNull String player) {
-        player = player.toLowerCase();
-        database.deleteData(player);
-    }
-
-    public void addCachedData(@NotNull StoreUser user) {
-        cachedData.add(user);
-    }
-
-    public void saveCachedData() {
-        cachedData.forEach(this::saveData);
-        cachedData.clear();
-    }
 }
