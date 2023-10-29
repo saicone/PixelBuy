@@ -135,24 +135,26 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void getUser(@NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
-        connect(con -> {
+    public void getUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
+        connect(sync, con -> {
             UUID foundId;
             try (PreparedStatement stmt = con.prepareStatement(schema("select:user"))) {
-                stmt.setString(1, username);
+                stmt.setString(1, username.toLowerCase());
                 final ResultSet result = stmt.executeQuery();
                 while (result.next()) {
                     foundId = UUID.fromString(result.getString("uuid"));
                     if (foundId.equals(uniqueId)) {
                         final StoreUser user = new StoreUser(uniqueId, username, result.getFloat("donated"));
+                        // Update name
                         if (!username.equalsIgnoreCase(result.getString("username"))) {
-                            saveUser(user);
+                            saveUser(true, user);
                         }
                         consumer.accept(user);
                         return;
                     } else {
                         PixelBuy.log(2, "Found duplicated UUID " + foundId + " for username '" + username + "' with id " + uniqueId);
-                        saveUser(new StoreUser(uniqueId, null, 0.0f));
+                        // Remove old id
+                        saveUser(true, new StoreUser(uniqueId, null, 0.0f));
                     }
                 }
             }
@@ -161,8 +163,8 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void getUsers(@NotNull Consumer<StoreUser> consumer) {
-        connect(con -> {
+    public void getUsers(boolean sync, @NotNull Consumer<StoreUser> consumer) {
+        connect(sync, con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("select:users"))) {
                 final ResultSet result = stmt.executeQuery();
                 while (result.next()) {
@@ -176,8 +178,8 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void getOrders(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
-        connect(con -> {
+    public void getOrders(boolean sync, @NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
+        connect(sync, con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("select:orders"))) {
                 stmt.setString(1, buyer.toString());
                 final ResultSet result = stmt.executeQuery();
@@ -214,38 +216,40 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveUser(@NotNull StoreUser user) {
+    public void saveUser(boolean sync, @NotNull StoreUser user) {
         if (!user.isEdited()) {
             return;
         }
-        connect(con -> {
+        connect(sync, con -> {
             saveOrders(con, user.getOrders());
 
             try (PreparedStatement stmt = con.prepareStatement(schema("insert:user"))) {
                 stmt.setString(1, user.getUniqueId().toString());
-                stmt.setString(2, user.getName());
+                stmt.setString(2, user.getName().toLowerCase());
                 stmt.setFloat(3, user.getDonated());
                 stmt.execute();
             }
+            user.setEdited(false);
         });
     }
 
     @Override
-    public void saveUsers(@NotNull Collection<StoreUser> users) {
+    public void saveUsers(boolean sync, @NotNull Collection<StoreUser> users) {
         if (users.isEmpty()) {
             return;
         }
-        connect(con -> {
+        connect(sync, con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("insert:user"))) {
                 for (StoreUser user : users) {
                     if (!user.isEdited()) {
                         continue;
                     }
+                    user.setEdited(false);
 
                     saveOrders(con, user.getOrders());
 
                     stmt.setString(1, user.getUniqueId().toString());
-                    stmt.setString(2, user.getName());
+                    stmt.setString(2, user.getName().toLowerCase());
                     stmt.setFloat(3, user.getDonated());
 
                     stmt.addBatch();
@@ -257,11 +261,11 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveOrders(@NotNull Collection<StoreOrder> orders) {
+    public void saveOrders(boolean sync, @NotNull Collection<StoreOrder> orders) {
         if (orders.isEmpty()) {
             return;
         }
-        connect(con -> saveOrders(con, orders));
+        connect(sync, con -> saveOrders(con, orders));
     }
 
     private void saveOrders(@NotNull Connection con, @NotNull Collection<StoreOrder> orders) throws SQLException {
@@ -273,6 +277,7 @@ public class HikariDatabase implements DataClient {
                 if (order.getBuyer() == null || !order.isEdited()) {
                     continue;
                 }
+                order.setEdited(false);
                 if (order.getDataId() < 1) {
                     insert.setString(1, order.getProvider());
                     insert.setInt(2, order.getId());
@@ -323,15 +328,15 @@ public class HikariDatabase implements DataClient {
         return false;
     }
 
-    public void connect(@NotNull SqlConsumer consumer) {
+    public void connect(boolean sync, @NotNull SqlConsumer consumer) {
         if (hikari == null || hikari.isClosed()) {
             return;
         }
 
-        if (Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> connectSync(consumer));
-        } else {
+        if (sync || !Bukkit.isPrimaryThread()) {
             connectSync(consumer);
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> connectSync(consumer));
         }
     }
 

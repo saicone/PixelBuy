@@ -6,6 +6,11 @@ Plugin:
   # Available languages: en_US, es_ES
   # If you want to use other language go to "lang" folder and create new file
   Language: 'en_US'
+  # Player UUID provider:
+  # AUTO     = Choose automatically the best available option
+  # PIXELBUY = Use PixelBuy loaded data (the option LoadUsers must be activated)
+  # BUKKIT   = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
+  UUIDProvider: AUTO
 
 # Lang configuration
 Lang:
@@ -31,8 +36,6 @@ Database:
   # Database types:
   # - SQL
   Type: SQL
-  # Load or not all players data to generate top donors
-  LoadAll: true
   # Sql database configuration
   Sql:
     # Local sql databases (no additional config needed):
@@ -61,10 +64,14 @@ Database:
       - 'useSSL=false'
       - 'verifyServerCertificate=false'
 
-# Configuration about orders
+# Configuration about orders/data related things
 Order:
-  # Delay on seconds order sending to player
-  Delay: 5
+  # Delay on ticks for order execution
+  # 20 ticks = 1 second
+  ExecutionDelay: 100
+  # Load or not all user data (name, uuid, donations) into memory
+  # This option also make available the top donors option
+  LoadUsers: true
 
 # Configuration about plugin command
 # Yes, you can edit command name and aliases

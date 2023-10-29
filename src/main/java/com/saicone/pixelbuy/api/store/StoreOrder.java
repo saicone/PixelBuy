@@ -31,6 +31,38 @@ public class StoreOrder {
         this.dates[0] = LocalDate.now();
     }
 
+    @Nullable
+    public Object get(@NotNull String field) {
+        switch (field) {
+            case "data_id":
+                return dataId;
+            case "provider":
+                return provider;
+            case "id":
+                return id;
+            case "group":
+                return group;
+            case "buyer":
+                return buyer;
+            case "buyer_id":
+                return buyer.toString().replace('-', '\0');
+            case "date":
+                return getDate();
+            case "date_buy":
+                return dates[Execution.BUY.ordinal()];
+            case "date_recover":
+                return dates[Execution.RECOVER.ordinal()];
+            case "date_refund":
+                return dates[Execution.REFUND.ordinal()];
+            case "execution":
+                return execution.name();
+            case "items":
+                return items.size();
+            default:
+                return null;
+        }
+    }
+
     public int getDataId() {
         return dataId;
     }
@@ -163,6 +195,28 @@ public class StoreOrder {
         return addItem(group, new Item(id, price));
     }
 
+    public void merge(@NotNull StoreOrder order) {
+        if (dataId < 1) {
+            dataId = order.dataId;
+        }
+        if (order.buyer != null) {
+            buyer = order.buyer;
+        }
+        for (int i = 0; i < dates.length; i++) {
+            if (dates[i] == null) {
+                dates[i] = order.dates[i];
+            }
+        }
+        execution = order.execution;
+        for (var entry : order.items.entrySet()) {
+            if (items.containsKey(entry.getKey())) {
+                items.get(entry.getKey()).addAll(entry.getValue());
+            } else {
+                items.put(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -209,6 +263,22 @@ public class StoreOrder {
         public Item(@NotNull String id, float price) {
             this.id = id;
             this.price = price;
+        }
+
+        @Nullable
+        public Object get(@NotNull String field) {
+            switch (field) {
+                case "id":
+                    return id;
+                case "price":
+                    return price;
+                case "state":
+                    return state;
+                case "error":
+                    return error;
+                default:
+                    return null;
+            }
         }
 
         @NotNull

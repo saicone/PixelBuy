@@ -1,8 +1,12 @@
-# Pixel store display name
-Name: 'Server Store Name'
+# Display configuration
+Display:
+  # Pixel store display name
+  Name: 'Server Store Name'
 
-# Current shop group, must be different between server modes
-Group: 'survival'
+# Shop options
+Options:
+  # Current store group, must be different between server modes
+  Group: 'survival'
 
 # Shop categories
 Categories:

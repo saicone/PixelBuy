@@ -41,8 +41,8 @@ public class PixelStore {
 
     public void onLoad() {
         config.loadFrom(PixelBuy.get().getDataFolder(), true);
-        name = config.getIgnoreCase("name").asString("");
-        group = config.getIgnoreCase("group").asString("global");
+        name = config.getIgnoreCase("display", "name").asString("");
+        group = config.getIgnoreCase("options", "group").asString("global");
         categories.clear();
         loadCategories(config.getRegex("(?i)categor(y|ies)").getValue());
         loadSupervisors();
@@ -168,6 +168,30 @@ public class PixelStore {
         }
         supervisors.clear();
         categories.clear();
+    }
+
+    @Nullable
+    public Object get(@NotNull String field) {
+        switch (field) {
+            case "name":
+                return name;
+            case "group":
+                return group;
+            case "categories":
+                return String.join("\n", categories.keySet());
+            case "categories_size":
+                return categories.size();
+            case "supervisors":
+                return String.join("\n", supervisors.keySet());
+            case "supervisors_size":
+                return supervisors.size();
+            case "items":
+                return String.join("\n", items.keySet());
+            case "items_size":
+                return items.size();
+            default:
+                return null;
+        }
     }
 
     @NotNull

@@ -133,24 +133,22 @@ public class WooMinecraftWeb extends WebSupervisor {
         }
 
         final List<Integer> processed = new ArrayList<>();
-        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
-            for (JsonElement element : orders) {
-                final JsonObject order = element.getAsJsonObject();
-                final int id = order.get("order_id").getAsInt();
-                final List<String> items = new ArrayList<>();
-                for (JsonElement command : order.getAsJsonArray("commands")) {
-                    for (String item : command.getAsString().split(",")) {
-                        items.add(item.trim());
-                    }
-                }
-                if (process(order.get("player").getAsString(), id, items)) {
-                    processed.add(id);
+        for (JsonElement element : orders) {
+            final JsonObject order = element.getAsJsonObject();
+            final int id = order.get("order_id").getAsInt();
+            final List<String> items = new ArrayList<>();
+            for (JsonElement command : order.getAsJsonArray("commands")) {
+                for (String item : command.getAsString().split(",")) {
+                    items.add(item.trim());
                 }
             }
-            if (!processed.isEmpty()) {
-                Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> sendOrders(processed));
+            if (processOffline(order.get("player").getAsString(), id, items)) {
+                processed.add(id);
             }
-        });
+        }
+        if (!processed.isEmpty()) {
+            sendOrders(processed);
+        }
     }
 
     public void sendOrders(@NotNull List<Integer> processed) {

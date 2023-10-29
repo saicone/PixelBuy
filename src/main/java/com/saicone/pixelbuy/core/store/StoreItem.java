@@ -26,6 +26,8 @@ public class StoreItem {
 
     // Options
     private boolean online;
+    private boolean alwaysRun;
+    private Set<String> append = Set.of();
 
     // Executions
     private List<StoreAction> onBuy;
@@ -46,6 +48,8 @@ public class StoreItem {
             this.display = item.parse(s -> s.replace("{item_price}", String.valueOf(getPrice()))).build();
         }
         this.online = config.getIgnoreCase("options", "online").asBoolean(false);
+        this.alwaysRun = config.getIgnoreCase("options", "alwaysrun").asBoolean(false);
+        this.append = config.getIgnoreCase("options", "append").asCollection(new HashSet<>(), OptionalType::asString);
         this.onBuy = PixelBuyAPI.buildActions(config.getIgnoreCase("onBuy").getValue());
         this.onRecover = PixelBuyAPI.buildActions(config.getIgnoreCase("onRecover").getValue());
         if (this.onRecover.isEmpty()) {
@@ -54,6 +58,24 @@ public class StoreItem {
         this.onRefund = PixelBuyAPI.buildActions(config.getIgnoreCase("onRefund").getValue());
         if (this.onRefund.isEmpty()) {
             this.onRefund = null;
+        }
+    }
+
+    @Nullable
+    public Object get(@NotNull String field) {
+        switch (field) {
+            case "id":
+                return id;
+            case "category":
+                return categories.size() > 0 ? categories.iterator().next() : null;
+            case "categories":
+                return String.join("\n", categories);
+            case "categories_size":
+                return categories.size();
+            case "price":
+                return price;
+            default:
+                return null;
         }
     }
 
@@ -77,6 +99,10 @@ public class StoreItem {
         return display;
     }
 
+    public Set<String> getAppend() {
+        return append;
+    }
+
     @NotNull
     public List<StoreAction> getOnBuy() {
         return onBuy;
@@ -94,6 +120,10 @@ public class StoreItem {
 
     public boolean isOnline() {
         return online;
+    }
+
+    public boolean isAlwaysRun() {
+        return alwaysRun;
     }
 
     public void onBuy(@NotNull StoreClient client) {

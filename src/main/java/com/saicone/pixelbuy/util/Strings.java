@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Strings {
@@ -80,6 +82,72 @@ public class Strings {
                 builder.append(chars[i]);
             }
         }
+        return builder.toString();
+    }
+
+    @NotNull
+    public static String replaceBracketPlaceholder(@NotNull String s, @NotNull Predicate<String> predicate, @NotNull BiFunction<String, String, Object> function) {
+        return replacePlaceholder(s, '{', '}', predicate, function);
+    }
+
+    @NotNull
+    public static String replacePlaceholder(@NotNull String s, @NotNull Predicate<String> predicate, @NotNull BiFunction<String, String, Object> function) {
+        return replacePlaceholder(s, '%', '%', predicate, function);
+    }
+
+    @NotNull
+    public static String replacePlaceholder(@NotNull String s, char start, char end, @NotNull Predicate<String> predicate, @NotNull BiFunction<String, String, Object> function) {
+        if (s.isBlank() || !s.contains("" + start) || s.length() < 4) {
+            return s;
+        }
+
+        final char[] chars = s.toCharArray();
+        final StringBuilder builder = new StringBuilder(s.length());
+
+        int mark = 0;
+        for (int i = 0; i < chars.length; i++) {
+            final char c = chars[i];
+
+            builder.append(c);
+            if (c != start || i + 1 >= chars.length) {
+                mark++;
+                continue;
+            }
+
+            // Faster than PlaceholderAPI ;)
+            final int mark1 = i + 1;
+            while (++i < chars.length) {
+                final char c1 = chars[i];
+                if (c1 == '_') {
+                    if (i > mark1 && i + 2 < chars.length) {
+                        final String id = s.substring(mark1, i);
+                        if (predicate.test(id)) {
+                            final int mark2 = i + 1;
+                            while (++i < chars.length) {
+                                final char c2 = chars[i];
+                                if (c2 == end) {
+                                    builder.replace(mark, i, String.valueOf(function.apply(id, s.substring(mark2, i))));
+                                    break;
+                                } else {
+                                    builder.append(c2);
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    builder.append(c1);
+                    break;
+                } else {
+                    builder.append(c1);
+                    if (i + 1 < chars.length && chars[i + 1] == start) {
+                        break;
+                    }
+                }
+            }
+
+            mark = builder.length();
+        }
+
         return builder.toString();
     }
 }

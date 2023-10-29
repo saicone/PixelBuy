@@ -1,6 +1,7 @@
 package com.saicone.pixelbuy.core.data;
 
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.module.data.client.HikariDatabase;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.DataClient;
@@ -9,6 +10,7 @@ import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,10 +37,6 @@ public class Database {
         client = new HikariDatabase();
         client.onLoad(config);
         client.onStart();
-
-        if (PixelBuy.settings().getIgnoreCase("database", "loadall").asBoolean(true)) {
-            client.getUsers(user -> cached.put(user.getUniqueId(), user));
-        }
     }
 
     public void onDisable() {
@@ -48,9 +46,32 @@ public class Database {
         }
     }
 
+    public void onReload() {
+        if (client != null) {
+            client.saveUsersAsync(cached.values());
+            client.onClose();
+        }
+        onLoad();
+    }
+
     @NotNull
     public Map<UUID, StoreUser> getCached() {
         return cached;
+    }
+
+    @Nullable
+    public StoreUser getCached(@NotNull UUID uniqueId) {
+        return cached.get(uniqueId);
+    }
+
+    @Nullable
+    public UUID getUniqueId(@NotNull String username) {
+        for (var entry : cached.entrySet()) {
+            if (username.equalsIgnoreCase(entry.getValue().getName())) {
+                return entry.getValue().getUniqueId();
+            }
+        }
+        return null;
     }
 
     @NotNull
@@ -58,21 +79,59 @@ public class Database {
         return client;
     }
 
-    public void saveData(@Nullable StoreUser user) {
+    @NotNull
+    public StoreUser getData(@NotNull UUID uniqueId, @NotNull String username) {
+        final StoreUser user = cached.get(uniqueId);
         if (user != null) {
-            client.saveUser(user);
+            return user;
+        }
+        client.getUser(uniqueId, username, loaded -> {
+            loaded.setLoaded(true);
+            client.getOrders(uniqueId, loaded::addOrder);
+            cached.put(uniqueId, loaded);
+        });
+        return cached.get(uniqueId);
+    }
+
+    @NotNull
+    public StoreUser getDataAsync(@NotNull UUID uniqueId, @NotNull String username) {
+        final StoreUser cachedUser = cached.get(uniqueId);
+        if (cachedUser != null) {
+            return cachedUser;
+        }
+        cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
+        client.getUserAsync(uniqueId, username, user -> {
+            StoreUser foundUser = cached.get(user.getUniqueId());
+            if (foundUser == null) {
+                cached.put(uniqueId, user);
+                foundUser = user;
+            } else {
+                foundUser.addDonated(user.getDonated());
+            }
+            foundUser.setLoaded(true);
+            client.getOrders(uniqueId, foundUser::mergeOrder);
+        });
+        return cached.get(uniqueId);
+    }
+
+    public void loadOrders(@NotNull StoreUser user) {
+        user.setLoaded(true);
+        client.getOrders(user.getUniqueId(), user::mergeOrder);
+    }
+
+    public void loadUsersAsync() {
+        client.getUsersAsync(user -> cached.put(user.getUniqueId(), user));
+    }
+
+    public void saveDataAsync(@Nullable StoreUser user) {
+        if (user != null) {
+            client.saveUserAsync(user);
         }
     }
 
-    @Nullable
-    public StoreUser getData(@NotNull UUID uniqueId, @NotNull String username) {
-        return cached.computeIfAbsent(uniqueId, id -> {
-            client.getUser(uniqueId, username, user -> {
-                cached.put(uniqueId, user);
-                client.getOrders(uniqueId, user::addOrder);
-            });
-            return new StoreUser(uniqueId, username, 0.0f);
-        });
+    public void saveDataAsync(@Nullable StoreOrder order) {
+        if (order != null) {
+            client.saveOrdersAsync(Collections.singleton(order));
+        }
     }
-
 }

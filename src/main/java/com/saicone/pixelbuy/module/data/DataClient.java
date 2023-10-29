@@ -21,16 +21,64 @@ public interface DataClient {
         // empty default method
     }
 
-    void getUser(@NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer);
+    default void getUserAsync(@NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
+        getUser(false, uniqueId, username, consumer);
+    }
 
-    void getUsers(@NotNull Consumer<StoreUser> consumer);
+    default void getUser(@NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
+        getUser(true, uniqueId, username, consumer);
+    }
 
-    void getOrders(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer);
+    void getUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer);
 
-    void saveUser(@NotNull StoreUser user);
+    default void getUsersAsync(@NotNull Consumer<StoreUser> consumer) {
+        getUsers(false, consumer);
+    }
 
-    void saveUsers(@NotNull Collection<StoreUser> users);
+    default void getUsers(@NotNull Consumer<StoreUser> consumer) {
+        getUsers(true, consumer);
+    }
 
-    void saveOrders(@NotNull Collection<StoreOrder> orders);
+    void getUsers(boolean sync, @NotNull Consumer<StoreUser> consumer);
+
+    default void getOrdersAsync(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
+        getOrders(false, buyer, consumer);
+    }
+
+    default void getOrders(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
+        getOrders(true, buyer, consumer);
+    }
+
+    void getOrders(boolean sync, @NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer);
+
+    default void saveUserAsync(@NotNull StoreUser user) {
+        saveUser(user);
+    }
+
+    default void saveUser(@NotNull StoreUser user) {
+        saveUser(true, user);
+    }
+
+    void saveUser(boolean sync, @NotNull StoreUser user);
+
+    default void saveUsersAsync(@NotNull Collection<StoreUser> users) {
+        saveUsers(false, users);
+    }
+
+    default void saveUsers(@NotNull Collection<StoreUser> users) {
+        saveUsers(true, users);
+    }
+
+    void saveUsers(boolean sync, @NotNull Collection<StoreUser> users);
+
+    default void saveOrdersAsync(@NotNull Collection<StoreOrder> orders) {
+        saveOrders(false, orders);
+    }
+
+    default void saveOrders(@NotNull Collection<StoreOrder> orders) {
+        saveOrders(true, orders);
+    }
+
+    void saveOrders(boolean sync, @NotNull Collection<StoreOrder> orders);
 
 }

@@ -3,10 +3,8 @@ package com.saicone.pixelbuy.api.store;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class StoreUser {
 
@@ -16,6 +14,7 @@ public class StoreUser {
     private double donated;
     private Set<StoreOrder> orders;
 
+    private transient boolean loaded;
     private transient boolean edited;
 
     public StoreUser(@NotNull UUID uniqueId, @NotNull String name, double donated) {
@@ -27,6 +26,26 @@ public class StoreUser {
         this.name = name;
         this.donated = donated;
         this.orders = orders instanceof LinkedHashSet ? orders : new LinkedHashSet<>(orders);
+    }
+
+    @Nullable
+    public Object get(@NotNull String field) {
+        switch (field) {
+            case "uuid":
+            case "uniqueid":
+            case "unique_id":
+                return uniqueId;
+            case "id":
+                return uniqueId.toString().replace('-', '\0');
+            case "name":
+                return name;
+            case "donated":
+                return donated;
+            case "orders":
+                return orders.size();
+            default:
+                return null;
+        }
     }
 
     @NotNull
@@ -47,6 +66,25 @@ public class StoreUser {
         return donated;
     }
 
+    @Nullable
+    public StoreOrder getOrder(int id) {
+        return getOrder(order -> order.getId() == id);
+    }
+
+    @Nullable
+    public StoreOrder getOrder(@NotNull Predicate<StoreOrder> filter) {
+        return orders.stream().filter(filter).findFirst().orElse(null);
+    }
+
+    @NotNull
+    public Set<StoreOrder> getOrders() {
+        return orders;
+    }
+
+    public boolean isLoaded() {
+        return loaded;
+    }
+
     public boolean isEdited() {
         return edited;
     }
@@ -56,35 +94,42 @@ public class StoreUser {
         this.donated = donated;
     }
 
-    public void setEdited(boolean edited) {
-        this.edited = edited;
-    }
-
-    @Nullable
-    public StoreOrder getOrder(int id) {
-        for (final StoreOrder order : orders) {
-            if (order.getId() == id) {
-                return order;
-            }
-        }
-        return null;
-    }
-
-    @NotNull
-    public Set<StoreOrder> getOrders() {
-        return orders;
-    }
-
     public void setOrders(@NotNull Set<StoreOrder> orders) {
         this.orders = orders instanceof LinkedHashSet ? orders : new LinkedHashSet<>(orders);
     }
 
-    public void addOrders(@NotNull Collection<StoreOrder> orders) {
-        this.orders.addAll(orders);
+    public void setLoaded(boolean loaded) {
+        this.loaded = loaded;
     }
 
-    public void addOrder(@NotNull StoreOrder order) {
-        orders.add(order);
+    public void setEdited(boolean edited) {
+        this.edited = edited;
+    }
+
+    public void addDonated(float donated) {
+        this.donated = this.donated + donated;
+    }
+
+    public boolean addOrders(@NotNull Collection<StoreOrder> orders) {
+        return this.orders.addAll(orders);
+    }
+
+    public boolean addOrder(@NotNull StoreOrder order) {
+        return orders.add(order);
+    }
+
+    public void mergeOrder(@NotNull StoreOrder order) {
+        if (!orders.add(order)) {
+            // Dirty solution, may produce a bad performance if there's a high amount of orders
+            final Iterator<StoreOrder> iterator = orders.iterator();
+            while (iterator.hasNext()) {
+                final StoreOrder o = iterator.next();
+                if (o.equals(order)) {
+                    o.merge(order);
+                    return;
+                }
+            }
+        }
     }
 
     public void updateOrder(@NotNull StoreOrder order) {

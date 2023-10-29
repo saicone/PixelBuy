@@ -16,7 +16,14 @@ super-pickaxe:
       - '&7Get on the server store'
   # Shop item options
   options:
+    # Set to true if this store item only can be given if the player is online
+    # This option affects other items in the same order
     online: true
+    # True to give this item without being affected by online store items
+    always-run: false
+    # Group names to append this store item
+    append:
+      - 'global'
   # Executable events on buy
   onBuy:
     - item:
@@ -36,7 +43,7 @@ super-pickaxe:
     - message: '&e&lYou bought the &9&lSuper Pickaxe&e!'
     - broadcast:
         - '&e-----------------------------'
-        - '&fThe player &e{order_player} &fbought the super pickaxe!'
+        - '&fThe player &e{user_name} &fbought the super pickaxe!'
         - '&e-----------------------------'
 
 rank-vip:
@@ -46,14 +53,14 @@ rank-vip:
     material: DIAMOND
     name: '&e&lVIP Rank'
   onBuy:
-    - command: 'lp user {order_player} parent add vip'
+    - command: 'lp user {user_name} parent add vip'
     - broadcast:
         - '&e-----------------------------'
-        - '&fThe player &e{order_player} &fbought the VIP rank!'
+        - '&fThe player &e{user_name} &fbought the VIP rank!'
         - '&e-----------------------------'
   # Executable events on refund
   onRefund:
-    - command: 'lp user {order_player} parent remove vip'
+    - command: 'lp user {user_name} parent remove vip'
 
 eco-bundle:
   price: 1.99
@@ -61,10 +68,10 @@ eco-bundle:
     material: EMERALD
     name: '&a&lEco Bundle'
   onBuy:
-    - command: 'eco give {order_player} 1000'
+    - command: 'eco give {user_name} 1000'
     - broadcast:
         - '&e-----------------------------'
-        - '&fThe player &e{order_player} &fbought the eco bundle!'
+        - '&fThe player &e{user_name} &fbought the eco bundle!'
         - '&e-----------------------------'
   onRefund:
-    - command: 'eco take {order_player} 1000'
+    - command: 'eco take {user_name} 1000'

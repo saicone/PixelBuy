@@ -4,8 +4,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
+import com.saicone.pixelbuy.core.store.StoreItem;
+import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedInputStream;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class WebSupervisor {
 
@@ -48,14 +50,39 @@ public abstract class WebSupervisor {
     public void onClose() {
     }
 
-    @SuppressWarnings("deprecation")
-    public boolean process(@NotNull String player, int id, @NotNull List<String> items) {
+    public boolean processOnline(@NotNull UUID uniqueId, int id, @NotNull List<String> items) {
         final StoreOrder order = new StoreOrder(getId(), id, getGroup());
-        order.setBuyer(Bukkit.getOfflinePlayer(player).getUniqueId());
+        order.setBuyer(uniqueId);
         for (String item : items) {
             order.addItem(getGroup(), item);
         }
-        return PixelBuy.get().getUserCore().processOrder(player, order, true);
+        return PixelBuy.get().getCheckout().process(order);
+    }
+
+    public boolean processOffline(@NotNull String name, int id, @NotNull List<String> items) {
+        boolean result = true;
+        for (var entry : PixelBuy.get().getStore().getItems().entrySet()) {
+            final StoreItem item = entry.getValue();
+            if (!items.contains(item.getId())) {
+                continue;
+            }
+            if (item.isAlwaysRun()) {
+                result = true;
+                break;
+            }
+            if (item.isOnline()) {
+                result = false;
+            }
+        }
+        if (result) {
+            final StoreOrder order = new StoreOrder(getId(), id, getGroup());
+            order.setBuyer(PlayerIdProvider.getUniqueId(name));
+            for (String item : items) {
+                order.addItem(getGroup(), item);
+            }
+            return PixelBuy.get().getCheckout().process(order);
+        }
+        return false;
     }
 
     @NotNull

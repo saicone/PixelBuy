@@ -1,16 +1,17 @@
 package com.saicone.pixelbuy.api.event;
 
 import com.saicone.pixelbuy.api.store.StoreOrder;
+import com.saicone.pixelbuy.api.store.StoreUser;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class OrderProcessedEvent extends Event implements Cancellable {
+public class OrderProcessEvent extends Event implements Cancellable {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final String player;
+    private final StoreUser user;
     private final StoreOrder order;
     private boolean isCancelled;
 
@@ -19,8 +20,8 @@ public class OrderProcessedEvent extends Event implements Cancellable {
         return HANDLERS;
     }
 
-    public OrderProcessedEvent(@NotNull String player, @NotNull StoreOrder order) {
-        this.player = player;
+    public OrderProcessEvent(@NotNull StoreUser user, @NotNull StoreOrder order) {
+        this.user = user;
         this.order = order;
         this.isCancelled = false;
     }
@@ -39,8 +40,8 @@ public class OrderProcessedEvent extends Event implements Cancellable {
     }
 
     @NotNull
-    public String getPlayer() {
-        return this.player;
+    public StoreUser getUser() {
+        return this.user;
     }
 
     @NotNull

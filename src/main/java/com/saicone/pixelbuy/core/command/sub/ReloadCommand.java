@@ -40,7 +40,7 @@ public class ReloadCommand extends SubCommand {
                 plugin.getStore().onLoad();
                 break;
             case "database":
-                plugin.getDatabase().onLoad();
+                plugin.getDatabase().onReload();
                 break;
             case "command":
                 plugin.reloadCommand();

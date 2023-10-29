@@ -3,9 +3,8 @@ package com.saicone.pixelbuy;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.module.command.BukkitCommand;
-import com.saicone.pixelbuy.module.listener.BukkitListener;
 import com.saicone.pixelbuy.core.data.Database;
-import com.saicone.pixelbuy.core.UserCore;
+import com.saicone.pixelbuy.core.store.Checkout;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
@@ -22,10 +21,9 @@ public final class PixelBuy extends JavaPlugin {
     private final SettingsFile settings;
     private final Lang lang;
     private final PixelStore store;
-    private Database database;
+    private final Database database;
+    private final Checkout checkout;
 
-    private UserCore userCore;
-    private BukkitListener listener;
     private PixelBuyCommand command;
 
     private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
@@ -57,6 +55,7 @@ public final class PixelBuy extends JavaPlugin {
         lang = new Lang(this);
         store = new PixelStore();
         database = new Database();
+        checkout = new Checkout();
     }
 
     @Override
@@ -73,11 +72,8 @@ public final class PixelBuy extends JavaPlugin {
         database.onLoad();
         log(4, "DatabaseManager loaded");
 
-        userCore = new UserCore();
+        checkout.onLoad();
         log(4, "PlayerManager loaded");
-
-        listener = new BukkitListener();
-        log(4, "EventManager loaded");
 
         registerCommand();
     }
@@ -86,8 +82,7 @@ public final class PixelBuy extends JavaPlugin {
     public void onDisable() {
         log(3, "Disabling plugin...");
         unregisterCommand();
-        listener.shut();
-        userCore.shut();
+        checkout.onDisable();
         database.onDisable();
         store.onDisable();
     }
@@ -96,7 +91,8 @@ public final class PixelBuy extends JavaPlugin {
         settings.loadFrom(getDataFolder(), true);
         lang.load();
         store.onLoad();
-        database.onLoad();
+        database.onReload();
+        checkout.onLoad();
         reloadCommand();
     }
 
@@ -126,13 +122,8 @@ public final class PixelBuy extends JavaPlugin {
     }
 
     @NotNull
-    public UserCore getUserCore() {
-        return userCore;
-    }
-
-    @NotNull
-    public BukkitListener getListener() {
-        return listener;
+    public Checkout getCheckout() {
+        return checkout;
     }
 
     public void reloadCommand() {
