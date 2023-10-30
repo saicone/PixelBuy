@@ -26,6 +26,10 @@ CREATE INDEX `{prefix}orders_buyer` ON `{prefix}orders` (`buyer`);
 
 SELECT * FROM `{prefix}users` WHERE `username` = ?;
 
+-- select:order
+
+SELECT * FROM `{prefix}orders` WHERE `provider` = ?, `order` = ?, `group` = ?;
+
 -- select:users
 
 SELECT ALL * FROM `{prefix}users` WHERE `username` IS NOT NULL;
@@ -53,6 +57,10 @@ INSERT INTO `{prefix}orders` (
   `execution`,
   `items`
 ) VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- delete:order
+
+DELETE FROM `{prefix}orders` WHERE `provider` = ?, `order` = ?;
 
 -- update:order
 

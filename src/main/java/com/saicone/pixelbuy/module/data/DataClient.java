@@ -41,6 +41,16 @@ public interface DataClient {
 
     void getUsers(boolean sync, @NotNull Consumer<StoreUser> consumer);
 
+    default void getOrderAsync(@NotNull String provider, int id, @NotNull String group, @NotNull Consumer<StoreOrder> consumer) {
+        getOrder(false, provider, id, group, consumer);
+    }
+
+    default void getOrder(@NotNull String provider, int id, @NotNull String group, @NotNull Consumer<StoreOrder> consumer) {
+        getOrder(true, provider, id, group, consumer);
+    }
+
+    void getOrder(boolean sync, @NotNull String provider, int id, @NotNull String group, @NotNull Consumer<StoreOrder> consumer);
+
     default void getOrdersAsync(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
         getOrders(false, buyer, consumer);
     }
@@ -80,5 +90,15 @@ public interface DataClient {
     }
 
     void saveOrders(boolean sync, @NotNull Collection<StoreOrder> orders);
+
+    default void deleteOrderAsync(@NotNull String provider, int id) {
+        deleteOrder(false, provider, id);
+    }
+
+    default void deleteOrder(@NotNull String provider, int id) {
+        deleteOrder(true, provider, id);
+    }
+
+    void deleteOrder(boolean sync, @NotNull String provider, int id);
 
 }

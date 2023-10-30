@@ -178,6 +178,36 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
+    public void getOrder(boolean sync, @NotNull String provider, int id, @NotNull String group, @NotNull Consumer<StoreOrder> consumer) {
+        connect(sync, con -> {
+            try (PreparedStatement stmt = con.prepareStatement(schema("select:order"))) {
+                stmt.setString(1, provider);
+                stmt.setInt(2, id);
+                stmt.setString(3, group);
+                final ResultSet result = stmt.executeQuery();
+                boolean consumed = false;
+                while (result.next()) {
+                    final String rProvider = result.getString("provider");
+                    final int rId = result.getInt("order");
+                    final String rGroup = result.getString("group");
+                    if (consumed) {
+                        PixelBuy.log(2, "Found duplicated order " + rProvider + ":" + rId + " with group " + rGroup);
+                        deleteOrderAsync(rProvider, rId);
+                    } else {
+                        consumed = true;
+                        final StoreOrder order = new StoreOrder(rProvider, rId, rGroup);
+                        parseOrder(result, order);
+                        consumer.accept(order);
+                    }
+                }
+                if (!consumed) {
+                    consumer.accept(null);
+                }
+            }
+        });
+    }
+
+    @Override
     public void getOrders(boolean sync, @NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
         connect(sync, con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("select:orders"))) {
@@ -185,34 +215,38 @@ public class HikariDatabase implements DataClient {
                 final ResultSet result = stmt.executeQuery();
                 while (result.next()) {
                     final StoreOrder order = new StoreOrder(result.getString("provider"), result.getInt("order"), result.getString("group"));
-                    order.setDataId(result.getInt("id"));
-                    order.setBuyer(buyer);
-                    final String time = result.getString("time");
-                    if (time != null) {
-                        int ordinal = 0;
-                        for (String s : time.split(",")) {
-                            order.setDate(ordinal, LocalDate.parse(s));
-                            ordinal++;
-                        }
-                    }
-                    final String execution = result.getString("execution");
-                    if (execution != null) {
-                        order.setExecution(StoreOrder.Execution.valueOf(execution));
-                    }
-                    final String items = result.getString("items");
-                    if (items != null) {
-                        final Map<String, Set<StoreOrder.Item>> map = OptionalType.GSON.fromJson(items, ITEM_TYPE);
-                        for (var entry : map.entrySet()) {
-                            for (StoreOrder.Item item : entry.getValue()) {
-                                order.addItem(entry.getKey(), item);
-                            }
-                        }
-                    }
-                    order.setEdited(false);
+                    parseOrder(result, order);
                     consumer.accept(order);
                 }
             }
         });
+    }
+
+    private void parseOrder(@NotNull ResultSet result, @NotNull StoreOrder order) throws SQLException {
+        order.setDataId(result.getInt("id"));
+        order.setBuyer(UUID.fromString(result.getString("buyer")));
+        final String time = result.getString("time");
+        if (time != null) {
+            int ordinal = 0;
+            for (String s : time.split(",")) {
+                order.setDate(ordinal, LocalDate.parse(s));
+                ordinal++;
+            }
+        }
+        final String execution = result.getString("execution");
+        if (execution != null) {
+            order.setExecution(StoreOrder.Execution.valueOf(execution));
+        }
+        final String items = result.getString("items");
+        if (items != null) {
+            final Map<String, Set<StoreOrder.Item>> map = OptionalType.GSON.fromJson(items, ITEM_TYPE);
+            for (var entry : map.entrySet()) {
+                for (StoreOrder.Item item : entry.getValue()) {
+                    order.addItem(entry.getKey(), item);
+                }
+            }
+        }
+        order.setEdited(false);
     }
 
     @Override
@@ -305,6 +339,17 @@ public class HikariDatabase implements DataClient {
         stmt.setString(start + 1, joiner.toString());
         stmt.setString(start + 2, order.getExecution().name());
         stmt.setString(start + 3, OptionalType.GSON.toJson(order.getItems()));
+    }
+
+    @Override
+    public void deleteOrder(boolean sync, @NotNull String provider, int id) {
+        connect(sync, con -> {
+            try (PreparedStatement stmt = con.prepareStatement(schema("delete:order"))) {
+                stmt.setString(1, provider);
+                stmt.setInt(2, id);
+                stmt.execute();
+            }
+        });
     }
 
     @NotNull
