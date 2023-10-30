@@ -147,7 +147,7 @@ public class Checkout implements Listener {
         final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
         for (StoreOrder order : user.getOrders()) {
             boolean requireOnline = false;
-            for (StoreOrder.Item value : order.getItems()) {
+            for (StoreOrder.Item value : order.getItems(store.getGroup())) {
                 if (value.getState() != StoreOrder.State.PENDING) {
                     continue;
                 }
@@ -197,9 +197,9 @@ public class Checkout implements Listener {
                 }));
 
                 if (executionDelay > 0) {
-                    Bukkit.getScheduler().runTaskLaterAsynchronously(PixelBuy.get(), () -> execute(user, client, order, item, value), executionDelay);
+                    Bukkit.getScheduler().runTaskLaterAsynchronously(PixelBuy.get(), () -> execute(client, order, item, value), executionDelay);
                 } else {
-                    execute(user, client, order, item, value);
+                    execute(client, order, item, value);
                 }
 
                 value.state(StoreOrder.State.DONE);
@@ -209,14 +209,15 @@ public class Checkout implements Listener {
                 }
             }
         }
+        // Calculate donated
+        donated(user);
     }
 
-    private void execute(@NotNull StoreUser user, @NotNull StoreClient client, @NotNull StoreOrder order, @NotNull StoreItem item, @NotNull StoreOrder.Item value) {
+    private void execute(@NotNull StoreClient client, @NotNull StoreOrder order, @NotNull StoreItem item, @NotNull StoreOrder.Item value) {
         try {
             switch (order.getExecution()) {
                 case BUY:
                     item.onBuy(client);
-                    user.addDonated(item.getPrice());
                     break;
                 case RECOVER:
                     item.onRecover(client);
@@ -232,4 +233,35 @@ public class Checkout implements Listener {
         }
     }
 
+    public float donated(@NotNull StoreUser user) {
+        float donated = 0.0f;
+        for (StoreOrder order : user.getOrders()) {
+            if (order.getExecution() == StoreOrder.Execution.REFUND) {
+                continue;
+            }
+            if (order.getGroup().equals(store.getGroup()) || !order.getItems().isEmpty()) {
+                for (StoreOrder.Item item : order.getItems()) {
+                    donated += item.getPrice();
+                }
+            } else if (!order.getAllItems().isEmpty()) {
+                final Map<String, Float> map = new HashMap<>();
+                for (var entry : order.getAllItems().entrySet()) {
+                    for (StoreOrder.Item item : entry.getValue()) {
+                        float current = map.getOrDefault(item.getId(), 0.0f);
+                        if (item.getPrice() > current) {
+                            map.put(item.getId(), item.getPrice());
+                        }
+                    }
+                }
+                for (Map.Entry<String, Float> entry : map.entrySet()) {
+                    donated += entry.getValue();
+                }
+            }
+        }
+        if (user.getDonated() != donated) {
+            // Update donated
+            user.setDonated(donated);
+        }
+        return donated;
+    }
 }

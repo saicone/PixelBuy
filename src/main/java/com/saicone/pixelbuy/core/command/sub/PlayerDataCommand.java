@@ -48,7 +48,7 @@ public class PlayerDataCommand extends SubCommand {
                     final Set<StoreOrder> orders = user.getOrders();
 
                     sender.sendMessage(" ");
-                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getName(), user.getDonatedOld(), page + 1, (orders.size() - 1) / 10 + 1);
+                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getName(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
                     int orderNum = 1;
                     int start = page * 10;
                     int i = 0;

@@ -11,21 +11,17 @@ public class StoreUser {
     private final UUID uniqueId;
     // username
     private final String name;
-    private double donated;
+    private float donated;
     private Set<StoreOrder> orders;
 
     private transient boolean loaded;
     private transient boolean edited;
 
-    public StoreUser(@NotNull UUID uniqueId, @NotNull String name, double donated) {
-        this(uniqueId, name, donated, new LinkedHashSet<>());
-    }
-
-    public StoreUser(@NotNull UUID uniqueId, @NotNull String name, double donated, @NotNull Set<StoreOrder> orders) {
+    public StoreUser(@NotNull UUID uniqueId, @NotNull String name, float donated) {
         this.uniqueId = uniqueId;
         this.name = name;
         this.donated = donated;
-        this.orders = orders instanceof LinkedHashSet ? orders : new LinkedHashSet<>(orders);
+        this.orders = new LinkedHashSet<>();
     }
 
     @Nullable
@@ -59,10 +55,6 @@ public class StoreUser {
     }
 
     public float getDonated() {
-        return 0.0f;
-    }
-
-    public double getDonatedOld() {
         return donated;
     }
 
@@ -89,7 +81,7 @@ public class StoreUser {
         return edited;
     }
 
-    public void setDonated(double donated) {
+    public void setDonated(float donated) {
         this.edited = true;
         this.donated = donated;
     }
