@@ -64,15 +64,6 @@ Database:
       - 'useSSL=false'
       - 'verifyServerCertificate=false'
 
-# Configuration about orders/data related things
-Order:
-  # Delay on ticks for order execution
-  # 20 ticks = 1 second
-  ExecutionDelay: 100
-  # Load or not all user data (name, uuid, donations) into memory
-  # This option also make available the top donors option
-  LoadUsers: true
-
 # Configuration about plugin command
 # Yes, you can edit command name and aliases
 Commands:

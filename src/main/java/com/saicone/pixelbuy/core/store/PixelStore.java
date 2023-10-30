@@ -201,6 +201,11 @@ public class PixelStore {
     }
 
     @NotNull
+    public SettingsFile getConfig() {
+        return config;
+    }
+
+    @NotNull
     public Checkout getCheckout() {
         return checkout;
     }

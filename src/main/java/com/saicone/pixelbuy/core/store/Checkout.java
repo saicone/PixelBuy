@@ -44,8 +44,8 @@ public class Checkout implements Listener {
     }
 
     public void onLoad() {
-        executionDelay = PixelBuy.settings().getRegex("(?i)order|user-?data", "(?i)execution-?delay").asLong(100L);
-        usersLoaded = PixelBuy.settings().getRegex("(?i)order|user-?data", "(?i)load-?users").asBoolean(true);
+        executionDelay = store.getConfig().getRegex("(?i)checkout", "(?i)execution-?delay").asLong(100L);
+        usersLoaded = store.getConfig().getRegex("(?i)checkout", "(?i)load-?users").asBoolean(true);
         append.clear();
         for (var entry : store.getItems().entrySet()) {
             if (!entry.getValue().getAppend().isEmpty()) {
