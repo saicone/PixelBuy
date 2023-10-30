@@ -127,7 +127,6 @@ public class StoreItem {
     }
 
     public void onBuy(@NotNull StoreClient client) {
-        client.parser(s -> s.replace("{item_price}", String.valueOf(price)));
         for (StoreAction action : onBuy) {
             action.run(client);
         }
@@ -138,7 +137,6 @@ public class StoreItem {
             onBuy(client);
             return;
         }
-        client.parser(s -> s.replace("{item_price}", String.valueOf(price)));
         for (StoreAction action : onRecover) {
             action.run(client);
         }
@@ -148,7 +146,6 @@ public class StoreItem {
         if (onRefund == null) {
             return;
         }
-        client.parser(s -> s.replace("{item_price}", String.valueOf(price)));
         for (StoreAction action : onRefund) {
             action.run(client);
         }

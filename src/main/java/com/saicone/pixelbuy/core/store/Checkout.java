@@ -65,8 +65,12 @@ public class Checkout implements Listener {
         final StoreUser user = PixelBuy.get().getDatabase().getCached(player.getUniqueId());
         if (user != null) {
             PixelBuy.get().getDatabase().saveDataAsync(user);
-            user.setLoaded(false);
-            user.getOrders().clear();
+            if (usersLoaded) {
+                user.setLoaded(false);
+                user.getOrders().clear();
+            } else {
+                PixelBuy.get().getDatabase().getCached().remove(player.getUniqueId());
+            }
         }
     }
 

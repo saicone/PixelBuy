@@ -62,7 +62,7 @@ public interface DataClient {
     void getOrders(boolean sync, @NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer);
 
     default void saveUserAsync(@NotNull StoreUser user) {
-        saveUser(user);
+        saveUser(false, user);
     }
 
     default void saveUser(@NotNull StoreUser user) {

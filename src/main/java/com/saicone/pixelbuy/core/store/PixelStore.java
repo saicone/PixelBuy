@@ -22,8 +22,9 @@ import java.util.*;
 
 public class PixelStore {
 
-    private final SettingsFile config = new SettingsFile("store.yml");
-    private final Map<String, StoreAction.Builder<?>> actionTypes = new HashMap<>();
+    private final SettingsFile config;
+    private final Map<String, StoreAction.Builder<?>> actionTypes;
+    private final Checkout checkout;
 
     private String name;
     private String group;
@@ -33,6 +34,9 @@ public class PixelStore {
     private final Map<String, StoreItem> items = new HashMap<>();
 
     public PixelStore() {
+        config = new SettingsFile("store.yml");
+        actionTypes = new HashMap<>();
+        checkout = new Checkout();
         registerAction("pixelbuy:broadcast", BroadcastAction.BUILDER);
         registerAction("pixelbuy:command", CommandAction.BUILDER);
         registerAction("pixelbuy:item", ItemAction.BUILDER);
@@ -50,6 +54,7 @@ public class PixelStore {
         final Set<String> loadedItems = new HashSet<>();
         loadItems(new File(PixelBuy.get().getDataFolder(), "storeitems"), loadedItems);
         items.entrySet().removeIf(entry -> !loadedItems.contains(entry.getKey()));
+        checkout.onLoad();
     }
 
     public void loadCategories(@Nullable Object object) {
@@ -163,6 +168,7 @@ public class PixelStore {
     }
 
     public void onDisable() {
+        checkout.onDisable();
         for (var entry : supervisors.entrySet()) {
             entry.getValue().onClose();
         }
@@ -192,6 +198,11 @@ public class PixelStore {
             default:
                 return null;
         }
+    }
+
+    @NotNull
+    public Checkout getCheckout() {
+        return checkout;
     }
 
     @NotNull

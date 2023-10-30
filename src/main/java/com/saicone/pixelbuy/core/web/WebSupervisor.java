@@ -56,7 +56,7 @@ public abstract class WebSupervisor {
         for (String item : items) {
             order.addItem(getGroup(), item);
         }
-        return PixelBuy.get().getCheckout().process(order);
+        return PixelBuy.get().getStore().getCheckout().process(order);
     }
 
     public boolean processOffline(@NotNull String name, int id, @NotNull List<String> items) {
@@ -80,7 +80,7 @@ public abstract class WebSupervisor {
             for (String item : items) {
                 order.addItem(getGroup(), item);
             }
-            return PixelBuy.get().getCheckout().process(order);
+            return PixelBuy.get().getStore().getCheckout().process(order);
         }
         return false;
     }

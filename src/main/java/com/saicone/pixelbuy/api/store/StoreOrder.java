@@ -111,6 +111,11 @@ public class StoreOrder {
         return items.getOrDefault(group, Set.of());
     }
 
+    @NotNull
+    public Set<Item> getItems(@NotNull String group) {
+        return items.getOrDefault(group, Set.of());
+    }
+
     public boolean isEdited() {
         return edited;
     }

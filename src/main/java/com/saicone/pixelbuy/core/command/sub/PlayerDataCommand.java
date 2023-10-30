@@ -97,7 +97,7 @@ public class PlayerDataCommand extends SubCommand {
                     for (String item : args[4].split(",")) {
                         order.addItem(item);
                     }
-                    plugin.getCheckout().process(order);
+                    plugin.getStore().getCheckout().process(order);
                     Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
                 }
                 break;

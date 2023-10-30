@@ -4,7 +4,6 @@ import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.module.command.BukkitCommand;
 import com.saicone.pixelbuy.core.data.Database;
-import com.saicone.pixelbuy.core.store.Checkout;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
@@ -20,9 +19,8 @@ public final class PixelBuy extends JavaPlugin {
 
     private final SettingsFile settings;
     private final Lang lang;
-    private final PixelStore store;
     private final Database database;
-    private final Checkout checkout;
+    private final PixelStore store;
 
     private PixelBuyCommand command;
 
@@ -53,9 +51,8 @@ public final class PixelBuy extends JavaPlugin {
     public PixelBuy() {
         settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
-        store = new PixelStore();
         database = new Database();
-        checkout = new Checkout();
+        store = new PixelStore();
     }
 
     @Override
@@ -66,14 +63,11 @@ public final class PixelBuy extends JavaPlugin {
         lang.load();
         log(4, "Files loaded");
 
-        store.onLoad();
-        log(4, "StoreManager loaded");
-
         database.onLoad();
         log(4, "DatabaseManager loaded");
 
-        checkout.onLoad();
-        log(4, "PlayerManager loaded");
+        store.onLoad();
+        log(4, "Store loaded");
 
         registerCommand();
     }
@@ -82,17 +76,15 @@ public final class PixelBuy extends JavaPlugin {
     public void onDisable() {
         log(3, "Disabling plugin...");
         unregisterCommand();
-        checkout.onDisable();
-        database.onDisable();
         store.onDisable();
+        database.onDisable();
     }
 
     public void onReload() {
         settings.loadFrom(getDataFolder(), true);
         lang.load();
-        store.onLoad();
         database.onReload();
-        checkout.onLoad();
+        store.onLoad();
         reloadCommand();
     }
 
@@ -119,11 +111,6 @@ public final class PixelBuy extends JavaPlugin {
     @NotNull
     public Database getDatabase() {
         return database;
-    }
-
-    @NotNull
-    public Checkout getCheckout() {
-        return checkout;
     }
 
     public void reloadCommand() {

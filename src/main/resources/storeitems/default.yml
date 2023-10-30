@@ -11,7 +11,7 @@ super-pickaxe:
     name: '&9&lSuper Pickaxe'
     lore:
       - ''
-      - '&7Price&8: &a{item_price}'
+      - '&7Price&8: &a{store_item_price}'
       - ''
       - '&7Get on the server store'
   # Shop item options
