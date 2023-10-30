@@ -49,7 +49,7 @@ public class Database {
 
     public void onReload() {
         if (client != null) {
-            client.saveUsersAsync(cached.values());
+            client.saveUsers(cached.values());
             client.onClose();
         }
         onLoad();

@@ -17,6 +17,12 @@ public class PlayerIdProvider {
     public static void compute(@NotNull String type) {
         switch (type.trim().toUpperCase()) {
             case "AUTO":
+                if (PixelBuy.get().getStore().getCheckout().isUsersLoaded()) {
+                    INSTANCE = new PixelBuyProvider();
+                } else {
+                    INSTANCE = new PlayerIdProvider();
+                }
+                break;
             case "PIXELBUY":
                 INSTANCE = new PixelBuyProvider();
                 break;

@@ -6,6 +6,7 @@ import com.saicone.pixelbuy.module.command.BukkitCommand;
 import com.saicone.pixelbuy.core.data.Database;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
+import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -69,6 +70,8 @@ public final class PixelBuy extends JavaPlugin {
         store.onLoad();
         log(4, "Store loaded");
 
+        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+
         registerCommand();
     }
 
@@ -85,6 +88,7 @@ public final class PixelBuy extends JavaPlugin {
         lang.load();
         database.onReload();
         store.onLoad();
+        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
         reloadCommand();
     }
 

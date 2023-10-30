@@ -8,7 +8,7 @@ Plugin:
   Language: 'en_US'
   # Player UUID provider:
   # AUTO     = Choose automatically the best available option
-  # PIXELBUY = Use PixelBuy loaded data (the option LoadUsers must be activated)
+  # PIXELBUY = Use PixelBuy loaded data (the option LoadUsers on store.yml must be activated)
   # BUKKIT   = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
   UUIDProvider: AUTO
 
