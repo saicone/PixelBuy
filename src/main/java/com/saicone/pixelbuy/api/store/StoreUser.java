@@ -118,18 +118,21 @@ public class StoreUser {
         return orders.add(order);
     }
 
-    public void mergeOrder(@NotNull StoreOrder order) {
-        if (!orders.add(order)) {
-            // Dirty solution, may produce a bad performance if there's a high amount of orders
-            final Iterator<StoreOrder> iterator = orders.iterator();
-            while (iterator.hasNext()) {
-                final StoreOrder o = iterator.next();
-                if (o.equals(order)) {
-                    o.merge(order);
-                    return;
-                }
+    @NotNull
+    public StoreOrder mergeOrder(@NotNull StoreOrder order) {
+        if (orders.add(order)) {
+            return order;
+        }
+        // Dirty solution, may produce a bad performance if there's a high amount of orders
+        final Iterator<StoreOrder> iterator = orders.iterator();
+        while (iterator.hasNext()) {
+            final StoreOrder o = iterator.next();
+            if (o.equals(order)) {
+                o.merge(order);
+                return o;
             }
         }
+        throw new IllegalArgumentException("The order cannot be merged");
     }
 
     public void updateOrder(@NotNull StoreOrder order) {

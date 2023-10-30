@@ -36,7 +36,7 @@ public class PixelStore {
     public PixelStore() {
         config = new SettingsFile("store.yml");
         actionTypes = new HashMap<>();
-        checkout = new Checkout();
+        checkout = new Checkout(this);
         registerAction("pixelbuy:broadcast", BroadcastAction.BUILDER);
         registerAction("pixelbuy:command", CommandAction.BUILDER);
         registerAction("pixelbuy:item", ItemAction.BUILDER);

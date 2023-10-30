@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 public class Database {
 
@@ -108,19 +109,44 @@ public class Database {
             } else {
                 foundUser.addDonated(user.getDonated());
             }
-            foundUser.setLoaded(true);
-            client.getOrders(uniqueId, foundUser::mergeOrder);
+            loadOrders(true, foundUser);
         });
         return cached.get(uniqueId);
     }
 
-    public void loadOrders(@NotNull StoreUser user) {
+    public void loadOrders(boolean sync, @NotNull StoreUser user) {
         user.setLoaded(true);
-        client.getOrders(user.getUniqueId(), user::mergeOrder);
+        client.getOrders(sync, user.getUniqueId(), user::mergeOrder);
     }
 
-    public void loadUsersAsync() {
-        client.getUsersAsync(user -> cached.put(user.getUniqueId(), user));
+    public void loadUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
+        final StoreUser cachedUser = cached.get(uniqueId);
+        if (cachedUser != null) {
+            if (!cachedUser.isLoaded()) {
+                loadOrders(sync, cachedUser);
+            }
+            consumer.accept(cachedUser);
+            return;
+        }
+        if (!sync) {
+            // Temp value
+            cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
+        }
+        client.getUser(sync, uniqueId, username, user -> {
+            StoreUser foundUser = cached.get(user.getUniqueId());
+            if (foundUser == null) {
+                cached.put(uniqueId, user);
+                foundUser = user;
+            } else {
+                foundUser.addDonated(user.getDonated());
+            }
+            loadOrders(true, foundUser);
+            consumer.accept(foundUser);
+        });
+    }
+
+    public void loadUsers(boolean sync) {
+        client.getUsers(sync, user -> cached.put(user.getUniqueId(), user));
     }
 
     public void saveDataAsync(@Nullable StoreUser user) {

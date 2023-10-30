@@ -116,6 +116,11 @@ public class StoreOrder {
         return items.getOrDefault(group, Set.of());
     }
 
+    @NotNull
+    public Map<String, Set<Item>> getAllItems() {
+        return items;
+    }
+
     public boolean isEdited() {
         return edited;
     }
@@ -201,6 +206,7 @@ public class StoreOrder {
     }
 
     public void merge(@NotNull StoreOrder order) {
+        edited = true;
         if (dataId < 1) {
             dataId = order.dataId;
         }

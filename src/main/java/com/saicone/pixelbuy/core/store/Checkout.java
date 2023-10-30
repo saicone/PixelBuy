@@ -21,10 +21,17 @@ public class Checkout implements Listener {
 
     private static final Set<String> PLACEHOLDER_TYPE = Set.of("user", "order", "store");
 
+    private final PixelStore store;
+
     private long executionDelay = -1;
     private boolean usersLoaded;
+    private final Set<String> append = new HashSet<>();
 
     private boolean registered;
+
+    public Checkout(@NotNull PixelStore store) {
+        this.store = store;
+    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
@@ -39,14 +46,31 @@ public class Checkout implements Listener {
     public void onLoad() {
         executionDelay = PixelBuy.settings().getRegex("(?i)order|user-?data", "(?i)execution-?delay").asLong(100L);
         usersLoaded = PixelBuy.settings().getRegex("(?i)order|user-?data", "(?i)load-?users").asBoolean(true);
-        if (!registered) {
-            Bukkit.getPluginManager().registerEvents(this, PixelBuy.get());
+        append.clear();
+        for (var entry : store.getItems().entrySet()) {
+            if (!entry.getValue().getAppend().isEmpty()) {
+                append.addAll(entry.getValue().getAppend());
+            }
         }
         Bukkit.getOnlinePlayers().forEach(this::load);
+        if (!registered) {
+            registered = true;
+            Bukkit.getPluginManager().registerEvents(this, PixelBuy.get());
+            if (usersLoaded) {
+                PixelBuy.get().getDatabase().loadUsers(true);
+            }
+        } else if (usersLoaded) {
+            PixelBuy.get().getDatabase().loadUsers(false);
+        }
     }
 
     public void onDisable() {
         Bukkit.getOnlinePlayers().forEach(this::unload);
+    }
+
+    @NotNull
+    public PixelStore getStore() {
+        return store;
     }
 
     public long getExecutionDelay() {
@@ -58,7 +82,12 @@ public class Checkout implements Listener {
     }
 
     public void load(@NotNull Player player) {
-        PixelBuy.get().getDatabase().getDataAsync(player.getUniqueId(), player.getName());
+        PixelBuy.get().getDatabase().loadUser(false, player.getUniqueId(), player.getName(), user -> {
+            for (StoreOrder order : user.getOrders()) {
+                append(order);
+            }
+            process(user);
+        });
     }
 
     public void unload(@NotNull Player player) {
@@ -70,6 +99,16 @@ public class Checkout implements Listener {
                 user.getOrders().clear();
             } else {
                 PixelBuy.get().getDatabase().getCached().remove(player.getUniqueId());
+            }
+        }
+    }
+
+    public void append(@NotNull StoreOrder order) {
+        if (append.contains(order.getGroup())) {
+            for (var entry : store.getItems().entrySet()) {
+                if (entry.getValue().getAppend().contains(order.getGroup())) {
+                    order.addItem(store.getGroup(), entry.getValue().getId());
+                }
             }
         }
     }
@@ -87,10 +126,11 @@ public class Checkout implements Listener {
             }
             user = PixelBuy.get().getDatabase().getData(player.getUniqueId(), player.getName());
         } else if (!user.isLoaded()) {
-            PixelBuy.get().getDatabase().loadOrders(user);
+            PixelBuy.get().getDatabase().loadOrders(true, user);
         }
 
-        user.mergeOrder(order);
+        final StoreOrder o = user.mergeOrder(order);
+        append(o);
         user.setEdited(true);
         process(user);
         return true;
@@ -105,7 +145,6 @@ public class Checkout implements Listener {
 
     public void process(@NotNull StoreUser user) {
         final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
-        final PixelStore store = PixelBuy.get().getStore();
         for (StoreOrder order : user.getOrders()) {
             boolean requireOnline = false;
             for (StoreOrder.Item value : order.getItems()) {
