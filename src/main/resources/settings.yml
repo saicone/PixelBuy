@@ -64,22 +64,38 @@ Database:
       - 'useSSL=false'
       - 'verifyServerCertificate=false'
 
-# Configuration about plugin command
-# Yes, you can edit command name and aliases
+# Plugin commands configuration
 Commands:
   # Main command configuration
-  Main:
-    Cmd: 'pixelbuy'
-    Aliases:
+  PixelBuy:
+    # Make command accessible as root command
+    register: true
+    # Command name
+    name: 'pixelbuy'
+    # Command aliases
+    aliases:
       - 'pbuy'
-
-# Permissions configuration
-Perms:
-  # All permissions
-  All: 'pixelbuy.*'
-  # Commands permissions
-  Main: 'pixelbuy.use'
-  Database: 'pixelbuy.database'
-  PlayerData: 'pixelbuy.playerdata'
-  Reload: 'pixelbuy.reload'
-  Store: 'pixelbuy.store'
+    # Command permission
+    permission: 'pixelbuy.command'
+  Reload:
+    name: 'reload'
+    permission: 'pixelbuy.command.reload'
+  User:
+    name: 'user'
+    aliases:
+      - 'player'
+    permission: 'pixelbuy.command.player'
+  Order:
+    name: 'order'
+    permission: 'pixelbuy.command.order'
+  Data:
+    name: 'data'
+    aliases:
+      - 'database'
+    permission: 'pixelbuy.command.data'
+  Store:
+    register: true
+    name: 'store'
+    aliases:
+      - 'buy'
+    permission: 'pixelbuy.command.store'

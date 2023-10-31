@@ -1,15 +1,13 @@
 package com.saicone.pixelbuy.core.command.sub;
 
-import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelCommand;
-
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-public class DataCommand extends PixelCommand {
+public class OrderCommand extends PixelCommand {
 
-    public DataCommand() {
-        super("data");
+    public OrderCommand() {
+        super("order");
     }
 
     @Override
@@ -19,12 +17,12 @@ public class DataCommand extends PixelCommand {
 
     @Override
     public @NotNull String getUsage(@NotNull CommandSender sender) {
-        return Lang.COMMAND_DATABASE_HELP.getText(sender);
+        return "";
     }
 
     @Override
     public @NotNull String getDescription(@NotNull CommandSender sender) {
-        return "Manage data";
+        return "Manage order";
     }
 
     @Override

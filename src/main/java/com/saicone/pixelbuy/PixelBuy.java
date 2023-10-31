@@ -2,7 +2,6 @@ package com.saicone.pixelbuy;
 
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
-import com.saicone.pixelbuy.module.command.BukkitCommand;
 import com.saicone.pixelbuy.core.data.Database;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
@@ -12,8 +11,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
 public final class PixelBuy extends JavaPlugin {
 
     private static PixelBuy instance;
@@ -22,10 +19,7 @@ public final class PixelBuy extends JavaPlugin {
     private final Lang lang;
     private final Database database;
     private final PixelStore store;
-
-    private PixelBuyCommand command;
-
-    private final File folderData = new File(getDataFolder() + File.separator + "plugindata");
+    private final PixelBuyCommand command;
 
     @NotNull
     public static PixelBuy get() {
@@ -54,6 +48,7 @@ public final class PixelBuy extends JavaPlugin {
         lang = new Lang(this);
         database = new Database();
         store = new PixelStore();
+        command = new PixelBuyCommand();
     }
 
     @Override
@@ -72,13 +67,12 @@ public final class PixelBuy extends JavaPlugin {
 
         PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
 
-        registerCommand();
+        command.onLoad(settings);
     }
 
     @Override
     public void onDisable() {
         log(3, "Disabling plugin...");
-        unregisterCommand();
         store.onDisable();
         database.onDisable();
     }
@@ -89,12 +83,7 @@ public final class PixelBuy extends JavaPlugin {
         database.onReload();
         store.onLoad();
         PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
-        reloadCommand();
-    }
-
-    public File getFolderData() {
-        if (!folderData.exists()) folderData.mkdir();
-        return folderData;
+        command.onLoad(settings);
     }
 
     @NotNull
@@ -117,18 +106,8 @@ public final class PixelBuy extends JavaPlugin {
         return database;
     }
 
-    public void reloadCommand() {
-        unregisterCommand();
-        registerCommand();
-    }
-
-    private void registerCommand() {
-        command = new PixelBuyCommand(settings.getString("Commands.Main.Cmd", "pixelbuy"), settings.getStringList("Commands.Main.Aliases"));
-        BukkitCommand.register(command);
-        command.isRegistered();
-    }
-
-    private void unregisterCommand() {
-        BukkitCommand.unregister(command);
+    @NotNull
+    public PixelBuyCommand getCommand() {
+        return command;
     }
 }

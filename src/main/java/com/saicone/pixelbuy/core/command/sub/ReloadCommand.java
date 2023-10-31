@@ -2,57 +2,73 @@ package com.saicone.pixelbuy.core.command.sub;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.core.Lang;
-import com.saicone.pixelbuy.core.command.SubCommand;
+import com.saicone.pixelbuy.core.command.PixelCommand;
 
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.regex.Pattern;
+import java.util.List;
 
-public class ReloadCommand extends SubCommand {
+public class ReloadCommand extends PixelCommand {
 
-    private final PixelBuy plugin = PixelBuy.get();
+    private static final List<String> TYPES = List.of("files", "store", "database", "command", "all");
 
-    @Override
-    public @NotNull Pattern getAliases() {
-        return Pattern.compile("re(load|fresh)?");
+    public ReloadCommand() {
+        super("reload");
     }
 
     @Override
-    public @NotNull String getPermission() {
-        return PixelBuy.settings().getString("Perms.Reload", "pixelbuy.reload");
+    public boolean main() {
+        return true;
     }
 
     @Override
-    public void execute(@NotNull CommandSender sender, @NotNull String cmd, @NotNull String[] args) {
-        if (args.length == 1) {
-            Lang.COMMAND_RELOAD_HELP.sendTo(sender, cmd);
-            return;
-        }
+    public @NotNull String getUsage(@NotNull CommandSender sender) {
+        return Lang.COMMAND_RELOAD_HELP.getText(sender);
+    }
+
+    @Override
+    public @NotNull String getDescription(@NotNull CommandSender sender) {
+        return "Reload plugin";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
+    }
+
+    @Override
+    public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         switch (args[1].toLowerCase()) {
             case "file":
             case "files":
-                plugin.getSettings().loadFrom(plugin.getDataFolder(), true);
-                plugin.getLang().load();
+                PixelBuy.settings().loadFrom(PixelBuy.get().getDataFolder(), true);
+                PixelBuy.get().getLang().load();
                 Lang.COMMAND_RELOAD_FILES.sendTo(sender);
                 break;
             case "store":
-                plugin.getStore().onLoad();
+                PixelBuy.get().getStore().onLoad();
                 break;
             case "database":
-                plugin.getDatabase().onReload();
+                PixelBuy.get().getDatabase().onReload();
                 break;
             case "command":
-                plugin.reloadCommand();
+                PixelBuy.get().getCommand().onLoad(PixelBuy.settings());
                 Lang.COMMAND_RELOAD_COMMAND.sendTo(sender);
                 break;
             case "all":
-                plugin.onReload();
+                PixelBuy.get().onReload();
                 Lang.COMMAND_RELOAD_WEBDATA.sendTo(sender);
                 break;
             default:
-                Lang.COMMAND_RELOAD_HELP.sendTo(sender, cmd);
+                sendUsage(sender, cmd, args);
                 break;
         }
+    }
+
+    @Override
+    public @Nullable List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
+        return TYPES;
     }
 }

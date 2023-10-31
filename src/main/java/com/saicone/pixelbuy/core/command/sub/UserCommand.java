@@ -3,7 +3,7 @@ package com.saicone.pixelbuy.core.command.sub;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.Lang;
-import com.saicone.pixelbuy.core.command.SubCommand;
+import com.saicone.pixelbuy.core.command.PixelCommand;
 import com.saicone.pixelbuy.api.store.StoreUser;
 
 import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
@@ -11,34 +11,36 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
-public class UserCommand extends SubCommand {
+public class UserCommand extends PixelCommand {
 
-    private final PixelBuy plugin = PixelBuy.get();
-
-    @Override
-    public @NotNull Pattern getAliases() {
-        return Pattern.compile("(p(layer)?)?data");
+    public UserCommand() {
+        super("user");
     }
 
     @Override
-    public @NotNull String getPermission() {
-        return PixelBuy.settings().getString("Perms.PlayerData", "pixelbuy.playerdata");
+    public @NotNull String getUsage(@NotNull CommandSender sender) {
+        return Lang.COMMAND_PLAYERDATA_HELP.getText(sender);
     }
 
     @Override
-    public void execute(@NotNull CommandSender sender, @NotNull String cmd, @NotNull String[] args) {
-        if (args.length == 1) {
-            Lang.COMMAND_PLAYERDATA_HELP.sendTo(sender, cmd);
-            return;
-        }
+    public @NotNull String getDescription(@NotNull CommandSender sender) {
+        return "Reload plugin";
+    }
+
+    @Override
+    public int getMinArgs() {
+        return 1;
+    }
+
+    @Override
+    public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         switch (args[1].toLowerCase()) {
             case "info":
                 if (args.length <= 2) {
                     Lang.COMMAND_PLAYERDATA_INFO_USAGE.sendTo(sender, cmd);
                 } else {
-                    final StoreUser user = plugin.getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
+                    final StoreUser user = PixelBuy.get().getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
                     if (user == null) {
                         Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender);
                         break;
@@ -97,7 +99,7 @@ public class UserCommand extends SubCommand {
                     for (String item : args[4].split(",")) {
                         order.addItem(item);
                     }
-                    plugin.getStore().getCheckout().process(order);
+                    PixelBuy.get().getStore().getCheckout().process(order);
                     Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
                 }
                 break;
@@ -108,7 +110,7 @@ public class UserCommand extends SubCommand {
                 } else if (args.length < 4) {
                     Lang.COMMAND_PLAYERDATA_RECOVER_USAGE.sendTo(sender, cmd);
                 } else {
-                    final StoreUser user = plugin.getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
+                    final StoreUser user = PixelBuy.get().getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
                     if (user == null) {
                         Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender, args[2]);
                         break;
@@ -130,7 +132,7 @@ public class UserCommand extends SubCommand {
                         list.add(item.getId());
                     }
 
-                    plugin.getDatabase().saveDataAsync(user);
+                    PixelBuy.get().getDatabase().saveDataAsync(user);
                     Lang.COMMAND_PLAYERDATA_RECOVER_DONE.sendTo(sender, args[3], args[2],  list.isEmpty() ? "- nothing -" : String.join(", ", list));
                 }
                 break;
