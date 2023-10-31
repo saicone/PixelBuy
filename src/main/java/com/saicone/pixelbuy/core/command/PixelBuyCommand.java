@@ -2,9 +2,9 @@ package com.saicone.pixelbuy.core.command;
 
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.core.Lang;
-import com.saicone.pixelbuy.core.command.sub.DatabaseCommand;
+import com.saicone.pixelbuy.core.command.sub.DataCommand;
 import com.saicone.pixelbuy.core.command.sub.ReloadCommand;
-import com.saicone.pixelbuy.core.command.sub.PlayerDataCommand;
+import com.saicone.pixelbuy.core.command.sub.UserCommand;
 import com.saicone.pixelbuy.core.command.sub.StoreCommand;
 
 import org.bukkit.command.Command;
@@ -17,8 +17,8 @@ import java.util.List;
 public class PixelBuyCommand extends Command {
 
     private static final List<SubCommand> SUB_COMMANDS = Arrays.asList(
-            new DatabaseCommand(),
-            new PlayerDataCommand(),
+            new DataCommand(),
+            new UserCommand(),
             new ReloadCommand(),
             new StoreCommand()
     );

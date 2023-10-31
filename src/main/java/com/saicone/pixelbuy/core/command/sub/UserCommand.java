@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class PlayerDataCommand extends SubCommand {
+public class UserCommand extends SubCommand {
 
     private final PixelBuy plugin = PixelBuy.get();
 
