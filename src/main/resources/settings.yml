@@ -77,6 +77,10 @@ Commands:
       - 'pbuy'
     # Command permission
     permission: 'pixelbuy.command'
+    # Delay in seconds between execute this command
+    # This only take effect if the command is registered
+    # Set to -1 to disable
+    delay: -1
   Reload:
     name: 'reload'
     permission: 'pixelbuy.command.reload'

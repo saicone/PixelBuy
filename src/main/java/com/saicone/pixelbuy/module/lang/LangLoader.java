@@ -87,14 +87,29 @@ public abstract class LangLoader implements Listener {
     }
 
     protected void loadDisplays(@NotNull String name, @NotNull File file) {
+        String prefix = null;
         for (var entry : getObjects(file).entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("prefix") && entry.getValue() instanceof String) {
+                prefix = (String) entry.getValue();
+            }
             final List<String> display = loadDisplay(entry.getValue());
             if (display != null && !display.isEmpty()) {
                 if (!displays.containsKey(name)) {
                     displays.put(name, new HashMap<>());
                 }
                 final Map<String, List<String>> map = displays.get(name);
-                map.put(entry.getKey(), display);
+                map.put(entry.getKey().toLowerCase(), display);
+            }
+        }
+        if (prefix != null && displays.containsKey(name)) {
+            for (var entry : displays.get(name).entrySet()) {
+                final List<String> display = entry.getValue();
+                for (int i = 0; i < display.size(); i++) {
+                    final String s = display.get(i);
+                    if (s.contains("{prefix}")) {
+                        display.set(i, s.replace("{prefix}", prefix));
+                    }
+                }
             }
         }
     }
@@ -306,27 +321,41 @@ public abstract class LangLoader implements Listener {
 
     @Nullable
     public List<String> getDisplayOrNull(@NotNull String language, @NotNull String path) {
-        return getDisplays(language).get(path);
+        return getDisplays(language).get(path.toLowerCase());
     }
 
     @NotNull
     public List<String> getDefaultDisplay(@NotNull String path) {
-        return getDisplays(defaultLanguage).getOrDefault(path, List.of());
+        return getDisplays(defaultLanguage).getOrDefault(path.toLowerCase(), List.of());
     }
 
     @Nullable
     public List<String> getDefaultDisplayOrNull(@NotNull String path) {
-        return getDisplays(defaultLanguage).get(path);
+        return getDisplays(defaultLanguage).get(path.toLowerCase());
     }
 
     @NotNull
     public String getLangText(@NotNull String path) {
-        return getDisplay(getPluginLanguage(), path).get(0);
+        final String text = getLangTextOrNull(path);
+        return text == null ? "" : text;
     }
 
     @NotNull
     public String getLangText(@NotNull CommandSender sender, @NotNull String path) {
-        return getDisplay(getLanguage(sender), path).get(0);
+        final String text = getLangTextOrNull(sender, path);
+        return text == null ? "" : text;
+    }
+
+    @Nullable
+    public String getLangTextOrNull(@NotNull String path) {
+        final List<String> display = getDisplay(getPluginLanguage(), path);
+        return display.isEmpty() ? null : display.get(0);
+    }
+
+    @Nullable
+    public String getLangTextOrNull(@NotNull CommandSender sender, @NotNull String path) {
+        final List<String> display = getDisplay(getLanguage(sender), path);
+        return display.isEmpty() ? null : display.get(0);
     }
 
     public void printStackTrace(int level, @NotNull Throwable throwable) {

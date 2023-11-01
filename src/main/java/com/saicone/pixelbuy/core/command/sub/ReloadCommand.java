@@ -1,7 +1,6 @@
 package com.saicone.pixelbuy.core.command.sub;
 
 import com.saicone.pixelbuy.PixelBuy;
-import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelCommand;
 
 import org.bukkit.command.CommandSender;
@@ -24,28 +23,18 @@ public class ReloadCommand extends PixelCommand {
     }
 
     @Override
-    public @NotNull String getUsage(@NotNull CommandSender sender) {
-        return Lang.COMMAND_RELOAD_HELP.getText(sender);
-    }
-
-    @Override
-    public @NotNull String getDescription(@NotNull CommandSender sender) {
-        return "Reload plugin";
-    }
-
-    @Override
     public int getMinArgs() {
         return 1;
     }
 
     @Override
     public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        switch (args[1].toLowerCase()) {
-            case "file":
+        final long before = System.currentTimeMillis();
+        switch (args[0].toLowerCase()) {
             case "files":
                 PixelBuy.settings().loadFrom(PixelBuy.get().getDataFolder(), true);
                 PixelBuy.get().getLang().load();
-                Lang.COMMAND_RELOAD_FILES.sendTo(sender);
+                PixelBuy.get().onReloadSettings();
                 break;
             case "store":
                 PixelBuy.get().getStore().onLoad();
@@ -55,16 +44,16 @@ public class ReloadCommand extends PixelCommand {
                 break;
             case "command":
                 PixelBuy.get().getCommand().onLoad(PixelBuy.settings());
-                Lang.COMMAND_RELOAD_COMMAND.sendTo(sender);
                 break;
             case "all":
                 PixelBuy.get().onReload();
-                Lang.COMMAND_RELOAD_WEBDATA.sendTo(sender);
                 break;
             default:
                 sendUsage(sender, cmd, args);
-                break;
+                return;
         }
+        final long time = System.currentTimeMillis() - before;
+        PixelBuy.get().getLang().sendTo(sender, "Command.Reload." + args[0], time);
     }
 
     @Override

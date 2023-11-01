@@ -107,7 +107,9 @@ public class Checkout implements Listener {
         if (append.contains(order.getGroup())) {
             for (var entry : store.getItems().entrySet()) {
                 if (entry.getValue().getAppend().contains(order.getGroup())) {
-                    order.addItem(store.getGroup(), entry.getValue().getId());
+                    if (order.getItems().contains(entry.getKey())) {
+                        order.addItem(store.getGroup(), entry.getValue().getId());
+                    }
                 }
             }
         }

@@ -11,8 +11,11 @@ import java.util.stream.Collectors;
 public class Strings {
 
     public static boolean isNumber(@NotNull String s) {
+        if (s.isBlank()) {
+            return false;
+        }
         boolean decimal = false;
-        for (char c : s.toCharArray()) {
+        for (char c : (s.charAt(0) == '-' ? s.substring(1) : s).toCharArray()) {
             if (!Character.isDigit(c)) {
                 if (!decimal && c == '.') {
                     decimal = true;

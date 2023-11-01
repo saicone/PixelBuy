@@ -7,152 +7,132 @@ import com.saicone.pixelbuy.core.command.PixelCommand;
 import com.saicone.pixelbuy.api.store.StoreUser;
 
 import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
+import com.saicone.pixelbuy.util.MStrings;
+import com.saicone.pixelbuy.util.OptionalType;
+import com.saicone.pixelbuy.util.Strings;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class UserCommand extends PixelCommand {
 
+    private static final String INDEX = MStrings.color("&6#- ");
+
     public UserCommand() {
         super("user");
+        subCommand("info", this::info);
+        subCommand("calculate", this::calculate);
     }
 
     @Override
-    public @NotNull String getUsage(@NotNull CommandSender sender) {
-        return Lang.COMMAND_PLAYERDATA_HELP.getText(sender);
-    }
-
-    @Override
-    public @NotNull String getDescription(@NotNull CommandSender sender) {
-        return "Reload plugin";
+    public boolean main() {
+        return true;
     }
 
     @Override
     public int getMinArgs() {
-        return 1;
+        return 2;
     }
 
     @Override
-    public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        switch (args[1].toLowerCase()) {
-            case "info":
-                if (args.length <= 2) {
-                    Lang.COMMAND_PLAYERDATA_INFO_USAGE.sendTo(sender, cmd);
-                } else {
-                    final StoreUser user = PixelBuy.get().getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
-                    if (user == null) {
-                        Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender);
-                        break;
-                    }
+    public int getSubStart() {
+        return 1;
+    }
 
-                    final int page = Math.max(1, (args.length > 3 ? Integer.parseInt(args[3]) : 1)) - 1;
-                    final Set<StoreOrder> orders = user.getOrders();
-
-                    sender.sendMessage(" ");
-                    Lang.COMMAND_PLAYERDATA_INFO_PLAYER.sendTo(sender, user.getName(), user.getDonated(), page + 1, (orders.size() - 1) / 10 + 1);
-                    int orderNum = 1;
-                    int start = page * 10;
-                    int i = 0;
-                    for (StoreOrder order : orders) {
-                        if (i < start) {
-                            i++;
-                            continue;
-                        }
-                        if (orderNum >= 10) {
-                            break;
-                        }
-                        Lang.COMMAND_PLAYERDATA_INFO_ORDER.sendTo(sender, orderNum, order.getId());
-                        int cmdNum = 1;
-                        for (StoreOrder.Item item : order.getItems()) {
-                            Lang.COMMAND_PLAYERDATA_INFO_ITEMS.sendTo(sender, cmdNum, item.getId(), state(sender, order, item));
-                            cmdNum++;
-                        }
-                        orderNum++;
-                    }
-                    sender.sendMessage(" ");
-                    break;
-                }
-            case "refund":
-                if (!sender.hasPermission("pixelbuy.playerdata.refund")) {
-                    Lang.COMMAND_NO_PERM.sendTo(sender);
-                } else if (args.length < 4) {
-                    Lang.COMMAND_PLAYERDATA_REFUND_USAGE.sendTo(sender, cmd);
-                } else {
-                    // TODO: Add refund order
-                    if (true) {
-                        Lang.COMMAND_PLAYERDATA_REFUND_DONE.sendTo(sender, args[2], args[3]);
-                    } else {
-                        Lang.COMMAND_PLAYERDATA_REFUND_ERROR.sendTo(sender);
-                    }
-                }
-                break;
-            case "false-order":
-            case "order":
-                if (!sender.hasPermission("pixelbuy.playerdata.falseorder")) {
-                    Lang.COMMAND_NO_PERM.sendTo(sender);
-                } else if (args.length < 5) {
-                    Lang.COMMAND_PLAYERDATA_ORDER_USAGE.sendTo(sender, cmd);
-                } else {
-                    final StoreOrder order = new StoreOrder("command", Integer.parseInt(args[3]), PixelBuy.get().getStore().getGroup());
-                    order.setBuyer(PlayerIdProvider.getUniqueId(args[2]));
-                    for (String item : args[4].split(",")) {
-                        order.addItem(item);
-                    }
-                    PixelBuy.get().getStore().getCheckout().process(order);
-                    Lang.COMMAND_PLAYERDATA_ORDER_DONE.sendTo(sender, args[3], args[2], args[4]);
-                }
-                break;
-            case "recover-order":
-            case "recover":
-                if (!sender.hasPermission("pixelbuy.playerdata.recover")) {
-                    Lang.COMMAND_NO_PERM.sendTo(sender);
-                } else if (args.length < 4) {
-                    Lang.COMMAND_PLAYERDATA_RECOVER_USAGE.sendTo(sender, cmd);
-                } else {
-                    final StoreUser user = PixelBuy.get().getDatabase().getDataAsync(PlayerIdProvider.getUniqueId(args[2]), args[2]);
-                    if (user == null) {
-                        Lang.COMMAND_PLAYERDATA_INFO_UNKNOWN.sendTo(sender, args[2]);
-                        break;
-                    }
-
-                    final StoreOrder order = user.getOrder(Integer.parseInt(args[3]));
-                    if (order == null) {
-                        Lang.COMMAND_PLAYERDATA_RECOVER_UNKNOWN.sendTo(sender, args[3]);
-                        break;
-                    }
-
-                    order.setExecution(StoreOrder.Execution.RECOVER);
-                    final List<String> list = new ArrayList<>();
-                    for (StoreOrder.Item item : order.getItems()) {
-                        if (item.getState() == StoreOrder.State.PENDING) {
-                            continue;
-                        }
-                        item.state(StoreOrder.State.PENDING);
-                        list.add(item.getId());
-                    }
-
-                    PixelBuy.get().getDatabase().saveDataAsync(user);
-                    Lang.COMMAND_PLAYERDATA_RECOVER_DONE.sendTo(sender, args[3], args[2],  list.isEmpty() ? "- nothing -" : String.join(", ", list));
-                }
-                break;
-            default:
-                Lang.COMMAND_PLAYERDATA_HELP.sendTo(sender, cmd);
-                break;
+    @Nullable
+    public static StoreUser getUser(@NotNull String s) {
+        try {
+            final UUID id = UUID.fromString(s);
+            final OfflinePlayer player = Bukkit.getOfflinePlayer(id);
+            if (player.getName() == null) {
+                return null;
+            }
+            return PixelBuy.get().getDatabase().getDataOrNull(id, player.getName());
+        } catch (IllegalArgumentException e) {
+            if (s.length() > 20) {
+                return null;
+            }
+            return PixelBuy.get().getDatabase().getDataOrNull(PlayerIdProvider.getUniqueId(s), s);
         }
     }
 
-    @NotNull
-    private String state(@NotNull CommandSender sender, @NotNull StoreOrder order, @NotNull StoreOrder.Item item) {
-        if (item.getState() == StoreOrder.State.DONE) {
-            return Lang.STATUS_SENT.getText(sender);
-        }
-        if (item.getState() == StoreOrder.State.PENDING) {
-            return Lang.STATUS_PENDING.getText(sender);
-        }
-        if (order.getExecution() == StoreOrder.Execution.REFUND) {
-            return Lang.STATUS_REFUNDED.getText(sender);
-        }
-        return "";
+    public void getUserAsync(@NotNull CommandSender sender, @NotNull String s, @NotNull Consumer<StoreUser> consumer) {
+        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
+            final StoreUser user = getUser(s);
+            if (user == null) {
+                Lang.COMMAND_DISPLAY_USER_INVALID.sendTo(sender, s);
+                return;
+            }
+            consumer.accept(user);
+        });
+    }
+
+    public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+        getUserAsync(sender, cmd[cmd.length - 1], (user) -> {
+            final int page = args.length > 0 ? OptionalType.of(args[0]).asInt(-1) : 1;
+            if (page < 1) {
+                getSubCommand("info").sendUsage(sender, cmd, args);
+                return;
+            }
+
+            final Set<StoreOrder> orders = user.getOrders();
+            Lang.COMMAND_DISPLAY_USER_INFO.sendTo(sender, user.getUniqueId(), user.getName(), user.getDonated(), page, (orders.size() - 1) / 10 + 1);
+            final String currentGroup = PixelBuy.get().getStore().getGroup();
+            int orderNum = 1;
+            int start = (page - 1) * 10;
+            int i = 0;
+            for (StoreOrder order : orders) {
+                if (i < start) {
+                    i++;
+                    continue;
+                }
+                if (orderNum >= 10) {
+                    break;
+                }
+                final String key = order.getProvider() + ":" + order.getId();
+                final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
+                String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
+                if (buyer == null) {
+                    buyer = order.getBuyer().toString();
+                }
+                boolean first = true;
+                for (String s : Lang.COMMAND_DISPLAY_ORDER_INFO.getDisplay(sender)) {
+                    s = Strings.replaceArgs(s, key, saved, order.getGroup(), buyer, order.getDate(), order.getExecution().name());
+                    if (first) {
+                        first = false;
+                        sender.sendMessage(INDEX.replace("#", String.valueOf(i + 1)) + s);
+                    } else {
+                        sender.sendMessage("   " + s);
+                    }
+                }
+                first = true;
+                int cmdNum = 1;
+                for (StoreOrder.Item item : order.getItems(currentGroup)) {
+                    for (String s : Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.getDisplay(sender)) {
+                        s = Strings.replaceArgs(s, item.getId(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
+                        if (first) {
+                            first = false;
+                            sender.sendMessage("  " + INDEX.replace("#", String.valueOf(cmdNum)) + s);
+                        } else {
+                            sender.sendMessage("     " + s);
+                        }
+                    }
+                    cmdNum++;
+                }
+                orderNum++;
+            }
+        });
+    }
+
+    public void calculate(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+        getUserAsync(sender, cmd[cmd.length - 1], (user) -> {
+            final float amount = PixelBuy.get().getStore().getCheckout().donated(user);
+            sendLang(sender, "amount", amount);
+        });
     }
 }

@@ -68,6 +68,11 @@ public class StoreOrder {
     }
 
     @NotNull
+    public String getKey() {
+        return provider + ":" + id + ":" + group;
+    }
+
+    @NotNull
     public String getProvider() {
         return provider;
     }
@@ -286,7 +291,7 @@ public class StoreOrder {
                 case "state":
                     return state;
                 case "error":
-                    return error;
+                    return getError();
                 default:
                     return null;
             }
@@ -335,6 +340,7 @@ public class StoreOrder {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
+            if (o instanceof String) return id.equals((String) o);
             if (o == null || getClass() != o.getClass()) return false;
 
             Item item = (Item) o;

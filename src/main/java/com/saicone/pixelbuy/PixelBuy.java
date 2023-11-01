@@ -5,6 +5,7 @@ import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.core.data.Database;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
+import com.saicone.pixelbuy.module.command.BukkitCommandNode;
 import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -72,7 +73,6 @@ public final class PixelBuy extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        log(3, "Disabling plugin...");
         store.onDisable();
         database.onDisable();
     }
@@ -82,8 +82,13 @@ public final class PixelBuy extends JavaPlugin {
         lang.load();
         database.onReload();
         store.onLoad();
-        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+        onReloadSettings();
         command.onLoad(settings);
+    }
+
+    public void onReloadSettings() {
+        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+        BukkitCommandNode.Delay.setDuration(settings.getIgnoreCase("plugin", "commanddelay").asLong(-1L));
     }
 
     @NotNull

@@ -87,6 +87,9 @@ public class Database {
             return user;
         }
         client.getUser(uniqueId, username, loaded -> {
+            if (loaded == null) {
+                loaded = new StoreUser(uniqueId, username, 0.0f);
+            }
             loaded.setLoaded(true);
             client.getOrders(uniqueId, loaded::addOrder);
             cached.put(uniqueId, loaded);
@@ -102,6 +105,9 @@ public class Database {
         }
         cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
         client.getUserAsync(uniqueId, username, user -> {
+            if (user == null) {
+                user = new StoreUser(uniqueId, username, 0.0f);
+            }
             StoreUser foundUser = cached.get(user.getUniqueId());
             if (foundUser == null) {
                 cached.put(uniqueId, user);
@@ -110,6 +116,22 @@ public class Database {
                 foundUser.addDonated(user.getDonated());
             }
             loadOrders(true, foundUser);
+        });
+        return cached.get(uniqueId);
+    }
+
+    @Nullable
+    public StoreUser getDataOrNull(@NotNull UUID uniqueId, @NotNull String username) {
+        final StoreUser user = cached.get(uniqueId);
+        if (user != null) {
+            return user;
+        }
+        client.getUser(uniqueId, username, loaded -> {
+            if (loaded != null) {
+                loaded.setLoaded(true);
+                client.getOrders(uniqueId, loaded::addOrder);
+                cached.put(uniqueId, loaded);
+            }
         });
         return cached.get(uniqueId);
     }

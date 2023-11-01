@@ -158,7 +158,7 @@ public class HikariDatabase implements DataClient {
                     }
                 }
             }
-            consumer.accept(new StoreUser(uniqueId, username, 0.0f));
+            consumer.accept(null);
         });
     }
 

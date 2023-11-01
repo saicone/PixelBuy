@@ -1,88 +1,115 @@
-Command:
-  NoPermission: '&cNo tienes permiso para usar este comando'
-  Help:
-    - '&6PixelBuy &f[&e1.2&f]'
-    - '&6> &e/{0} database'
-    - '&6> &e/{0} playerdata'
-    - '&6> &e/{0} reload'
-    - '&6> &e/{0} store'
-  Database:
-    Help:
-      - '&6Comandos sobre la base de datos &f(&e/{0} database ...&f)'
-      - '&6> &econvert <tipo> [true/false]'
-      - '&6> &edelete <jugador>'
-    Convert:
-      Usage: '&6Debes usar &e/{0} database convert <tipo> [true/false]'
-      SameType: '&cEl tipo de base de datos actual es el mismo tipo de donde quieres obtener los datos!'
-      Unknown: '&cEl tipo de base de datos {0} no existe!'
-      SetupError: '&6El tipo de base de datos &e{0} &6no no se conectó correctamente, activa el debug e intenta otra vez'
-    Delete:
-      Usage: '&6Debes usar &e/{0} database delete <jugador>'
-      Done: '&aDatos del jugador {0} borrados correctamente'
-  PlayerData:
-    Help:
-      - '&6Comandos sobre la data del jugador &f(&e/{0} player ...&f)'
-      - '&6> &einfo <jugador>'
-      - '&6> &erefund <jugador> <id de compra>'
-      - '&6> &efalse-order <jugador> <id de compra> <lista de items>'
-      - '&6> &erecover <jugador> <id de compra>'
-    Info:
-      Usage: '&6Debes usar &e/{0} player info <jugador>'
-      Unknown: '&cEl jugador &6{0} &cno tiene data'
-      Player:
-        - '&eJugador: &f{0}'
-        - '&eDonado: &a{1}'
-        - '&eLista de ordenes [{2}/{3}]:'
-      Order:
-        - '&6{0}- &eID de la orden: &f{1}'
-        - '&e  Lista de Items:'
-      Items: '&6    {0}- &f{1} &7: {2}'
-    Refund:
-      Usage: '&6Debes usar &e/{0} player refund <jugador> <id de compra>'
-      Done: '&aSe procesó una devolución a nombre del jugador &f{0} &acon la orden &f{1}'
-      Error: '&cNo se pudo tramitar la devolución, revisa que hayas escrito bien el comando'
-    Order:
-      Usage: '&6Debes usar &e/{0} player order <jugador> <id de compra> <lista de items separados por coma>'
-      Done: '&aSe agregó la orden &f{0} &aal jugador &f{1} &acon los items de compra &f{2}'
-    Recover:
-      Usage: '&6Debes usar &e/{0} player recover <jugador> <id de compra>'
-      Unknown: '&cLa orden de compra con el ID &6{0} &cno existe'
-      Done: '&aSe recuperó la orden &f{0} &adel jugador &f{1} &acon los items de compra &f{2}'
-  Reload:
-    Help:
-      - '&6Comandos sobre recargar el plugin &f(&e/{0} reload ...&f)'
-      - '&6> &efiles [settings, messages]'
-      - '&6> &estore'
-      - '&6> &edatabase'
-      - '&6> &ewebdata'
-      - '&6> &eall'
-    Files: '&aLa configuración del plugin fue recargada con éxito'
-    Database:
-      Default: '&6Se usará el tipo JSON para base de datos porque el especificado en la configuración no existe'
-      Done: '&aSe habilitó correctamente el tipo {0} para base de datos'
-      Error: '&6La base de datos {0} tuvo un error al cargar, se usará JSON como cambio'
-    Webdata: '&aSe recargò correctamente el administrador de ordenes de compra'
-    Command: '&aEl comando principal del plugin ha sido recargado'
-  Status:
-    - '&6------PixelBuy Status------'
-    - '&7OrderManager: {0}'
-    - ''
-  Store:
-    Help:
-      - '&6Comandos sobre la tienda &f(&e/{0} store ...&f)'
-      - '&6> &eitems'
-    Items:
-      Info:
-        - '&c{0}- &6Item: &f{1}'
-        - '&6  Precio: &f{2}'
-        - '&6  Online: &f{3}'
-        - '&6  Lista de acciones:'
-      Enum: '&6-    &f{4}'
+Prefix: '&8[&ePixel&6Buy&8] '
+NoPerm: "&cNo tienes el permiso &6{0}"
 
-Status:
-  On: '&aEncendido'
-  Off: '&cApagado'
-  InProcess: '&3En proceso...'
-  Pending: '&3Pediente de entrega'
-  Sent: '&aEntregado'
-  Refunded: '&cDevuelto'
+Text:
+  Yes: '&aSí'
+  No: '&cNo'
+
+Order:
+  Buy:
+    Done: '&aEntregado'
+    Pending: '&9Entrega pendiente'
+    Error: '&cError al entregar'
+  Recover:
+    Done: '&eRecuperado'
+    Pending: '&9Recuperación pendiente'
+    Error: '&cError al recuperar'
+  Refund:
+    Done: '&4Devuelto'
+    Pending: '&9Devolución pendiente'
+    Error: '&cDevolución fallida'
+
+Command:
+  Display:
+    Sub: '&6> &c/{0} &6- &7{1}'
+    Usage: '{prefix}&eDebes usar: &c/{0}'
+    Delay: '{prefix}&cDebes esperar &6{0} &csegundos antes de volver a usar este comando'
+    User:
+      Invalid: '{prefix}&cEl usuario &6{0} &cno existe en la tienda'
+      Info:
+        - '&eJugador: &f{0}'
+        - '&eNombre: &f{1}'
+        - '&eDonado: &a{2}'
+        - '&eÓrdenes de compra [{3}/{4}]:'
+    Order:
+      Invalid: '{prefix}&cLa orden de compra &6{0} &cno existe'
+      Info:
+        - '&eKey: &f{0}'
+        - '&eGuardada: {1}'
+        - '&eGrupo: &f{2}'
+        - '&eComprador: &f{3}'
+        - '&eFecha: &f{4}'
+        - '&eEjecución: &f{5}'
+        - '&eItems:'
+      Item:
+        Invalid: '{prefix}&cLa orden de compra &6{0} &cno tiene el item &6{1}'
+        Info:
+          - '&eId: &f{0}'
+          - '&ePrecio: &f{1}'
+          - '&eEstado: {2}'
+  PixelBuy:
+    Usage: '{prefix}&eCommandos de PixelBuy: &7(/{0} <comando>...)'
+    Description: 'Comando principal del plugin'
+  Reload:
+    Usage: '{prefix}&eDebes usar: &c/{0} &8<&7files|store|database|command|all&8>'
+    Description: 'Recargar el plugin'
+    Files: '{prefix}&aLa configuración y lenguaje del plugin fue recargada correctamente &7[&e{0} ms&7]'
+    Store: '{prefix}&aLa tienda fue recargada correctamente &7[&e{0} ms&7]'
+    Database: '{prefix}&aLa base de datos fue recargada correctamente &7[&e{0} ms&7]'
+    Command: '{prefix}&aLos comandos del plugin fueron correctamente recargados &7[&e{0} ms&7]'
+    All: '{prefix}&aEl plugin fue recargado correctamente &7[&e{0} ms&7]'
+  User:
+    Usage: '{prefix}&eComandos de Usuario: &7(/{0} <usuario> <comando>...)'
+    Description: 'Administrar los usuarios de la tienda'
+    Info:
+      Description: 'Obtener información sobre el usuario'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7página&8]'
+    Calculate:
+      Description: 'Calcular la cantidad donada del usuario'
+      Amount: '{prefix}&fEl usuario &e{0} &fha donado &a{1}'
+  Order:
+    Usage: '{prefix}&eComandos de Orden de Compra: &7(/{0} <proveedor:id[:grupo]> <comando>...)'
+    Description: 'Administrar las órdenes de compra'
+    Info:
+      Description: 'Obtener información sobre la orden de compra'
+    Fix:
+      Description: 'Cambiar los items fallidos por el estado de entrega pendiente'
+      Done: '{prefix}&aLos items fallidos de la orden orden &f{0} &afueron cambiados al estado de entrega pendiente'
+    Execute:
+      Description: 'Cambiar la ejecución de la orden de compra'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8<&7ejecución&8>'
+      Invalid: '{prefix}&cLa ejecución &6{0} &cno existe'
+      Done: '{prefix}&aLa ejecución de la orden &f{0} &afue cambiada a &f{1}'
+    Give:
+      Description: 'Entregar la orden a un usuario'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8<&7jugador&8> &8<&7items&8>'
+      Format: '{prefix}&cEl texto &6{0} &cno tiene un formato válido de orden de compra'
+      Duplicated: '{prefix}&cLa orden de compra &6{0} &cya existe'
+      Done: '{prefix}&aLa orden de compra &f{0} &afue entregada a &f{1}'
+    Delete:
+      Description: 'Borrar una orden de la base de datos'
+      Done: '{prefix}&aLa orden de compra &f{0} &afue eliminada con éxito'
+    Item:
+      Usage: '{prefix}&eComandos de Items de Compra: &7(/{0} <[grupo:]id> <comando>...)'
+      Description: 'Administrar los items de compra'
+      Info:
+        Description: 'Obtener información sobre el item de compra'
+      State:
+        Description: 'Cambiar el estado del item'
+        Usage: '{prefix}&eDebes usar: &c/{0} &8<&7estado&8> &8[&7mensaje&8]'
+        Invalid: '{prefix}&cEl estado &6{0} &cno existe'
+        Done: '{prefix}&aEl estado del item fue cambiado a &f{0}'
+      Price:
+        Description: 'Cambiar el precio del item'
+        Usage: '{prefix}&eDebes usar: &c/{0} &8<&7precio&8>'
+        Invalid: '{prefix}&cEl argumento &6{0} &cno es un precio válido'
+        Done: '{prefix}&aEl precio del item fue cambiado a &f{0}'
+      Add:
+        Description: 'Agregar el item a la orden de compra'
+        Usage: '{prefix}&eDebes usar: &c/{0} &8[&7estado&8] &8[&7precio&8] &8[&7mensaje&8]'
+        Done: '{prefix}&aEl item &f{0} &afue agregado a la orden de compra &f{0}'
+  Data:
+    Usage: '{prefix}&eComandos de la Base de Satos: &7(/{0} <comando>...)'
+    Description: 'Interactuar con la base de datos'
+  Store:
+    Description: 'Abrir la tienda'
