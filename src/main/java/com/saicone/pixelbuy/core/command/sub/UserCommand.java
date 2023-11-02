@@ -73,7 +73,7 @@ public class UserCommand extends PixelCommand {
     }
 
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getUserAsync(sender, cmd[cmd.length - 1], (user) -> {
+        getUserAsync(sender, cmd[cmd.length - 2], (user) -> {
             final int page = args.length > 0 ? OptionalType.of(args[0]).asInt(-1) : 1;
             if (page < 1) {
                 getSubCommand("info").sendUsage(sender, cmd, args);
@@ -130,7 +130,7 @@ public class UserCommand extends PixelCommand {
     }
 
     public void calculate(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getUserAsync(sender, cmd[cmd.length - 1], (user) -> {
+        getUserAsync(sender, cmd[cmd.length - 2], (user) -> {
             final float amount = PixelBuy.get().getStore().getCheckout().donated(user);
             sendLang(sender, "amount", amount);
         });

@@ -89,11 +89,11 @@ public abstract class LangLoader implements Listener {
     protected void loadDisplays(@NotNull String name, @NotNull File file) {
         String prefix = null;
         for (var entry : getObjects(file).entrySet()) {
-            if (entry.getKey().equalsIgnoreCase("prefix") && entry.getValue() instanceof String) {
-                prefix = (String) entry.getValue();
-            }
             final List<String> display = loadDisplay(entry.getValue());
             if (display != null && !display.isEmpty()) {
+                if (entry.getKey().equalsIgnoreCase("prefix") && entry.getValue() instanceof String) {
+                    prefix = display.get(0);
+                }
                 if (!displays.containsKey(name)) {
                     displays.put(name, new HashMap<>());
                 }

@@ -39,6 +39,11 @@ public class OrderCommand extends PixelCommand {
 
     @Override
     public int getMinArgs() {
+        return 2;
+    }
+
+    @Override
+    public int getSubStart() {
         return 1;
     }
 
@@ -99,7 +104,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getOrderAsync(sender, cmd[cmd.length - 1], order -> {
+        getOrderAsync(sender, cmd[cmd.length - 2], order -> {
             final String key = order.getProvider() + ":" + order.getId();
             final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
             String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
@@ -126,7 +131,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void fix(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getOrderAsync(sender, cmd[cmd.length - 1], order -> {
+        getOrderAsync(sender, cmd[cmd.length - 2], order -> {
             boolean result = false;
             for (StoreOrder.Item item : order.getItems()) {
                 if (item.getState() == StoreOrder.State.ERROR) {
@@ -140,7 +145,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void execution(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getOrderAsync(sender, cmd[cmd.length - 1], order -> {
+        getOrderAsync(sender, cmd[cmd.length - 2], order -> {
             final StoreOrder.Execution execution = Enums.getIfPresent(StoreOrder.Execution.class, args[0]).orNull();
             if (execution == null) {
                 sendLang(sender, "Execute.Invalid", args[0]);
@@ -158,13 +163,13 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void give(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> getOrder(cmd[cmd.length - 1], true, order -> {
+        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> getOrder(cmd[cmd.length - 2], true, order -> {
             if (order == null) {
-                sendLang(sender, "Give.Format", cmd[cmd.length - 1]);
+                sendLang(sender, "Give.Format", cmd[cmd.length - 2]);
                 return false;
             }
             if (order.getDataId() > 0) {
-                sendLang(sender, "Give.Duplicated", cmd[cmd.length - 1]);
+                sendLang(sender, "Give.Duplicated", cmd[cmd.length - 2]);
                 return false;
             }
             final StoreUser user = UserCommand.getUser(args[0]);
@@ -184,7 +189,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void delete(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        getOrderAsync(sender, cmd[cmd.length - 1], order -> {
+        getOrderAsync(sender, cmd[cmd.length - 2], order -> {
             PixelBuy.get().getDatabase().getClient().deleteOrder(order.getProvider(), order.getId());
             sendLang(sender, "Delete.Done", order.getKey());
             return null;
@@ -240,7 +245,7 @@ public class OrderCommand extends PixelCommand {
         }
 
         public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-            getItemAsync(sender, cmd[cmd.length - 3], cmd[cmd.length - 1], (order, item) -> {
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.sendTo(sender, item.getId(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
                 return false;
             });
@@ -252,7 +257,7 @@ public class OrderCommand extends PixelCommand {
                 sendLang(sender, "State.Invalid", args[0]);
                 return;
             }
-            getItemAsync(sender, cmd[cmd.length - 3], cmd[cmd.length - 1], (order, item) -> {
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 item.state(state).error(args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : null);
                 sendLang(sender, "State.Done", state.name());
                 return true;
@@ -264,7 +269,7 @@ public class OrderCommand extends PixelCommand {
                 sendLang(sender, "Price.Invalid", args[0]);
                 return;
             }
-            getItemAsync(sender, cmd[cmd.length - 3], cmd[cmd.length - 1], (order, item) -> {
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 item.price(Float.parseFloat(args[0]));
                 sendLang(sender, "Price.Done", item.getPrice());
                 return true;
@@ -272,7 +277,7 @@ public class OrderCommand extends PixelCommand {
         }
 
         public void add(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-            getItemAsync(sender, cmd[cmd.length - 3], cmd[cmd.length - 1], true, (order, item) -> {
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], true, (order, item) -> {
                 final StoreOrder.State state = args.length > 0 ? Enums.getIfPresent(StoreOrder.State.class, args[0]).or(item.getState()) : item.getState();
                 final float price = args.length > 1 && Strings.isNumber(args[1]) && args[1].startsWith("-") ? Float.parseFloat(args[1]) : 0.0f;
                 final String error = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : null;

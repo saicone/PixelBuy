@@ -10,12 +10,12 @@ import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -34,7 +34,7 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
     });
 
     protected boolean register;
-    protected String name = getId();
+    protected String name;
     protected List<String> aliases = List.of();
     protected String permission = null;
 
@@ -46,15 +46,14 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
     public BukkitCommandNode(@NotNull String id) {
         this.id = id;
         this.subCommands = null;
+        this.name = id;
     }
 
     public BukkitCommandNode(@NotNull String id, @NotNull BukkitCommandNode... subCommands) {
         this.id = id;
         this.subCommands = new ArrayList<>();
-        for (BukkitCommandNode subCommand : subCommands) {
-            subCommand.setRoot(this);
-            this.subCommands.add(subCommand);
-        }
+        Collections.addAll(this.subCommands, subCommands);
+        this.name = id;
     }
 
     public void onLoad(@NotNull BukkitSettings settings) {
@@ -65,11 +64,11 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
                 }
             }
         }
-        register = settings.getIgnoreCase("commands", id, "main").asBoolean(false);
+        register = settings.getIgnoreCase("commands", id, "register").asBoolean(false);
         name = settings.getIgnoreCase("commands", id, "name").asString(id);
         aliases = settings.getIgnoreCase("commands", id, "aliases").asList(OptionalType::asString);
         permission = settings.getIgnoreCase("commands", id, "permission").asString();
-        final String delay = settings.getIgnoreCase("commands", id, "permission").asString();
+        final String delay = settings.getIgnoreCase("commands", id, "delay").asString();
         if (delay != null && !delay.isBlank() && !delay.trim().startsWith("-")) {
             final String[] split = delay.trim().split(" ", 2);
             if (Strings.isNumber(split[0])) {
@@ -96,8 +95,8 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
             } else {
                 BukkitCommand.unregister(bridge);
                 bridge.reload();
-                BukkitCommand.register(bridge);
             }
+            BukkitCommand.register(bridge);
         } else if (bridge != null) {
             BukkitCommand.unregister(bridge);
         }
@@ -261,7 +260,7 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
                     if (subCommand.match(args[start])) {
                         final String[] array = new String[cmd.length + start + 1];
                         System.arraycopy(cmd, 0, array, 0, cmd.length);
-                        System.arraycopy(args, 0, array, cmd.length - 1, start + 1);
+                        System.arraycopy(args, 0, array, cmd.length, start + 1);
                         subCommand.run(sender, array, Arrays.copyOfRange(args, start + 1, args.length));
                         return;
                     }
