@@ -88,7 +88,6 @@ public final class PixelBuy extends JavaPlugin {
 
     public void onReloadSettings() {
         PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
-        BukkitCommandNode.Delay.setDuration(settings.getIgnoreCase("plugin", "commanddelay").asLong(-1L));
     }
 
     @NotNull

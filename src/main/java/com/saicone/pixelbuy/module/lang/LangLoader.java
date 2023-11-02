@@ -130,8 +130,9 @@ public abstract class LangLoader implements Listener {
         // Check every superclass
         for (Class<?> clazz = getClass(); clazz != Object.class; clazz = clazz.getSuperclass()) {
             for (Field field : clazz.getDeclaredFields()) {
-                if (field.canAccess(null) && Value.class.isAssignableFrom(field.getType())) {
+                if (Value.class.isAssignableFrom(field.getType())) {
                     try {
+                        field.setAccessible(true);
                         final Value path = (Value) field.get(null);
                         path.setLoader(this);
                         paths.add(path);
