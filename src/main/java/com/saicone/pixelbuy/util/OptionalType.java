@@ -460,9 +460,24 @@ public class OptionalType extends IterableType<Object> {
         if (value == null) {
             return collection;
         }
-        try {
-            return (C) value;
-        } catch (ClassCastException ignored) { }
+        // Check if the current value is the same type of collection
+        if (collection.getClass().isInstance(value)) {
+            if (((Collection<?>) value).isEmpty()) {
+                return collection;
+            }
+            // Test first non-null value type
+            for (Object object : this) {
+                if (object == null) {
+                    continue;
+                }
+                if (object.equals(function.apply(OptionalType.of(object)))) {
+                    try {
+                        return (C) value;
+                    } catch (ClassCastException ignored) { }
+                }
+                break;
+            }
+        }
         if (isIterable()) {
             forEach(object -> {
                 final T result = function.apply(OptionalType.of(object));

@@ -52,7 +52,12 @@ public class PixelStore {
         loadSupervisors();
         baseItem = config.getConfigurationSection(settings -> settings.getRegex("(?i)(def(ault)?-?)items?"));
         final Set<String> loadedItems = new HashSet<>();
-        loadItems(new File(PixelBuy.get().getDataFolder(), "storeitems"), loadedItems);
+        final File folder = new File(PixelBuy.get().getDataFolder(), "storeitems");
+        if (!folder.exists()) {
+            folder.mkdirs();
+            PixelBuy.get().saveResource("storeitems/default.yml", false);
+        }
+        loadItems(folder, loadedItems);
         items.entrySet().removeIf(entry -> !loadedItems.contains(entry.getKey()));
         checkout.onLoad();
     }
@@ -160,7 +165,9 @@ public class PixelStore {
             final ConfigurationSection section = yaml.getConfigurationSection(id);
             if (section != null) {
                 final BukkitSettings config = BukkitSettings.of(section);
-                config.merge(baseItem);
+                if (baseItem != null) {
+                    config.merge(baseItem);
+                }
                 item.onReload(config);
             }
             items.put(id, item);
