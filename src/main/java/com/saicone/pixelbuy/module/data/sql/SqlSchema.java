@@ -33,6 +33,11 @@ public class SqlSchema {
         return map.get(type);
     }
 
+    @NotNull
+    public Map<SqlType, Map<String, List<String>>> getQueries() {
+        return queries;
+    }
+
     public boolean isLoaded() {
         return loaded;
     }
@@ -67,33 +72,34 @@ public class SqlSchema {
     public void load(@NotNull SqlType type, @NotNull Reader reader) throws IOException {
         String queryType = null;
         List<String> queries = new ArrayList<>();
-        StringBuilder builder = new StringBuilder();
+        StringJoiner joiner = new StringJoiner(" ");
         try (BufferedReader bf = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader)) {
             String line;
             while ((line = bf.readLine()) != null) {
                 line = line.trim();
-                if (line.startsWith("#") || line.startsWith("--")) {
+                boolean comment = line.startsWith("#");
+                if (comment || line.startsWith("--")) {
                     if (line.length() == 1 || line.substring(1).isBlank()) {
                         continue;
                     }
                     if (queryType != null) {
                         this.queries.computeIfAbsent(type, __ -> new HashMap<>()).put(queryType, queries);
                         queries = new ArrayList<>();
-                        builder = new StringBuilder();
+                        joiner = new StringJoiner(" ");
                     }
-                    queryType = line.substring(1).trim();
+                    queryType = line.substring(comment ? 1 : 2).trim();
                     continue;
                 }
 
                 if (line.endsWith(";")) {
-                    builder.append(line, 0, line.length() - 1);
-                    String query = builder.toString();
+                    joiner.add(line.substring(0, line.length() - 1));
+                    String query = joiner.toString();
                     if (!query.isBlank()) {
                         queries.add(query);
                     }
-                    builder = new StringBuilder();
+                    joiner = new StringJoiner(" ");
                 } else {
-                    builder.append(line);
+                    joiner.add(line);
                 }
             }
         }

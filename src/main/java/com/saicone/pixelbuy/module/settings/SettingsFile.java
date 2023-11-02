@@ -69,6 +69,26 @@ public class SettingsFile extends BukkitSettings {
         }
     }
 
+    @NotNull
+    public static File getFile(@NotNull String path) {
+        return getFile(null, path);
+    }
+
+    @NotNull
+    public static File getFile(@Nullable File parent, @NotNull String path) {
+        File file = parent;
+        for (String s : path.split("/")) {
+            if (s.isBlank()) {
+                continue;
+            }
+            file = file == null ? new File(s) : new File(file, s);
+        }
+        if (file == null) {
+            throw new IllegalArgumentException("Cannot get file from blank path");
+        }
+        return file;
+    }
+
     @Nullable
     public static InputStream getResource(@NotNull String name) {
         try {

@@ -9,6 +9,7 @@ import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.sql.SqlSchema;
 import com.saicone.pixelbuy.module.data.sql.SqlType;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
+import com.saicone.pixelbuy.module.settings.SettingsFile;
 import com.saicone.pixelbuy.util.OptionalType;
 import com.saicone.pixelbuy.util.Strings;
 import com.zaxxer.hikari.HikariConfig;
@@ -16,12 +17,14 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class HikariDatabase implements DataClient {
 
@@ -56,6 +59,7 @@ public class HikariDatabase implements DataClient {
         if (!SCHEMA.isLoaded()) {
             try {
                 SCHEMA.load("com/saicone/pixelbuy/module/data/schema");
+                PixelBuy.log(4, "Sql schema load queries for " + SCHEMA.getQueries().size() + " sql types: " + SCHEMA.getQueries().keySet().stream().map(Enum::name).collect(Collectors.joining(", ")));
             } catch (IOException e) {
                 PixelBuy.logException(1, e, "Cannot load SQL schema");
             }
@@ -74,6 +78,10 @@ public class HikariDatabase implements DataClient {
             this.hikariConfig.setPassword(config.getIgnoreCase("password").asString("password"));
         } else {
             final String path = config.getIgnoreCase("path").asString("plugins/PixelBuy/database/" + this.type.name().toLowerCase() + ".db");
+            final File file = SettingsFile.getFile(path);
+            if (!file.exists() && path.contains("/")) {
+                file.getParentFile().mkdirs();
+            }
 
             this.hikariConfig.setJdbcUrl(this.type.getUrl(path));
         }
