@@ -46,19 +46,27 @@ public class UserCommand extends PixelCommand {
 
     @Nullable
     public static StoreUser getUser(@NotNull String s) {
+        StoreUser user;
         try {
             final UUID id = UUID.fromString(s);
             final OfflinePlayer player = Bukkit.getOfflinePlayer(id);
             if (player.getName() == null) {
                 return null;
             }
-            return PixelBuy.get().getDatabase().getDataOrNull(id, player.getName());
+            user = PixelBuy.get().getDatabase().getDataOrNull(id, player.getName());
         } catch (IllegalArgumentException e) {
             if (s.length() > 20) {
                 return null;
             }
-            return PixelBuy.get().getDatabase().getDataOrNull(PlayerIdProvider.getUniqueId(s), s);
+            user = PixelBuy.get().getDatabase().getDataOrNull(PlayerIdProvider.getUniqueId(s), s);
         }
+        if (user == null) {
+            return null;
+        }
+        if (!user.isLoaded()) {
+            PixelBuy.get().getDatabase().loadOrders(true, user);
+        }
+        return user;
     }
 
     public void getUserAsync(@NotNull CommandSender sender, @NotNull String s, @NotNull Consumer<StoreUser> consumer) {
@@ -117,11 +125,12 @@ public class UserCommand extends PixelCommand {
                         s = Strings.replaceArgs(s, item.getId(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
                         if (first) {
                             first = false;
-                            sender.sendMessage("  " + INDEX.replace("#", String.valueOf(cmdNum)) + s);
+                            sender.sendMessage("   " + INDEX.replace("#", String.valueOf(cmdNum)) + s);
                         } else {
-                            sender.sendMessage("     " + s);
+                            sender.sendMessage("      " + s);
                         }
                     }
+                    first = true;
                     cmdNum++;
                 }
                 orderNum++;
@@ -132,7 +141,7 @@ public class UserCommand extends PixelCommand {
     public void calculate(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getUserAsync(sender, cmd[cmd.length - 2], (user) -> {
             final float amount = PixelBuy.get().getStore().getCheckout().donated(user);
-            sendLang(sender, "amount", amount);
+            sendLang(sender, "Calculate.Amount", amount);
         });
     }
 }

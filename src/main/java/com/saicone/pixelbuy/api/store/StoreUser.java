@@ -138,4 +138,19 @@ public class StoreUser {
         orders.removeIf(order -> order.getId() == id);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o instanceof UUID) return uniqueId.equals(o);
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StoreUser storeUser = (StoreUser) o;
+
+        return uniqueId.equals(storeUser.uniqueId);
+    }
+
+    @Override
+    public int hashCode() {
+        return uniqueId.hashCode();
+    }
 }

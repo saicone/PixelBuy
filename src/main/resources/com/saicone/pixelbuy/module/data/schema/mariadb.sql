@@ -29,7 +29,7 @@ SELECT * FROM `{prefix}users` WHERE `username` = ?;
 
 -- select:order
 
-SELECT * FROM `{prefix}orders` WHERE `provider` = ?, `order` = ?, `group` = ?;
+SELECT * FROM `{prefix}orders` WHERE `provider` = ? AND `order` = ? AND `group` = ?;
 
 -- select:users
 
@@ -64,7 +64,7 @@ INSERT INTO `{prefix}orders` (
 
 -- delete:order
 
-DELETE FROM `{prefix}orders` WHERE `provider` = ?, `order` = ?;
+DELETE FROM `{prefix}orders` WHERE `provider` = ? AND `order` = ?;
 
 -- update:order
 

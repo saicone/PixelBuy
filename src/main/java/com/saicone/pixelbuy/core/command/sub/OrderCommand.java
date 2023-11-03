@@ -58,7 +58,7 @@ public class OrderCommand extends PixelCommand {
             return;
         }
         final String provider = split[0];
-        if (Strings.isNumber(split[1])) {
+        if (!Strings.isNumber(split[1])) {
             consumer.apply(null);
             return;
         }
@@ -71,6 +71,9 @@ public class OrderCommand extends PixelCommand {
         }
 
         for (var entry : PixelBuy.get().getDatabase().getCached().entrySet()) {
+            if (entry.getValue().getOrders().isEmpty()) {
+                continue;
+            }
             final Iterator<StoreOrder> iterator = entry.getValue().getOrders().iterator();
             while (iterator.hasNext()) {
                 final StoreOrder order = iterator.next();
@@ -124,6 +127,7 @@ public class OrderCommand extends PixelCommand {
                         sender.sendMessage("   " + s);
                     }
                 }
+                first = true;
                 cmdNum++;
             }
             return false;
@@ -180,10 +184,10 @@ public class OrderCommand extends PixelCommand {
             for (int i = 1; i < args.length; i++) {
                 order.addItem(args[i]);
             }
-            user.mergeOrder(order);
-            user.setEdited(true);
-            sendLang(sender, "Give.Done", order.getKey(), user.getName() == null ? user.getUniqueId() : user.getName());
-            PixelBuy.get().getStore().getCheckout().process(user);
+            order.setBuyer(user.getUniqueId());
+            if (PixelBuy.get().getStore().getCheckout().process(order)) {
+                sendLang(sender, "Give.Done", order.getKey(), user.getName() == null ? user.getUniqueId() : user.getName());
+            }
             return false;
         }));
     }

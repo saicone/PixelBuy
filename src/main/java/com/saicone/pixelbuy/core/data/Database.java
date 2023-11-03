@@ -155,6 +155,9 @@ public class Database {
             cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
         }
         client.getUser(sync, uniqueId, username, user -> {
+            if (user == null) {
+                user = new StoreUser(uniqueId, username, 0.0f);
+            }
             StoreUser foundUser = cached.get(user.getUniqueId());
             if (foundUser == null) {
                 cached.put(uniqueId, user);

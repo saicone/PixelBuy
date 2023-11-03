@@ -127,7 +127,8 @@ public class Checkout implements Listener {
                 return false;
             }
             user = PixelBuy.get().getDatabase().getData(player.getUniqueId(), player.getName());
-        } else if (!user.isLoaded()) {
+        }
+        if (!user.isLoaded()) {
             PixelBuy.get().getDatabase().loadOrders(true, user);
         }
 
