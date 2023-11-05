@@ -57,13 +57,13 @@ public final class PixelBuy extends JavaPlugin {
 
         settings.loadFrom(getDataFolder(), true);
         lang.load();
-        log(4, "Files loaded");
+        log(3, "Files loaded");
 
         database.onLoad();
-        log(4, "Database loaded");
+        log(3, "Database loaded");
 
         store.onLoad();
-        log(4, "Store loaded");
+        log(3, "Store loaded");
 
         PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
 

@@ -102,6 +102,10 @@ public class SqlSchema {
                     joiner.add(line);
                 }
             }
+
+            if (queryType != null) {
+                this.queries.computeIfAbsent(type, __ -> new HashMap<>()).put(queryType, queries);
+            }
         }
     }
 }

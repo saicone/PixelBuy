@@ -7,6 +7,7 @@ import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.DataClient;
 
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
+import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -174,15 +175,21 @@ public class Database {
         client.getUsers(sync, user -> cached.put(user.getUniqueId(), user));
     }
 
-    public void saveDataAsync(@Nullable StoreUser user) {
+    public void saveDataAsync(@Nullable StoreUser user, @NotNull Consumer<StoreUser> consumer) {
         if (user != null) {
-            client.saveUserAsync(user);
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                client.saveUser(user);
+                consumer.accept(user);
+            });
         }
     }
 
-    public void saveDataAsync(@Nullable StoreOrder order) {
+    public void saveDataAsync(@Nullable StoreOrder order, @NotNull Consumer<StoreOrder> consumer) {
         if (order != null) {
-            client.saveOrdersAsync(Collections.singleton(order));
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                client.saveOrders(Collections.singleton(order));
+                consumer.accept(order);
+            });
         }
     }
 }

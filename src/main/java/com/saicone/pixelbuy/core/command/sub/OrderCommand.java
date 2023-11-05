@@ -87,17 +87,22 @@ public class OrderCommand extends PixelCommand {
         }
 
         PixelBuy.get().getDatabase().getClient().getOrder(provider, id, group, order -> {
+            final StoreOrder finalOrder;
             if (order == null && create) {
-                order = new StoreOrder(provider, id, group);
+                finalOrder = new StoreOrder(provider, id, group);
+            } else {
+                finalOrder = order;
             }
-            if (consumer.apply(order) == Boolean.TRUE && order != null) {
-                PixelBuy.get().getDatabase().getClient().saveOrders(Collections.singleton(order));
+            if (consumer.apply(finalOrder) == Boolean.TRUE && finalOrder != null) {
+                Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                    PixelBuy.get().getDatabase().getClient().saveOrders(Collections.singleton(finalOrder));
+                });
             }
         });
     }
 
     public void getOrderAsync(@NotNull CommandSender sender, @NotNull String s, @NotNull Function<StoreOrder, Boolean> consumer) {
-        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> getOrder(s, order -> {
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> getOrder(s, order -> {
             if (order == null) {
                 Lang.COMMAND_DISPLAY_ORDER_INVALID.sendTo(sender, s);
                 return false;
@@ -167,7 +172,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void give(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
-        Bukkit.getScheduler().runTask(PixelBuy.get(), () -> getOrder(cmd[cmd.length - 2], true, order -> {
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> getOrder(cmd[cmd.length - 2], true, order -> {
             if (order == null) {
                 sendLang(sender, "Give.Format", cmd[cmd.length - 2]);
                 return false;
@@ -194,8 +199,10 @@ public class OrderCommand extends PixelCommand {
 
     public void delete(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getOrderAsync(sender, cmd[cmd.length - 2], order -> {
-            PixelBuy.get().getDatabase().getClient().deleteOrder(order.getProvider(), order.getId());
-            sendLang(sender, "Delete.Done", order.getKey());
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                PixelBuy.get().getDatabase().getClient().deleteOrder(order.getProvider(), order.getId());
+                sendLang(sender, "Delete.Done", order.getKey());
+            });
             return null;
         });
     }

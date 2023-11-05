@@ -64,6 +64,9 @@ public class HikariDatabase implements DataClient {
                 PixelBuy.logException(1, e, "Cannot load SQL schema");
             }
         }
+        if (SCHEMA.getQueries().containsKey(this.type)) {
+            PixelBuy.log(4, "Using sql type '" + this.type.name() + "' with queries: " + String.join(", ", SCHEMA.getQueries().get(this.type).keySet()));
+        }
 
         this.hikariConfig = new HikariConfig();
 
@@ -236,8 +239,11 @@ public class HikariDatabase implements DataClient {
         final String time = result.getString("time");
         if (time != null) {
             int ordinal = 0;
-            for (String s : time.split(",")) {
-                order.setDate(ordinal, LocalDate.parse(s));
+            for (String s : time.split("\\|")) {
+                if (s.equalsIgnoreCase("null") || !Strings.isNumber(s)) {
+                    continue;
+                }
+                order.setDate(ordinal, LocalDate.ofEpochDay(Long.parseLong(s)));
                 ordinal++;
             }
         }
@@ -247,10 +253,12 @@ public class HikariDatabase implements DataClient {
         }
         final String items = result.getString("items");
         if (items != null) {
-            final Map<String, Set<StoreOrder.Item>> map = OptionalType.GSON.fromJson(items, ITEM_TYPE);
-            for (var entry : map.entrySet()) {
-                for (StoreOrder.Item item : entry.getValue()) {
-                    order.addItem(entry.getKey(), item);
+            if (items.startsWith("{")) {
+                final Map<String, Set<StoreOrder.Item>> map = OptionalType.GSON.fromJson(items, ITEM_TYPE);
+                for (var entry : map.entrySet()) {
+                    for (StoreOrder.Item item : entry.getValue()) {
+                        order.addItem(entry.getKey(), item);
+                    }
                 }
             }
         }
@@ -340,13 +348,13 @@ public class HikariDatabase implements DataClient {
 
     private void setOrder(@NotNull PreparedStatement stmt, @NotNull StoreOrder order, int start) throws SQLException {
         stmt.setString(start, order.getBuyer().toString());
-        final StringJoiner joiner = new StringJoiner(",");
+        final StringJoiner joiner = new StringJoiner("|");
         for (LocalDate date : order.getDates()) {
-            joiner.add(date.toString());
+            joiner.add(date == null ? "null" : String.valueOf(date.toEpochDay()));
         }
         stmt.setString(start + 1, joiner.toString());
         stmt.setString(start + 2, order.getExecution().name());
-        stmt.setString(start + 3, OptionalType.GSON.toJson(order.getItems()));
+        stmt.setString(start + 3, OptionalType.GSON.toJson(order.getAllItems()));
     }
 
     @Override
