@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @Dependencies({
-        @Dependency(value = "com.github.cryptomorin:XSeries:9.6.1.1", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
-        @Dependency(value = "com.saicone.rtag:rtag-item:1.4.1", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
-        @Dependency(value = "com.zaxxer:HikariCP:5.0.1", relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"})
+        @Dependency(value = "com.github.cryptomorin:XSeries:9.7.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
+        @Dependency(value = "com.saicone.rtag:rtag-item:1.4.3", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
+        @Dependency(value = "com.zaxxer:HikariCP:5.1.0", relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"})
 })
 public final class PixelBuy extends JavaPlugin {
 

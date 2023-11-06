@@ -25,9 +25,9 @@ processResources {
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT'
 
-    compileOnly 'com.github.oraxen:oraxen:1.162.0'
-    compileOnly('net.Indyuce:MMOItems-API:6.9.2-SNAPSHOT') { transitive = false }
-    compileOnly 'me.clip:placeholderapi:2.11.3'
+    compileOnly 'com.github.oraxen:oraxen:1.163.0'
+    compileOnly('net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT') { transitive = false }
+    compileOnly 'me.clip:placeholderapi:2.11.5'
 
     // Library loader
     implementation 'com.saicone.ezlib:ezlib:1.2.3'
@@ -36,10 +36,10 @@ dependencies {
     annotationProcessor 'com.saicone.ezlib:annotations:1.2.3'
 
     // Implementation
-    compileOnly 'com.github.cryptomorin:XSeries:9.6.1.1'
-    compileOnly 'com.saicone.rtag:rtag:1.4.1'
-    compileOnly 'com.saicone.rtag:rtag-item:1.4.1'
-    compileOnly 'com.zaxxer:HikariCP:5.0.1'
+    compileOnly 'com.github.cryptomorin:XSeries:9.7.0'
+    compileOnly 'com.saicone.rtag:rtag:1.4.3'
+    compileOnly 'com.saicone.rtag:rtag-item:1.4.3'
+    compileOnly 'com.zaxxer:HikariCP:5.1.0'
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
