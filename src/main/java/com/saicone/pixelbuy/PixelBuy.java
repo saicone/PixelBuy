@@ -5,11 +5,15 @@ import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.core.data.Database;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
+import com.saicone.pixelbuy.module.hook.Placeholders;
 import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
+import com.saicone.pixelbuy.util.OptionalType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public final class PixelBuy extends JavaPlugin {
 
@@ -20,6 +24,8 @@ public final class PixelBuy extends JavaPlugin {
     private final Database database;
     private final PixelStore store;
     private final PixelBuyCommand command;
+
+    private List<String> placeholderNames;
 
     @NotNull
     public static PixelBuy get() {
@@ -65,13 +71,17 @@ public final class PixelBuy extends JavaPlugin {
         store.onLoad();
         log(3, "Store loaded");
 
-        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+        onReloadSettings();
 
         command.onLoad(settings);
     }
 
     @Override
     public void onDisable() {
+        if (placeholderNames != null) {
+            Placeholders.unregister(placeholderNames);
+            placeholderNames = null;
+        }
         store.onDisable();
         database.onDisable();
     }
@@ -87,6 +97,34 @@ public final class PixelBuy extends JavaPlugin {
 
     public void onReloadSettings() {
         PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+        if (settings.getIgnoreCase("placeholder", "register").asBoolean(true)) {
+            placeholderNames = settings.getIgnoreCase("placeholder", "names").asList(OptionalType::asString);
+            Placeholders.register(this, placeholderNames, (player, params) -> {
+                params = params.toLowerCase();
+                if (params.startsWith("top")) {
+                    if (params.length() == 3) {
+                        return player == null ? 0 : database.getIndex(player.getUniqueId()) + 1;
+                    }
+                    params = params.substring(4);
+                    int i = params.indexOf('_');
+                    if (i < 1) {
+                        return null;
+                    }
+                    try {
+                        final int index = Integer.parseInt(params.substring(0, i)) - 1;
+                        final var cached = database.getCached(index);
+                        return cached == null ? null : cached.get(params.substring(i + 1));
+                    } catch (NumberFormatException e) {
+                        return null;
+                    }
+                } else {
+                    return player == null ? null : database.getDataAsync(player.getUniqueId(), player.getName()).get(params);
+                }
+            });
+        } else if (placeholderNames != null) {
+            Placeholders.unregister(placeholderNames);
+            placeholderNames = null;
+        }
     }
 
     @NotNull

@@ -24,7 +24,6 @@ public class Checkout implements Listener {
     private final PixelStore store;
 
     private long executionDelay = -1;
-    private boolean usersLoaded;
     private final Set<String> append = new HashSet<>();
 
     private boolean registered;
@@ -45,7 +44,6 @@ public class Checkout implements Listener {
 
     public void onLoad() {
         executionDelay = store.getConfig().getRegex("(?i)checkout", "(?i)execution-?delay").asLong(100L);
-        usersLoaded = store.getConfig().getRegex("(?i)checkout", "(?i)load-?users").asBoolean(true);
         append.clear();
         for (var entry : store.getItems().entrySet()) {
             if (!entry.getValue().getAppend().isEmpty()) {
@@ -56,10 +54,10 @@ public class Checkout implements Listener {
         if (!registered) {
             registered = true;
             Bukkit.getPluginManager().registerEvents(this, PixelBuy.get());
-            if (usersLoaded) {
+            if (PixelBuy.get().getDatabase().isUserLoadAll()) {
                 PixelBuy.get().getDatabase().loadUsers(true);
             }
-        } else if (usersLoaded) {
+        } else if (PixelBuy.get().getDatabase().isUserLoadAll()) {
             PixelBuy.get().getDatabase().loadUsers(false);
         }
     }
@@ -77,10 +75,6 @@ public class Checkout implements Listener {
         return executionDelay;
     }
 
-    public boolean isUsersLoaded() {
-        return usersLoaded;
-    }
-
     public void load(@NotNull Player player) {
         PixelBuy.get().getDatabase().loadUser(false, player.getUniqueId(), player.getName(), user -> {
             for (StoreOrder order : user.getOrders()) {
@@ -92,7 +86,7 @@ public class Checkout implements Listener {
 
     public void unload(@NotNull Player player) {
         PixelBuy.get().getDatabase().saveDataAsync(PixelBuy.get().getDatabase().getCached(player.getUniqueId()), user -> {
-            if (usersLoaded) {
+            if (PixelBuy.get().getDatabase().isUserLoadAll()) {
                 user.setLoaded(false);
                 user.getOrders().clear();
             } else {

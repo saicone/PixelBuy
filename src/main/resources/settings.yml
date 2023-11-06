@@ -8,7 +8,7 @@ Plugin:
   Language: 'en_US'
   # Player UUID provider:
   # AUTO     = Choose automatically the best available option
-  # PIXELBUY = Use PixelBuy loaded data (the option LoadUsers on store.yml must be activated)
+  # PIXELBUY = Use PixelBuy loaded data (the option loadAll user on database configuration must be activated)
   # BUKKIT   = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
   UUIDProvider: AUTO
 
@@ -33,6 +33,20 @@ Lang:
 
 # Database configuration
 Database:
+  # User data configuration
+  User:
+    # Load or not all user data (name, uuid, donations) into memory
+    # This option also make available the top donors option
+    LoadAll: true
+  # Top donors configuration
+  Top:
+    # Top limit
+    # Set to -1 to calculate a top position for every user
+    Limit: -1
+    # Time in ticks between top calculation
+    # 20 ticks = 1 second
+    # Set to -1 to disable
+    Time: 6000
   # Database types:
   # - SQL
   Type: SQL
@@ -63,6 +77,15 @@ Database:
     Flags:
       - 'useSSL=false'
       - 'verifyServerCertificate=false'
+
+# PlaceholderAPI hook configuration
+Placeholder:
+  # Register or not the placeholder expansion
+  Register: true
+  # The names to use for placeholder
+  Names:
+    - 'pixelbuy'
+    - 'pbuy'
 
 # Plugin commands configuration
 Commands:

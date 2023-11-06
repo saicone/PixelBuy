@@ -11,19 +11,28 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class Database {
 
     private final Map<UUID, StoreUser> cached = new ConcurrentHashMap<>();
+    private List<UUID> sorted = List.of();
 
+    private boolean userLoadAll = true;
+    private long topLimit = -1;
+    private long topTime = -1;
+
+    private int topTask = -1;
     private DataClient client;
 
     public void onLoad() {
+        userLoadAll = PixelBuy.settings().getIgnoreCase("database", "user", "loadall").asBoolean(true);
+        topLimit = PixelBuy.settings().getIgnoreCase("database", "top", "limit").asLong(-1L);
+        topTime = PixelBuy.settings().getIgnoreCase("database", "top", "time").asLong(6000L);
+
         final String type = PixelBuy.settings().getIgnoreCase("database", "type").asString("SQL");
         if (!type.equalsIgnoreCase("SQL")) {
             PixelBuy.log(1, "The database type '" + type + "' doesn't exist");
@@ -39,6 +48,15 @@ public class Database {
         client = new HikariDatabase();
         client.onLoad(config);
         client.onStart();
+
+        if (topTime > 0) {
+            if (topTask < 0) {
+                topTask = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), this::calculateTop, 100L, topTime).getTaskId();
+            }
+        } else if (topTask > 0) {
+            Bukkit.getScheduler().cancelTask(topTask);
+            topTask = -1;
+        }
     }
 
     public void onDisable() {
@@ -56,6 +74,10 @@ public class Database {
         onLoad();
     }
 
+    public boolean isUserLoadAll() {
+        return userLoadAll;
+    }
+
     @NotNull
     public Map<UUID, StoreUser> getCached() {
         return cached;
@@ -64,6 +86,15 @@ public class Database {
     @Nullable
     public StoreUser getCached(@NotNull UUID uniqueId) {
         return cached.get(uniqueId);
+    }
+
+    @Nullable
+    public StoreUser getCached(int index) {
+        return index < sorted.size() ? cached.get(sorted.get(index)) : null;
+    }
+
+    public int getIndex(@NotNull UUID uniqueId) {
+        return sorted.indexOf(uniqueId);
     }
 
     @Nullable
@@ -191,5 +222,14 @@ public class Database {
                 consumer.accept(order);
             });
         }
+    }
+
+    public void calculateTop() {
+        var stream = cached.entrySet().stream()
+                .sorted(Comparator.<Map.Entry<UUID, StoreUser>>comparingDouble(entry -> entry.getValue().getDonated()).reversed());
+        if (topLimit > 0) {
+            stream = stream.limit(topLimit);
+        }
+        sorted = stream.map(Map.Entry::getKey).collect(Collectors.toList());
     }
 }
