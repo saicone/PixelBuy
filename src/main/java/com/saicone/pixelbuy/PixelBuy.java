@@ -1,5 +1,8 @@
 package com.saicone.pixelbuy;
 
+import com.saicone.ezlib.Dependencies;
+import com.saicone.ezlib.Dependency;
+import com.saicone.ezlib.EzlibLoader;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.core.data.Database;
@@ -15,10 +18,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@Dependencies({
+        @Dependency(value = "com.github.cryptomorin:XSeries:9.6.1.1", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
+        @Dependency(value = "com.saicone.rtag:rtag-item:1.4.1", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
+        @Dependency(value = "com.zaxxer:HikariCP:5.0.1", relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"})
+})
 public final class PixelBuy extends JavaPlugin {
 
     private static PixelBuy instance;
 
+    private final EzlibLoader libraryLoader;
     private final SettingsFile settings;
     private final Lang lang;
     private final Database database;
@@ -50,6 +59,21 @@ public final class PixelBuy extends JavaPlugin {
     }
 
     public PixelBuy() {
+        libraryLoader = new EzlibLoader().logger((level, msg) -> {
+            switch (level) {
+                case 1:
+                    getLogger().severe(msg);
+                    break;
+                case 2:
+                    getLogger().warning(msg);
+                    break;
+                case 3:
+                    getLogger().info(msg);
+                    break;
+                default:
+                    break;
+            }
+        }).replace("{package}", "com.saicone.pixelbuy").load();
         settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
         database = new Database();
@@ -125,6 +149,11 @@ public final class PixelBuy extends JavaPlugin {
             Placeholders.unregister(placeholderNames);
             placeholderNames = null;
         }
+    }
+
+    @NotNull
+    public EzlibLoader getLibraryLoader() {
+        return libraryLoader;
     }
 
     @NotNull

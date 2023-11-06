@@ -1,6 +1,7 @@
 package com.saicone.pixelbuy.module.data.client;
 
 import com.google.common.reflect.TypeToken;
+import com.saicone.ezlib.EzlibLoader;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.module.data.DataClient;
@@ -69,6 +70,10 @@ public class HikariDatabase implements DataClient {
         }
 
         this.hikariConfig = new HikariConfig();
+        if (!this.type.isDriverPresent()) {
+            PixelBuy.get().getLibraryLoader().applyDependency(new EzlibLoader.Dependency().path(this.type.getDependency()));
+        }
+        this.hikariConfig.setDriverClassName(this.type.getDriver());
 
         if (this.type.isExternal()) {
             final String host = config.getIgnoreCase("host").asString("localhost");

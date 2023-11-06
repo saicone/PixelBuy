@@ -29,10 +29,17 @@ dependencies {
     compileOnly('net.Indyuce:MMOItems-API:6.9.2-SNAPSHOT') { transitive = false }
     compileOnly 'me.clip:placeholderapi:2.11.3'
 
-    implementation 'com.github.cryptomorin:XSeries:9.6.1.1'
-    implementation 'com.saicone.rtag:rtag:1.4.1'
-    implementation 'com.saicone.rtag:rtag-item:1.4.1'
-    implementation 'com.zaxxer:HikariCP:5.0.1'
+    // Library loader
+    implementation 'com.saicone.ezlib:ezlib:1.2.3'
+    implementation 'com.saicone.ezlib:loader:1.2.3'
+    compileOnly 'com.saicone.ezlib:annotations:1.2.3'
+    annotationProcessor 'com.saicone.ezlib:annotations:1.2.3'
+
+    // Implementation
+    compileOnly 'com.github.cryptomorin:XSeries:9.6.1.1'
+    compileOnly 'com.saicone.rtag:rtag:1.4.1'
+    compileOnly 'com.saicone.rtag:rtag-item:1.4.1'
+    compileOnly 'com.zaxxer:HikariCP:5.0.1'
 
     compileOnly 'org.jetbrains:annotations:24.0.1'
 
@@ -55,6 +62,7 @@ jar {
 
 shadowJar {
     archiveClassifier.set('')
+    relocate 'com.saicone.ezlib', project.group + '.ezlib'
     relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
     relocate 'com.saicone.rtag', project.group + '.libs.rtag'
     relocate 'com.zaxxer.hikari', project.group + '.libs.hikari'
