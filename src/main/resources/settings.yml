@@ -78,6 +78,36 @@ Database:
       - 'useSSL=false'
       - 'verifyServerCertificate=false'
 
+# Messenger configuration
+Messenger:
+  # Enable or not this feature
+  Enabled: false
+  # Channel name
+  Channel: 'pixelbuy:main'
+  # Messenger types:
+  # AUTO     = Choose automatically the best available option
+  # SQL      = Use the current SQL database if it's an external database type
+  # REDIS    = Use a Redis server for messaging (configure it below)
+  # RABBITMQ = Use a RabbitMQ server for messaging (configure it below)
+  Type: AUTO
+  # Redis configuration
+  Redis:
+    # Redis url connection
+    #
+    # URL format: redis://[user]:[password@]host[:port][/databaseNumber]
+    Url: 'redis://:password@localhost:6379/0'
+  # RabbitMQ configuration
+  RabbitMQ:
+    # This is like the "pre-channel", the way to access the messaging channels
+    # You can use the same exchange in multiple servers with different channels
+    Exchange: 'pixelbuy'
+    # RabbitMQ url connection
+    # Documentation: https://www.rabbitmq.com/uri-spec.html
+    #
+    # URL: amqp://userName:password@hostName:portNumber/virtualHost
+    # If the virtual host is "/", set has "%2F"
+    Url: 'amqp://guest:guest@localhost:5672/%2F'
+
 # PlaceholderAPI hook configuration
 Placeholder:
   # Register or not the placeholder expansion

@@ -94,6 +94,9 @@ Command:
       Description: 'Administrar los items de compra'
       Info:
         Description: 'Obtener información sobre el item de compra'
+        Error:
+          - '{prefix}&cEl item de compra &6{0} &ctiene el error:'
+          - '&f{1}'
       State:
         Description: 'Cambiar el estado del item'
         Usage: '{prefix}&eDebes usar: &c/{0} &8<&7estado&8> &8[&7mensaje&8]'

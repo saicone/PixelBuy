@@ -175,7 +175,6 @@ public class PixelStore {
     }
 
     public void onDisable() {
-        checkout.onDisable();
         for (var entry : supervisors.entrySet()) {
             entry.getValue().onClose();
         }
@@ -225,6 +224,16 @@ public class PixelStore {
     @NotNull
     public String getGroup() {
         return group;
+    }
+
+    @NotNull
+    public Set<String> getGroups() {
+        final Set<String> groups = new HashSet<>();
+        groups.add(group);
+        for (var entry : getSupervisors().entrySet()) {
+            groups.add(entry.getValue().getGroup());
+        }
+        return groups;
     }
 
     @Nullable

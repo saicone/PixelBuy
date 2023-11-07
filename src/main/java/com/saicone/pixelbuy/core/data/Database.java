@@ -8,6 +8,11 @@ import com.saicone.pixelbuy.module.data.DataClient;
 
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,10 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class Database {
+public class Database implements Listener {
 
     private final Map<UUID, StoreUser> cached = new ConcurrentHashMap<>();
     private List<UUID> sorted = List.of();
+    private final Messenger messenger;
 
     private boolean userLoadAll = true;
     private long topLimit = -1;
@@ -27,6 +33,21 @@ public class Database {
 
     private int topTask = -1;
     private DataClient client;
+    private boolean registered;
+
+    public Database() {
+        this.messenger = new Messenger(this);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        loadUser(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        unloadUser(event.getPlayer());
+    }
 
     public void onLoad() {
         userLoadAll = PixelBuy.settings().getIgnoreCase("database", "user", "loadall").asBoolean(true);
@@ -57,20 +78,33 @@ public class Database {
             Bukkit.getScheduler().cancelTask(topTask);
             topTask = -1;
         }
+
+        if (!registered) {
+            loadOnlineUsers(true);
+            registered = true;
+            Bukkit.getPluginManager().registerEvents(this, PixelBuy.get());
+            if (userLoadAll) {
+                loadUsers(true);
+            }
+        } else if (userLoadAll) {
+            loadOnlineUsers(false);
+            loadUsers(false);
+        }
+
+        messenger.onLoad();
     }
 
     public void onDisable() {
         if (client != null) {
+            messenger.onDisable();
+            Bukkit.getOnlinePlayers().forEach(this::unloadUser);
             client.saveUsers(cached.values());
             client.onClose();
         }
     }
 
     public void onReload() {
-        if (client != null) {
-            client.saveUsers(cached.values());
-            client.onClose();
-        }
+        onDisable();
         onLoad();
     }
 
@@ -173,6 +207,14 @@ public class Database {
         client.getOrders(sync, user.getUniqueId(), user::mergeOrder);
     }
 
+    public void loadUser(@NotNull Player player) {
+        loadUser(player, user -> PixelBuy.get().getStore().getCheckout().onJoin(user));
+    }
+
+    public void loadUser(@NotNull Player player, @NotNull Consumer<StoreUser> consumer) {
+        loadUser(false, player.getUniqueId(), player.getName(), consumer);
+    }
+
     public void loadUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
         final StoreUser cachedUser = cached.get(uniqueId);
         if (cachedUser != null) {
@@ -206,22 +248,71 @@ public class Database {
         client.getUsers(sync, user -> cached.put(user.getUniqueId(), user));
     }
 
-    public void saveDataAsync(@Nullable StoreUser user, @NotNull Consumer<StoreUser> consumer) {
+    public void loadOnlineUsers(boolean sync) {
+        if (sync) {
+            Bukkit.getOnlinePlayers().forEach(this::loadUser);
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> Bukkit.getOnlinePlayers().forEach(this::loadUser));
+        }
+    }
+
+    public void unloadUser(@NotNull Player player) {
+        saveDataAsync(getCached(player.getUniqueId()), this::unloadUser);
+    }
+
+    public void unloadUser(@NotNull StoreUser user) {
+        if (userLoadAll) {
+            user.setLoaded(false);
+            user.getOrders().clear();
+        } else {
+            cached.remove(user.getUniqueId());
+        }
+    }
+
+    public void saveData(@NotNull StoreUser user) {
+        client.saveUser(user);
+        messenger.update(user);
+    }
+
+    public void saveData(@NotNull StoreOrder order) {
+        client.saveOrders(Collections.singleton(order));
+        messenger.update(order);
+    }
+
+    public void saveDataAsync(@Nullable StoreUser user, @Nullable Consumer<StoreUser> consumer) {
         if (user != null) {
             Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                client.saveUser(user);
-                consumer.accept(user);
+                saveData(user);
+                if (consumer != null) {
+                    consumer.accept(user);
+                }
             });
         }
     }
 
-    public void saveDataAsync(@Nullable StoreOrder order, @NotNull Consumer<StoreOrder> consumer) {
+    public void saveDataAsync(@Nullable StoreOrder order, @Nullable Consumer<StoreOrder> consumer) {
         if (order != null) {
             Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                client.saveOrders(Collections.singleton(order));
-                consumer.accept(order);
+                saveData(order);
+                if (consumer != null) {
+                    consumer.accept(order);
+                }
             });
         }
+    }
+
+    public void deleteData(@NotNull StoreOrder order) {
+        client.deleteOrder(order.getProvider(), order.getId());
+        messenger.delete(order);
+    }
+
+    public void deleteDataAsync(@NotNull StoreOrder order, @Nullable Runnable runnable) {
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+            deleteData(order);
+            if (runnable != null) {
+                runnable.run();
+            }
+        });
     }
 
     public void calculateTop() {

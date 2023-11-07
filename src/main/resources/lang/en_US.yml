@@ -94,6 +94,9 @@ Command:
       Description: 'Manage order items'
       Info:
         Description: 'Get information about order item'
+        Error:
+          - '{prefix}&cThe store item &6{0} &chas the error:'
+          - '&f{1}'
       State:
         Description: 'Change order item state'
         Usage: '{prefix}&eYou should use: &c/{0} &8<&7state&8> &8[&7message&8]'

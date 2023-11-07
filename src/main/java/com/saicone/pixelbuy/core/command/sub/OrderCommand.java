@@ -13,7 +13,6 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -94,9 +93,7 @@ public class OrderCommand extends PixelCommand {
                 finalOrder = order;
             }
             if (consumer.apply(finalOrder) == Boolean.TRUE && finalOrder != null) {
-                Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                    PixelBuy.get().getDatabase().getClient().saveOrders(Collections.singleton(finalOrder));
-                });
+                PixelBuy.get().getDatabase().saveDataAsync(finalOrder, null);
             }
         });
     }
@@ -199,10 +196,7 @@ public class OrderCommand extends PixelCommand {
 
     public void delete(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getOrderAsync(sender, cmd[cmd.length - 2], order -> {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                PixelBuy.get().getDatabase().getClient().deleteOrder(order.getProvider(), order.getId());
-                sendLang(sender, "Delete.Done", order.getKey());
-            });
+            PixelBuy.get().getDatabase().deleteDataAsync(order, () -> sendLang(sender, "Delete.Done", order.getKey()));
             return null;
         });
     }
@@ -257,7 +251,11 @@ public class OrderCommand extends PixelCommand {
 
         public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
-                Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.sendTo(sender, item.getId(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
+                if (args.length > 0 && args[0].equalsIgnoreCase("error")) {
+                    sendLang(sender, "Info.Error", String.valueOf(item.getError()));
+                } else {
+                    Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.sendTo(sender, item.getId(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
+                }
                 return false;
             });
         }

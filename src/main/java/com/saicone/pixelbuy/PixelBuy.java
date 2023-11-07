@@ -30,8 +30,8 @@ public final class PixelBuy extends JavaPlugin {
     private final EzlibLoader libraryLoader;
     private final SettingsFile settings;
     private final Lang lang;
-    private final Database database;
     private final PixelStore store;
+    private final Database database;
     private final PixelBuyCommand command;
 
     private List<String> placeholderNames;
@@ -76,8 +76,8 @@ public final class PixelBuy extends JavaPlugin {
         }).replace("{package}", "com.saicone.pixelbuy").load();
         settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
-        database = new Database();
         store = new PixelStore();
+        database = new Database();
         command = new PixelBuyCommand();
     }
 
@@ -89,11 +89,11 @@ public final class PixelBuy extends JavaPlugin {
         lang.load();
         log(3, "Files loaded");
 
-        database.onLoad();
-        log(3, "Database loaded");
-
         store.onLoad();
         log(3, "Store loaded");
+
+        database.onLoad();
+        log(3, "Database loaded");
 
         onReloadSettings();
 
@@ -106,15 +106,15 @@ public final class PixelBuy extends JavaPlugin {
             Placeholders.unregister(placeholderNames);
             placeholderNames = null;
         }
-        store.onDisable();
         database.onDisable();
+        store.onDisable();
     }
 
     public void onReload() {
         settings.loadFrom(getDataFolder(), true);
         lang.load();
-        database.onReload();
         store.onLoad();
+        database.onReload();
         onReloadSettings();
         command.onLoad(settings);
     }

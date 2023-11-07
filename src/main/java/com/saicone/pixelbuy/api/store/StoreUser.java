@@ -130,12 +130,23 @@ public class StoreUser {
     }
 
     public void updateOrder(@NotNull StoreOrder order) {
-        removeOrder(order.getId());
+        removeOrder(order);
         orders.add(order);
     }
 
-    public void removeOrder(int id) {
-        orders.removeIf(order -> order.getId() == id);
+    public void removeOrder(@NotNull StoreOrder order) {
+        orders.remove(order);
+    }
+
+    public void removeOrder(@NotNull String provider, int id, @NotNull String group) {
+        final Iterator<StoreOrder> iterator = orders.iterator();
+        while (iterator.hasNext()) {
+            final StoreOrder order = iterator.next();
+            if (order.getProvider().equals(provider) && order.getId() == id && order.getGroup().equals(group)) {
+                iterator.remove();
+                return;
+            }
+        }
     }
 
     @Override

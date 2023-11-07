@@ -150,6 +150,26 @@ public class HikariDatabase implements DataClient {
         hikari.close();
     }
 
+    @NotNull
+    public SqlType getType() {
+        return type;
+    }
+
+    @NotNull
+    public String getPrefix() {
+        return prefix;
+    }
+
+    @NotNull
+    public HikariConfig getHikariConfig() {
+        return hikariConfig;
+    }
+
+    @NotNull
+    public HikariDataSource getHikari() {
+        return hikari;
+    }
+
     @Override
     public void getUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
         connect(sync, con -> {

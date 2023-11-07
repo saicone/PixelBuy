@@ -131,11 +131,13 @@ public class StoreOrder {
     }
 
     public boolean has(@NotNull State state) {
-        for (var entry : items.entrySet()) {
-            for (Item item : entry.getValue()) {
-                if (item.getState() == state) {
-                    return true;
-                }
+        return has(group, state);
+    }
+
+    public boolean has(@NotNull String group, @NotNull State state) {
+        for (Item item : getItems(group)) {
+            if (item.getState() == state) {
+                return true;
             }
         }
         return false;
@@ -295,6 +297,10 @@ public class StoreOrder {
                 default:
                     return null;
             }
+        }
+
+        public boolean hasError() {
+            return error != null;
         }
 
         @NotNull
