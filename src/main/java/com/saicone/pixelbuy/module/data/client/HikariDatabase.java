@@ -43,13 +43,9 @@ public class HikariDatabase implements DataClient {
     public void onLoad(@NotNull BukkitSettings config) {
         this.type = null;
         final String type = config.getIgnoreCase("type").asString("mysql");
-        for (SqlType value : SqlType.VALUES) {
-            if (value.name().equalsIgnoreCase(type)) {
-                this.type = value;
-            }
-        }
+        this.type = SqlType.of(type, null);
 
-        this.prefix = config.getRegex("(?i)(tables?-?)?prefix").asString("pixebuy_");
+        this.prefix = config.getRegex("(?i)(tables?-?)?prefix").asString("pixelbuy_");
 
         if (this.type == null) {
             PixelBuy.log(1, "Cannot initialize SQL database, the sql type '" + type + "' doesn't exists");
@@ -85,9 +81,9 @@ public class HikariDatabase implements DataClient {
             this.hikariConfig.setUsername(config.getRegex("(?i)user(-?name)?").asString("root"));
             this.hikariConfig.setPassword(config.getIgnoreCase("password").asString("password"));
         } else {
-            final String path = config.getIgnoreCase("path").asString("plugins/PixelBuy/database/" + this.type.name().toLowerCase() + ".db");
+            final String path = config.getIgnoreCase("path").asString("plugins/PixelBuy/database/" + this.type.name().toLowerCase());
             final File file = SettingsFile.getFile(path);
-            if (!file.exists() && path.contains("/")) {
+            if (path.contains("/") && !file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
 
@@ -112,6 +108,7 @@ public class HikariDatabase implements DataClient {
         if (isTablePresent(con, tableName)) {
             return;
         }
+        PixelBuy.log(4, "The table '" + tableName + "' doesn't exist, so will be created");
 
         final List<String> list = SCHEMA.getList(type, queryKey);
         boolean next = true;
@@ -406,7 +403,7 @@ public class HikariDatabase implements DataClient {
     private static boolean isTablePresent(@NotNull Connection con, @NotNull String tableName) throws SQLException {
         try (ResultSet set = con.getMetaData().getTables(con.getCatalog(), null, "%", null)) {
             while (set.next()) {
-                if (set.getString(3).equals(tableName)) {
+                if (set.getString(3).equalsIgnoreCase(tableName)) {
                     return true;
                 }
             }
