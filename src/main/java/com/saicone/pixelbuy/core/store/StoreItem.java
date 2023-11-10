@@ -1,11 +1,13 @@
 package com.saicone.pixelbuy.core.store;
 
+import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.PixelBuyAPI;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.OptionalType;
+import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +47,14 @@ public class StoreItem {
         if (item == null) {
             this.display = null;
         } else {
-            this.display = item.parse(s -> s.replace("{item_price}", String.valueOf(getPrice()))).build();
+            this.display = item.parse(s -> Strings.replaceBracketPlaceholder(s, s1 -> s1.equals("store"), (id, arg) -> {
+                final String field = arg.toLowerCase();
+                if (field.startsWith("item_")) {
+                    return get(field.substring(5));
+                } else {
+                    return PixelBuy.get().getStore().get(field);
+                }
+            })).build();
         }
         this.online = config.getIgnoreCase("options", "online").asBoolean(false);
         this.alwaysRun = config.getIgnoreCase("options", "alwaysrun").asBoolean(false);

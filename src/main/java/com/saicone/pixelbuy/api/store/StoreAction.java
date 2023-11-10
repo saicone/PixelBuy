@@ -53,13 +53,18 @@ public abstract class StoreAction {
             return this;
         }
 
+        @Nullable
+        protected BukkitSettings parseSettings(@NotNull Object object) {
+            return BukkitSettings.of(object);
+        }
+
         @NotNull
         public A build(@Nullable Object object) throws IllegalArgumentException {
             final BukkitSettings config;
             if (object instanceof BukkitSettings) {
                 config = (BukkitSettings) object;
             } else if (object instanceof ConfigurationSection || object instanceof Map) {
-                config = BukkitSettings.of(object);
+                config = parseSettings(object);
             } else {
                 config = new BukkitSettings();
                 config.set("value", object);

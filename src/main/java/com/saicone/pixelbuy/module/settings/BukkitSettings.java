@@ -13,10 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -73,6 +70,18 @@ public class BukkitSettings extends YamlConfiguration {
         return delegate;
     }
 
+    @NotNull
+    @Override
+    public Set<String> getKeys(boolean deep) {
+        return delegate == null ? super.getKeys(deep) : delegate.getKeys(deep);
+    }
+
+    @NotNull
+    @Override
+    public Map<String, Object> getValues(boolean deep) {
+        return delegate == null ? super.getValues(deep) : delegate.getValues(deep);
+    }
+
     @Nullable
     @Override
     public Configuration getRoot() {
@@ -115,6 +124,12 @@ public class BukkitSettings extends YamlConfiguration {
     @Nullable
     public Object get(@NotNull String... path) {
         return getIf(String::equals, path);
+    }
+
+    @Nullable
+    public Object get(@NotNull Function<BukkitSettings, Object> getter) {
+        final Object object = getter.apply(this);
+        return object instanceof OptionalType ? ((OptionalType) object).getValue() : object;
     }
 
     @Nullable
@@ -196,14 +211,30 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     public BukkitSettings getConfigurationSection(@NotNull Function<BukkitSettings, Object> getter) {
-        Object object = getter.apply(this);
-        if (object instanceof OptionalType) {
-            object = ((OptionalType) object).getValue();
-        }
-        if (object instanceof ConfigurationSection) {
-            return of(object);
-        }
-        return null;
+        final Object object = get(getter);
+        return object instanceof ConfigurationSection ? of(object) : null;
+    }
+
+    @Nullable
+    public <T extends ConfigurationSection> T getConfigurationSection(@NotNull String path, @NotNull Function<ConfigurationSection, T> function) {
+        final ConfigurationSection section = super.getConfigurationSection(path);
+        return section == null ? null : function.apply(section);
+    }
+
+    @Nullable
+    public <T extends ConfigurationSection> T getConfigurationSection(@NotNull Function<BukkitSettings, Object> getter, @NotNull Function<ConfigurationSection, T> function) {
+        final Object object = get(getter);
+        return object instanceof ConfigurationSection ? function.apply((ConfigurationSection) object) : null;
+    }
+
+    @NotNull
+    public List<String> getComments(@NotNull String path) {
+        return delegate == null ? super.getComments(path) : delegate.getComments(path);
+    }
+
+    @NotNull
+    public List<String> getInlineComments(@NotNull String path) {
+        return delegate == null ? super.getInlineComments(path) : delegate.getInlineComments(path);
     }
 
     @NotNull
@@ -239,20 +270,12 @@ public class BukkitSettings extends YamlConfiguration {
 
     @Nullable
     public SettingsItem getItem(@NotNull String path) {
-        final ConfigurationSection section = super.getConfigurationSection(path);
-        if (section == null) {
-            return null;
-        }
-        return SettingsItem.of(section);
+        return getConfigurationSection(path, SettingsItem::of);
     }
 
     @Nullable
     public SettingsItem getItem(@NotNull Function<BukkitSettings, Object> getter) {
-        final ConfigurationSection section = getConfigurationSection(getter);
-        if (section == null) {
-            return null;
-        }
-        return SettingsItem.of(section);
+        return getConfigurationSection(getter, SettingsItem::of);
     }
 
     public void set(@NotNull ConfigurationSection section) {
@@ -285,6 +308,31 @@ public class BukkitSettings extends YamlConfiguration {
             } else {
                 set(key, value);
             }
+        }
+    }
+
+    @Override
+    public void set(@NotNull String path, @Nullable Object value) {
+        if (delegate == null) {
+            super.set(path, value);
+        } else {
+            delegate.set(path, value);
+        }
+    }
+
+    public void setComments(@NotNull String path, @Nullable List<String> comments) {
+        if (delegate == null) {
+            super.setComments(path, comments);
+        } else {
+            delegate.setComments(path, comments);
+        }
+    }
+
+    public void setInlineComments(@NotNull String path, @Nullable List<String> comments) {
+        if (delegate == null) {
+            super.setInlineComments(path, comments);
+        } else {
+            delegate.setInlineComments(path, comments);
         }
     }
 
@@ -339,22 +387,35 @@ public class BukkitSettings extends YamlConfiguration {
     }
 
     @NotNull
-    public static <T extends ConfigurationSection> T parse(@NotNull ConfigurationSection section, @NotNull T to, @NotNull BiFunction<String, String, String> function) {
-        for (String path : section.getKeys(true)) {
-            final Object value = section.get(path);
-            if (value instanceof String) {
-                to.set(path, function.apply(path, (String) value));
-            } else if (value instanceof List) {
-                final List<Object> list = new ArrayList<>();
-                for (Object o : OptionalType.of(value)) {
-                    list.add(o);
-                }
-                to.set(path, list);
-            } else {
-                to.set(path, value);
-            }
+    public static <T extends ConfigurationSection> T parse(@NotNull ConfigurationSection from, @NotNull T to, @NotNull BiFunction<String, String, String> function) {
+        for (String path : from.getKeys(true)) {
+            to.set(path, parse(path, from.get(path), function));
         }
         return to;
+    }
+
+    @Nullable
+    private static Object parse(@NotNull String path, @Nullable Object object, @NotNull BiFunction<String, String, String> function) {
+        if (object instanceof String) {
+            return function.apply(path, (String) object);
+        } else if (object instanceof List) {
+            final List<Object> list = new ArrayList<>();
+            int i = 0;
+            for (Object o : OptionalType.of(object)) {
+                list.add(parse(path + "[" + i + "]", o, function));
+                i++;
+            }
+            return list;
+        } else if (object instanceof Map) {
+            final Map<String, Object> map = new HashMap<>();
+            for (var entry : ((Map<?, ?>) object).entrySet()) {
+                final String key = String.valueOf(entry.getKey());
+                map.put(key, parse(path + "." + key, entry.getValue(), function));
+            }
+            return map;
+        } else {
+            return object;
+        }
     }
 
     @NotNull

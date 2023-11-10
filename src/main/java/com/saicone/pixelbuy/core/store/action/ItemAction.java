@@ -3,6 +3,7 @@ package com.saicone.pixelbuy.core.store.action;
 import com.google.gson.Gson;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
+import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.MStrings;
 import org.bukkit.Material;
@@ -17,12 +18,19 @@ import java.util.Map;
 
 public class ItemAction extends StoreAction {
 
-    public static final Builder<ItemAction> BUILDER = new Builder<ItemAction>("(?i)(give-?)items?")
-            .accept(config -> {
-                final SettingsItem item = new SettingsItem();
-                item.set(config);
-                return new ItemAction(item);
-            });
+    public static final Builder<ItemAction> BUILDER = new Builder<ItemAction>("(?i)(give-?)?items?") {
+        @Override
+        protected @NotNull BukkitSettings parseSettings(@NotNull Object object) {
+            return SettingsItem.of(object);
+        }
+    }.accept(config -> {
+        if (config instanceof SettingsItem) {
+            return new ItemAction((SettingsItem) config);
+        }
+        final SettingsItem item = new SettingsItem();
+        item.set(config);
+        return new ItemAction(item);
+    });
 
     private static final ItemStack DEFAULT_ITEM;
 
@@ -54,6 +62,10 @@ public class ItemAction extends StoreAction {
             try {
                 item = getItem().parse(client::parse).build();
             } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                item = DEFAULT_ITEM;
+            }
+            if (item.getType() == Material.AIR) {
                 item = DEFAULT_ITEM;
             }
             final Player player = client.getPlayer();

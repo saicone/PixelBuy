@@ -133,11 +133,11 @@ public class SettingsItem extends BukkitSettings {
 
         XItemStack.edit(item, this, MStrings::color, null);
 
-        final BukkitSettings append = getConfigurationSection("append");
+        final BukkitSettings append = getConfigurationSection(settings -> settings.getIgnoreCase("append"));
         if (item.hasItemMeta() && append != null) {
             final ItemMeta meta = item.getItemMeta();
 
-            final BukkitSettings appendName = append.getConfigurationSection("name");
+            final BukkitSettings appendName = append.getConfigurationSection(settings -> settings.getIgnoreCase("name"));
             if (appendName != null) {
                 String name = meta.hasDisplayName() ? meta.getDisplayName() : "";
 
@@ -156,7 +156,7 @@ public class SettingsItem extends BukkitSettings {
                 }
             }
 
-            final BukkitSettings appendLore = append.getConfigurationSection("lore");
+            final BukkitSettings appendLore = append.getConfigurationSection(settings -> settings.getIgnoreCase("lore"));
             if (appendLore != null) {
                 final List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
 
@@ -184,7 +184,7 @@ public class SettingsItem extends BukkitSettings {
             }
         }
 
-        final BukkitSettings nbt = getConfigurationSection("nbt");
+        final BukkitSettings nbt = getConfigurationSection(settings -> settings.getIgnoreCase("nbt"));
         if (nbt != null) {
             return RtagItem.edit(item, tag -> {
                 tag.deepMerge(ConfigTag.fromConfigValue(nbt.asMap()), true);
