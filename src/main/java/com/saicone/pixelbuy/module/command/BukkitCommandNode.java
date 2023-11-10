@@ -110,6 +110,29 @@ public abstract class BukkitCommandNode implements BukkitCommandExecution {
         this.subCommands.add(subCommand);
     }
 
+    protected void subCommand(@NotNull String id, @NotNull BukkitCommandExecution execution) {
+        subCommand(new BukkitCommandNode(id) {
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+                execution.execute(sender, cmd, args);
+            }
+        });
+    }
+
+    public void subCommand(@NotNull String id, int minArgs, @NotNull BukkitCommandExecution execution) {
+        subCommand(new BukkitCommandNode(id) {
+            @Override
+            public int getMinArgs() {
+                return minArgs;
+            }
+
+            @Override
+            public void execute(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+                execution.execute(sender, cmd, args);
+            }
+        });
+    }
+
     public boolean match(@NotNull String s) {
         if (getName().equalsIgnoreCase(s)) {
             return true;
