@@ -121,6 +121,9 @@ public class Checkout {
     }
 
     private void execute(@NotNull StoreUser user, @Nullable Consumer<StoreUser> consumer) {
+        if (!user.isLoaded()) {
+            return;
+        }
         final List<StoreOrder> orders = new ArrayList<>();
         for (StoreOrder order : user.getOrders()) {
             if (!order.has(store.getGroup(), StoreOrder.State.PENDING)) {
@@ -138,6 +141,9 @@ public class Checkout {
 
         if (!orders.isEmpty()) {
             Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                if (!user.isLoaded()) {
+                    return;
+                }
                 final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
                 for (StoreOrder order : orders) {
                     execute(player, user, order);
