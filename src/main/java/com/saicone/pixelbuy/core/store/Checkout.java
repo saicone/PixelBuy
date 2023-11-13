@@ -226,13 +226,13 @@ public class Checkout {
         try {
             switch (order.getExecution()) {
                 case BUY:
-                    item.onBuy(client);
+                    item.onBuy(client, value.getAmount());
                     break;
                 case RECOVER:
-                    item.onRecover(client);
+                    item.onRecover(client, value.getAmount());
                     break;
                 case REFUND:
-                    item.onRefund(client);
+                    item.onRefund(client, value.getAmount());
                     break;
                 default:
                     break;

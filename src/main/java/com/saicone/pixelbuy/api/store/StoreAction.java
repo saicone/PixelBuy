@@ -17,7 +17,13 @@ public abstract class StoreAction {
 
     private final Supplier<String> string = Suppliers.memoize(this::toString);
 
-    public abstract void run(@NotNull StoreClient client);
+    public void run(@NotNull StoreClient client) {
+        // empty default method
+    }
+
+    public void run(@NotNull StoreClient client, int amount) {
+        run(client);
+    }
 
     @NotNull
     public String asString() {

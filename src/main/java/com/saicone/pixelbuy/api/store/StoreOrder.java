@@ -188,8 +188,19 @@ public class StoreOrder {
     @NotNull
     public Item addItem(@NotNull String group, @NotNull Item item) {
         this.edited = true;
-        items.computeIfAbsent(group, __ -> new HashSet<>()).add(item);
-        return item;
+        final Set<Item> set = items.computeIfAbsent(group, __ -> new HashSet<>());
+        if (set.add(item)) {
+            return item;
+        }
+
+        final Iterator<Item> iterator = set.iterator();
+        while (iterator.hasNext()) {
+            final Item it = iterator.next();
+            if (it.equals(item)) {
+                return it.amount(it.getAmount() + item.getAmount());
+            }
+        }
+        throw new IllegalArgumentException("The provided item '" + item.getId() + "' cannot be added and doesn't exist");
     }
 
     @NotNull
@@ -269,6 +280,7 @@ public class StoreOrder {
 
     public static class Item {
         private final String id;
+        private int amount = 1;
         private float price;
         private State state = State.PENDING;
 
@@ -288,6 +300,8 @@ public class StoreOrder {
             switch (field) {
                 case "id":
                     return id;
+                case "amount":
+                    return amount;
                 case "price":
                     return price;
                 case "state":
@@ -308,6 +322,10 @@ public class StoreOrder {
             return id;
         }
 
+        public int getAmount() {
+            return Math.max(amount, 1);
+        }
+
         public float getPrice() {
             return price;
         }
@@ -320,6 +338,13 @@ public class StoreOrder {
         @Nullable
         public String getError() {
             return error == null ? null : new String(Base64.getDecoder().decode(error));
+        }
+
+        @NotNull
+        @Contract("_ -> this")
+        public Item amount(int amount) {
+            this.amount = amount;
+            return this;
         }
 
         @NotNull

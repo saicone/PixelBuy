@@ -135,28 +135,28 @@ public class StoreItem {
         return alwaysRun;
     }
 
-    public void onBuy(@NotNull StoreClient client) {
+    public void onBuy(@NotNull StoreClient client, int amount) {
         for (StoreAction action : onBuy) {
-            action.run(client);
+            action.run(client, amount);
         }
     }
 
-    public void onRecover(@NotNull StoreClient client) {
+    public void onRecover(@NotNull StoreClient client, int amount) {
         if (onRecover == null) {
-            onBuy(client);
+            onBuy(client, amount);
             return;
         }
         for (StoreAction action : onRecover) {
-            action.run(client);
+            action.run(client, amount);
         }
     }
 
-    public void onRefund(@NotNull StoreClient client) {
+    public void onRefund(@NotNull StoreClient client, int amount) {
         if (onRefund == null) {
             return;
         }
         for (StoreAction action : onRefund) {
-            action.run(client);
+            action.run(client, amount);
         }
     }
 }

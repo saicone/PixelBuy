@@ -45,8 +45,9 @@ Command:
         Invalid: "{prefix}&cThe store order &6{0} &cdoesn't have the item &6{1}"
         Info:
           - '&eId: &f{0}'
-          - '&ePrice: &f{1}'
-          - '&eState: {2}'
+          - '&eAmount: &f{1}'
+          - '&ePrice: &f{2}'
+          - '&eState: {3}'
   PixelBuy:
     Usage: '{prefix}&ePixelBuy Commands: &7(/{0} <command>...)'
     Description: 'Main plugin command'

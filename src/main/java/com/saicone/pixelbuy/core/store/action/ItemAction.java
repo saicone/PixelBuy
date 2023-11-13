@@ -1,11 +1,13 @@
 package com.saicone.pixelbuy.core.store.action;
 
 import com.google.gson.Gson;
+import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.MStrings;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -56,11 +58,14 @@ public class ItemAction extends StoreAction {
     }
 
     @Override
-    public void run(@NotNull StoreClient client) {
+    public void run(@NotNull StoreClient client, int amount) {
         if (client.isOnline()) {
             ItemStack item;
             try {
                 item = getItem().parse(client::parse).build();
+                if (amount > 1 && item.getType() != Material.AIR) {
+                    item.setAmount(item.getAmount() * amount);
+                }
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
                 item = DEFAULT_ITEM;
@@ -71,8 +76,16 @@ public class ItemAction extends StoreAction {
             final Player player = client.getPlayer();
             final Map<Integer, ItemStack> items = player.getInventory().addItem(item);
             if (!items.isEmpty()) {
-                for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
-                    player.getWorld().dropItem(player.getLocation(), entry.getValue());
+                if (Bukkit.isPrimaryThread()) {
+                    for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
+                        player.getWorld().dropItem(player.getLocation(), entry.getValue());
+                    }
+                } else {
+                    Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
+                        for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
+                            player.getWorld().dropItem(player.getLocation(), entry.getValue());
+                        }
+                    });
                 }
             }
         }

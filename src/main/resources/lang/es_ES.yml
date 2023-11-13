@@ -45,8 +45,9 @@ Command:
         Invalid: '{prefix}&cLa orden de compra &6{0} &cno tiene el item &6{1}'
         Info:
           - '&eId: &f{0}'
-          - '&ePrecio: &f{1}'
-          - '&eEstado: {2}'
+          - '&eCantidad: &f{1}'
+          - '&ePrecio: &f{2}'
+          - '&eEstado: {3}'
   PixelBuy:
     Usage: '{prefix}&eCommandos de PixelBuy: &7(/{0} <comando>...)'
     Description: 'Comando principal del plugin'

@@ -37,7 +37,7 @@ public class CommandAction extends StoreAction {
     }
 
     @Override
-    public void run(@NotNull StoreClient client) {
+    public void run(@NotNull StoreClient client, int amount) {
         final CommandSender sender;
         if (isConsole()) {
             sender = Bukkit.getConsoleSender();
@@ -48,15 +48,17 @@ public class CommandAction extends StoreAction {
         }
         final List<String> cmds = client.parse(getCommands());
         if (Bukkit.isPrimaryThread()) {
+            dispatch(sender, cmds, amount);
+        } else {
+            Bukkit.getScheduler().runTask(PixelBuy.get(), () -> dispatch(sender, cmds, amount));
+        }
+    }
+
+    private void dispatch(@NotNull CommandSender sender, @NotNull List<String> cmds, int amount) {
+        for (int i = 0; i < amount; i++) {
             for (String cmd : cmds) {
                 Bukkit.getServer().dispatchCommand(sender, cmd);
             }
-        } else {
-            Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
-                for (String cmd : cmds) {
-                    Bukkit.getServer().dispatchCommand(sender, cmd);
-                }
-            });
         }
     }
 
