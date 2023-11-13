@@ -46,6 +46,13 @@ Supervisor:
     # This is a key that YOU set, both needing to be identical
     # in the WooCommerce configuration and in this config file
     Key: ''
+    # Additional configuration to retrieve store item prices
+    # This feature uses the WooCommerce API
+    # Go to the admin panel -> WooCommerce -> Settings -> Advanced -> API Keys, and generate a read access key
+    # Then paste the consumer key and secret below
+    WooCommerce:
+      ConsumerKey: ''
+      ConsumerSecret: ''
   tebex-example:
     Type: TEBEX
     Group: 'survival'

@@ -6,6 +6,7 @@ import com.saicone.pixelbuy.api.event.OrderProcessEvent;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
+import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -181,8 +182,24 @@ public class Checkout {
             order.setEdited(true);
 
             value.state(StoreOrder.State.DONE);
-            if (order.getExecution() == StoreOrder.Execution.BUY) {
-                value.price(item.getPrice());
+            if (order.getExecution() == StoreOrder.Execution.BUY && value.getPrice() == 0.0f) {
+                final Integer itemId = item.getPriceElement(order.getProvider());
+                final WebSupervisor web = store.getSupervisor(order.getProvider());
+                if (itemId != null) {
+                    if (web != null) {
+                        try {
+                            float price = web.getTotal(order.getId(), itemId);
+                            value.price(Math.max(price, 0.0f));
+                        } catch (Throwable t) {
+                            t.printStackTrace();
+                            value.price(0.0f);
+                        }
+                    } else {
+                        value.price(0.0f);
+                    }
+                } else {
+                    value.price(item.getPrice());
+                }
             }
 
             final StoreClient client = new StoreClient(player);
@@ -255,9 +272,30 @@ public class Checkout {
             } else if (!order.getAllItems().isEmpty()) {
                 final Map<String, Float> map = new HashMap<>();
                 for (var entry : order.getAllItems().entrySet()) {
+                    // Check if the item list is from the main group
+                    boolean main = order.getGroup().equals(entry.getKey());
                     for (StoreOrder.Item item : entry.getValue()) {
+                        // Retrieve item value from web supervisor
+                        if (main && item.getPrice() == 0.0f) {
+                            final StoreItem storeItem = store.getItem(item.getId());
+                            if (storeItem != null) {
+                                final Integer itemId = storeItem.getPriceElement(order.getProvider());
+                                final WebSupervisor web = store.getSupervisor(order.getProvider());
+                                if (itemId != null && web != null) {
+                                    try {
+                                        float price = web.getTotal(order.getId(), itemId);
+                                        if (price > 0.0f) {
+                                            item.price(price);
+                                        }
+                                    } catch (Throwable t) {
+                                        t.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
+                        // Save used value
                         float current = map.getOrDefault(item.getId(), 0.0f);
-                        if (item.getPrice() > current) {
+                        if (!main && item.getPrice() > current) {
                             map.put(item.getId(), item.getPrice());
                         }
                     }

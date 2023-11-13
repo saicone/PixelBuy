@@ -9,6 +9,7 @@ import com.saicone.pixelbuy.core.web.WebType;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -43,8 +45,10 @@ import java.util.StringJoiner;
  */
 public class WooMinecraftWeb extends WebSupervisor {
 
-    private URL url;
+    private String baseUrl;
+    private URL wmcUrl;
     private int delay;
+    private String wcUrl;
 
     private int getTask;
     private boolean onTask;
@@ -60,33 +64,35 @@ public class WooMinecraftWeb extends WebSupervisor {
 
     @Override
     public void onLoad(@NotNull BukkitSettings config) {
-        String url = config.getRegex("(?i)url|link").asString();
-        if (url == null || url.isBlank()) {
-            this.url = null;
+        this.baseUrl = config.getRegex("(?i)url|link").asString();
+        if (this.baseUrl == null || this.baseUrl.isBlank()) {
+            this.wmcUrl = null;
+            this.wcUrl = null;
             this.delay = -1;
             return;
         }
-        if (!url.toLowerCase().startsWith("http")) {
-            url = "https://" + url;
-        }
-        if (!url.endsWith("/")) {
-            url = url + "/";
-        }
-        String path = config.getRegex("(?i)(api-?)?path").asString("wp-json/wmc/v1/server/{key}");
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        url = url + path;
+
+        String wmcPath = config.getRegex("(?i)(api-?)?path").asString("wp-json/wmc/v1/server/{key}");
         final String key = config.getRegex("(?i)(api-?)?key").asString();
         if (key != null) {
-            url = url.replace("{key}", key);
+            wmcPath = wmcPath.replace("{key}", key);
         }
         try {
-            this.url = new URL(url);
+            this.wmcUrl = new URL(parseUrl(this.baseUrl, wmcPath));
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
         this.delay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7);
+
+        String wcPath = config.getRegex("(?i)woocommerce", "(?i)(api-?)?path").asString("wp-json/wc/v3/{type}/{id}?consumer_key={key}&consumer_secret={secret}");
+        final String consumerKey = config.getRegex("(?i)woocommerce", "(?i)consumer-?key").asString();
+        final String consumerSecret = config.getRegex("(?i)woocommerce", "(?i)consumer-?secret").asString();
+        if (consumerKey == null || consumerSecret == null) {
+            this.wcUrl = null;
+        } else {
+            wcPath = wcPath.replace("{key}", consumerKey).replace("{secret}", consumerSecret);
+            this.wcUrl = parseUrl(this.baseUrl, wcPath);
+        }
     }
 
     @Override
@@ -117,11 +123,70 @@ public class WooMinecraftWeb extends WebSupervisor {
         }
     }
 
-    public void getOrders() {
-        if (url == null || url.toString().isBlank()) {
-            return;
+    @Override
+    public @Nullable LocalDate getDate(int orderId) {
+        if (wcUrl == null) {
+            return super.getDate(orderId);
+        }
+        final JsonObject json = getOrderJson(orderId);
+        return LocalDate.parse(json.get("date_created").getAsString());
+    }
+
+    @Override
+    public float getTotal(int orderId) {
+        if (wcUrl == null) {
+            return super.getTotal(orderId);
+        }
+        final JsonObject json = getOrderJson(orderId);
+        return json.get("total").getAsFloat();
+    }
+
+    @Override
+    public float getTotal(int orderId, int itemId) {
+        if (wcUrl == null) {
+            return super.getTotal(orderId, itemId);
+        }
+        final JsonObject json = getOrderJson(orderId);
+        for (JsonElement element : json.getAsJsonArray("line_items")) {
+            final JsonObject item = element.getAsJsonObject();
+            if (item.get("product_id").getAsInt() == itemId) {
+                return item.get("total").getAsFloat();
+            }
+        }
+        return super.getTotal(orderId, itemId);
+    }
+
+    @Override
+    public float getPrice(int itemId) {
+        if (wcUrl == null) {
+            return super.getPrice(itemId);
+        }
+        final URL url;
+        try {
+            url = new URL(wcUrl.replace("{type}", "products").replace("{id}", String.valueOf(itemId)));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("The item '" + itemId + "' json cannot be retrieved", e);
         }
         final JsonObject json = readJson(url);
+        return json.get("price").getAsFloat();
+    }
+
+    @NotNull
+    public JsonObject getOrderJson(int orderId) {
+        final URL url;
+        try {
+            url = new URL(wcUrl.replace("{type}", "orders").replace("{id}", String.valueOf(orderId)));
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("The order '" + orderId + "' json cannot be retrieved", e);
+        }
+        return readJson(url);
+    }
+
+    public void getOrders() {
+        if (wmcUrl == null || wmcUrl.toString().isBlank()) {
+            return;
+        }
+        final JsonObject json = readJson(wmcUrl);
         if (json.get("data") != null) {
             PixelBuy.log(2, json.get("code").getAsString());
             return;
@@ -157,7 +222,7 @@ public class WooMinecraftWeb extends WebSupervisor {
             joiner.add(String.valueOf(id));
         }
         try {
-            HttpsURLConnection con = (HttpsURLConnection) url.openConnection();
+            HttpsURLConnection con = (HttpsURLConnection) wmcUrl.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
             con.setRequestProperty("Accept", "application/json");

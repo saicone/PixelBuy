@@ -4,6 +4,7 @@ import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.PixelBuyAPI;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
+import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.OptionalType;
@@ -21,7 +22,7 @@ public class StoreItem {
     // Information
     private final String id;
     private Set<String> categories = Set.of();
-    private float price = 0.0f;
+    private WebValue<Float, Integer> price = WebValue.of(0.0f);
 
     // Gui
     private ItemStack display;
@@ -42,7 +43,7 @@ public class StoreItem {
 
     public void onReload(@NotNull BukkitSettings config) {
         this.categories = config.getRegex("(?i)categor(y|ies)").asCollection(new HashSet<>(), OptionalType::asString);
-        this.price = config.getIgnoreCase("price").asFloat(0.0f);
+        this.price = WebValue.of(config.getIgnoreCase("price").getValue(), type -> type.asFloat(0.0f), OptionalType::asInt, WebSupervisor::getPrice);
         final SettingsItem item = config.getItem(settings -> settings.getRegex("(?i)display(-?item)?"));
         if (item == null) {
             this.display = null;
@@ -98,9 +99,17 @@ public class StoreItem {
         return categories;
     }
 
-    @NotNull
     public float getPrice() {
-        return price;
+        return price.get(null);
+    }
+
+    public float getPrice(@NotNull String provider) {
+        return price.get(provider);
+    }
+
+    @Nullable
+    public Integer getPriceElement(@NotNull String provider) {
+        return price.getElement(provider);
     }
 
     @Nullable

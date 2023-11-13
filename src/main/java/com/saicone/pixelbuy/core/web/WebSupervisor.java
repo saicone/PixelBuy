@@ -8,6 +8,7 @@ import com.saicone.pixelbuy.core.store.StoreItem;
 import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +43,23 @@ public abstract class WebSupervisor {
     @NotNull
     public abstract WebType getType();
 
+    @Nullable
+    public LocalDate getDate(int orderId) {
+        return null;
+    }
+
+    public float getTotal(int orderId) {
+        return Float.MIN_VALUE;
+    }
+
+    public float getTotal(int orderId, int itemId) {
+        return Float.MIN_VALUE;
+    }
+
+    public float getPrice(int itemId) {
+        return Float.MIN_VALUE;
+    }
+
     public void onLoad(@NotNull BukkitSettings config) {
     }
 
@@ -51,12 +70,7 @@ public abstract class WebSupervisor {
     }
 
     public boolean processOnline(@NotNull UUID uniqueId, int id, @NotNull List<String> items) {
-        final StoreOrder order = new StoreOrder(getId(), id, getGroup());
-        order.setBuyer(uniqueId);
-        for (String item : items) {
-            order.addItem(getGroup(), item);
-        }
-        return PixelBuy.get().getStore().getCheckout().process(order);
+        return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, uniqueId, items));
     }
 
     public boolean processOffline(@NotNull String name, int id, @NotNull List<String> items) {
@@ -75,14 +89,29 @@ public abstract class WebSupervisor {
             }
         }
         if (result) {
-            final StoreOrder order = new StoreOrder(getId(), id, getGroup());
-            order.setBuyer(PlayerIdProvider.getUniqueId(name));
-            for (String item : items) {
-                order.addItem(getGroup(), item);
-            }
-            return PixelBuy.get().getStore().getCheckout().process(order);
+            return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, PlayerIdProvider.getUniqueId(name), items));
         }
         return false;
+    }
+
+    @NotNull
+    public StoreOrder buildOrder(int id, @NotNull UUID buyer, @NotNull List<String> items) {
+        final StoreOrder order = new StoreOrder(getId(), id, getGroup());
+        order.setBuyer(buyer);
+        for (String item : items) {
+            final StoreItem storeItem = PixelBuy.get().getStore().getItem(item);
+            final Integer itemId = storeItem != null ? storeItem.getPriceElement(getId()) : null;
+            if (itemId != null) {
+                try {
+                    order.addItem(getGroup(), item, getTotal(id, itemId));
+                } catch (Throwable t) {
+                    order.addItem(getGroup(), item);
+                }
+            } else {
+                order.addItem(getGroup(), item);
+            }
+        }
+        return order;
     }
 
     @NotNull
@@ -99,5 +128,19 @@ public abstract class WebSupervisor {
         try (InputStreamReader reader = new InputStreamReader(new BufferedInputStream(con.getInputStream()), StandardCharsets.UTF_8)) {
             return JsonParser.parseReader(reader).getAsJsonObject();
         }
+    }
+
+    @NotNull
+    protected String parseUrl(@NotNull String baseUrl, @NotNull String path) {
+        if (!baseUrl.toLowerCase().startsWith("http")) {
+            baseUrl = "https://" + baseUrl;
+        }
+        if (!baseUrl.endsWith("/")) {
+            baseUrl = baseUrl + "/";
+        }
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+        return baseUrl + path;
     }
 }
