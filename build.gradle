@@ -28,6 +28,7 @@ dependencies {
     compileOnly 'com.github.oraxen:oraxen:1.163.0'
     compileOnly('net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT') { transitive = false }
     compileOnly 'me.clip:placeholderapi:2.11.5'
+    compileOnly 'net.luckperms:api:5.4'
 
     // Library loader
     implementation 'com.saicone.ezlib:ezlib:1.2.3'

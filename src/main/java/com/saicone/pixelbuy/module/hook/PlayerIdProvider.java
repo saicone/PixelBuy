@@ -3,6 +3,8 @@ package com.saicone.pixelbuy.module.hook;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.saicone.pixelbuy.PixelBuy;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,17 +21,22 @@ public class PlayerIdProvider {
             case "AUTO":
                 if (PixelBuy.get().getDatabase().isUserLoadAll()) {
                     INSTANCE = new PixelBuyProvider();
-                } else {
-                    INSTANCE = new PlayerIdProvider();
+                    return;
                 }
                 break;
             case "PIXELBUY":
                 INSTANCE = new PixelBuyProvider();
                 break;
+            case "LUCKPERMS":
+                if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+                    INSTANCE = new LuckPermsProvider();
+                    return;
+                }
+                break;
             default:
-                INSTANCE = new PlayerIdProvider();
                 break;
         }
+        INSTANCE = new PlayerIdProvider();
     }
 
     @NotNull
@@ -53,6 +60,17 @@ public class PlayerIdProvider {
         public @NotNull UUID get(@NotNull String name) {
             final UUID id = PixelBuy.get().getDatabase().getUniqueId(name);
             return id == null ? super.get(name) : id;
+        }
+    }
+
+    private static final class LuckPermsProvider extends PlayerIdProvider {
+
+        private final LuckPerms luckPerms = net.luckperms.api.LuckPermsProvider.get();
+
+        @Override
+        public @NotNull UUID get(@NotNull String name) {
+            final User user = luckPerms.getUserManager().getUser(name);
+            return user == null ? super.get(name) : user.getUniqueId();
         }
     }
 }

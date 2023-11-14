@@ -7,9 +7,10 @@ Plugin:
   # If you want to use other language go to "lang" folder and create new file
   Language: 'en_US'
   # Player UUID provider:
-  # AUTO     = Choose automatically the best available option
-  # PIXELBUY = Use PixelBuy loaded data (the option loadAll user on database configuration must be activated)
-  # BUKKIT   = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
+  # AUTO      = Choose automatically the best available option
+  # PIXELBUY  = Use PixelBuy loaded data (the option loadAll user on database configuration must be activated)
+  # LUCKPERMS = Use LuckPerms plugin.
+  # BUKKIT    = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
   UUIDProvider: AUTO
 
 # Lang configuration
