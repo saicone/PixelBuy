@@ -157,6 +157,7 @@ public class Checkout {
     }
 
     private void execute(@NotNull OfflinePlayer player, @NotNull StoreUser user, @NotNull StoreOrder order) {
+        final WebSupervisor web = store.getSupervisor(order.getProvider());
         boolean requireOnline = false;
         for (StoreOrder.Item value : order.getItems(store.getGroup())) {
             if (value.getState() != StoreOrder.State.PENDING) {
@@ -184,7 +185,6 @@ public class Checkout {
             value.state(StoreOrder.State.DONE);
             if (order.getExecution() == StoreOrder.Execution.BUY && value.getPrice() == 0.0f) {
                 final Integer itemId = item.getPriceElement(order.getProvider());
-                final WebSupervisor web = store.getSupervisor(order.getProvider());
                 if (itemId != null) {
                     if (web != null) {
                         try {
@@ -265,8 +265,10 @@ public class Checkout {
             if (order.getExecution() == StoreOrder.Execution.REFUND) {
                 continue;
             }
+            final WebSupervisor web = store.getSupervisor(order.getProvider());
             if (order.getGroup().equals(store.getGroup()) || !order.getItems().isEmpty()) {
                 for (StoreOrder.Item item : order.getItems()) {
+                    retrievePrice(order, web, item);
                     donated += item.getPrice();
                 }
             } else if (!order.getAllItems().isEmpty()) {
@@ -276,22 +278,8 @@ public class Checkout {
                     boolean main = order.getGroup().equals(entry.getKey());
                     for (StoreOrder.Item item : entry.getValue()) {
                         // Retrieve item value from web supervisor
-                        if (main && item.getPrice() == 0.0f) {
-                            final StoreItem storeItem = store.getItem(item.getId());
-                            if (storeItem != null) {
-                                final Integer itemId = storeItem.getPriceElement(order.getProvider());
-                                final WebSupervisor web = store.getSupervisor(order.getProvider());
-                                if (itemId != null && web != null) {
-                                    try {
-                                        float price = web.getTotal(order.getId(), itemId);
-                                        if (price > 0.0f) {
-                                            item.price(price);
-                                        }
-                                    } catch (Throwable t) {
-                                        t.printStackTrace();
-                                    }
-                                }
-                            }
+                        if (main) {
+                            retrievePrice(order, web, item);
                         }
                         // Save used value
                         float current = map.getOrDefault(item.getId(), 0.0f);
@@ -310,5 +298,24 @@ public class Checkout {
             user.setDonated(donated);
         }
         return donated;
+    }
+
+    private void retrievePrice(@NotNull StoreOrder order, @Nullable WebSupervisor web, @NotNull StoreOrder.Item item) {
+        if (item.getPrice() == 0.0f) {
+            final StoreItem storeItem = store.getItem(item.getId());
+            if (storeItem != null) {
+                final Integer itemId = storeItem.getPriceElement(order.getProvider());
+                if (itemId != null && web != null) {
+                    try {
+                        float price = web.getTotal(order.getId(), itemId);
+                        if (price > 0.0f) {
+                            item.price(price);
+                        }
+                    } catch (Throwable t) {
+                        t.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 }

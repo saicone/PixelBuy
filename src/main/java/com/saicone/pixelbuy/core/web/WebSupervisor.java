@@ -103,13 +103,16 @@ public abstract class WebSupervisor {
             final Integer itemId = storeItem != null ? storeItem.getPriceElement(getId()) : null;
             if (itemId != null) {
                 try {
-                    order.addItem(getGroup(), item, getTotal(id, itemId));
+                    final float total = getTotal(id, itemId);
+                    if (total != Float.MIN_VALUE) {
+                        order.addItem(getGroup(), item, total < 0.0f ? 0.0001f : total);
+                        continue;
+                    }
                 } catch (Throwable t) {
-                    order.addItem(getGroup(), item);
+                    t.printStackTrace();
                 }
-            } else {
-                order.addItem(getGroup(), item);
             }
+            order.addItem(getGroup(), item);
         }
         return order;
     }
