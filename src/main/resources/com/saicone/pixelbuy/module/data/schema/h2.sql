@@ -11,14 +11,14 @@ CREATE INDEX `{prefix}users_username` ON `{prefix}users` (`username`);
 -- create:orders_table
 
 CREATE TABLE `{prefix}orders` (
-  `id`        INTEGER PRIMARY KEY NOT NULL,
-  `provider`  VARCHAR(255)        NOT NULL,
-  `order`     INTEGER             NOT NULL,
-  `group`     VARCHAR(255)        NOT NULL,
-  `buyer`     VARCHAR(36)         NOT NULL,
-  `time`      VARCHAR(255)        NOT NULL,
-  `execution` VARCHAR(255)        NOT NULL,
-  `items`     CLOB                NOT NULL
+  `id`        INTEGER AUTO_INCREMENT NOT NULL,
+  `provider`  VARCHAR(255)           NOT NULL,
+  `order`     INTEGER                NOT NULL,
+  `group`     VARCHAR(255)           NOT NULL,
+  `buyer`     VARCHAR(36)            NOT NULL,
+  `time`      VARCHAR(255)           NOT NULL,
+  `execution` VARCHAR(255)           NOT NULL,
+  `items`     CLOB                   NOT NULL
 );
 CREATE INDEX `{prefix}orders_buyer` ON `{prefix}orders` (`buyer`);
 

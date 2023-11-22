@@ -69,7 +69,12 @@ public class PlayerIdProvider {
 
         @Override
         public @NotNull UUID get(@NotNull String name) {
-            final User user = luckPerms.getUserManager().getUser(name);
+            final User user;
+            try {
+                user = luckPerms.getUserManager().getUser(name);
+            } catch (Throwable t) {
+                return super.get(name);
+            }
             return user == null ? super.get(name) : user.getUniqueId();
         }
     }
