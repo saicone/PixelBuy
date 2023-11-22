@@ -6,12 +6,12 @@ Plugin:
   # Available languages: en_US, es_ES
   # If you want to use other language go to "lang" folder and create new file
   Language: 'en_US'
-  # Player UUID provider:
+  # Player information provider:
   # AUTO      = Choose automatically the best available option
   # PIXELBUY  = Use PixelBuy loaded data (the option loadAll user on database configuration must be activated)
   # LUCKPERMS = Use LuckPerms plugin.
-  # BUKKIT    = Use the deprecated Bukkit UUID solution (it also acts like fallback value)
-  UUIDProvider: AUTO
+  # BUKKIT    = Use the default Bukkit offline player methods (it also acts like fallback value)
+  PlayerProvider: AUTO
 
 # Lang configuration
 Lang:

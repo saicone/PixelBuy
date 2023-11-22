@@ -9,7 +9,7 @@ import com.saicone.pixelbuy.core.data.Database;
 
 import com.saicone.pixelbuy.core.store.PixelStore;
 import com.saicone.pixelbuy.module.hook.Placeholders;
-import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import com.saicone.pixelbuy.util.OptionalType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -120,7 +120,7 @@ public final class PixelBuy extends JavaPlugin {
     }
 
     public void onReloadSettings() {
-        PlayerIdProvider.compute(settings.getIgnoreCase("plugin", "uuidprovider").asString("AUTO"));
+        PlayerProvider.compute(settings.getIgnoreCase("plugin", "playerprovider").asString("AUTO"));
         if (settings.getIgnoreCase("placeholder", "register").asBoolean(true)) {
             placeholderNames = settings.getIgnoreCase("placeholder", "names").asList(OptionalType::asString);
             Placeholders.register(this, placeholderNames, (player, params) -> {

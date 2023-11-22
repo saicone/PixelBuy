@@ -5,7 +5,7 @@ import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.store.StoreItem;
-import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,7 +89,7 @@ public abstract class WebSupervisor {
             }
         }
         if (result) {
-            return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, PlayerIdProvider.getUniqueId(name), items));
+            return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, PlayerProvider.getUniqueId(name), items));
         }
         return false;
     }

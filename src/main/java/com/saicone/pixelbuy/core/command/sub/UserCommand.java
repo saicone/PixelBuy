@@ -6,12 +6,11 @@ import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelCommand;
 import com.saicone.pixelbuy.api.store.StoreUser;
 
-import com.saicone.pixelbuy.module.hook.PlayerIdProvider;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.util.MStrings;
 import com.saicone.pixelbuy.util.OptionalType;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,19 +45,20 @@ public class UserCommand extends PixelCommand {
 
     @Nullable
     public static StoreUser getUser(@NotNull String s) {
-        StoreUser user;
-        try {
-            final UUID id = UUID.fromString(s);
-            final OfflinePlayer player = Bukkit.getOfflinePlayer(id);
-            if (player.getName() == null) {
+        final StoreUser user;
+        if (s.length() < 21) {
+            user = PixelBuy.get().getDatabase().getDataOrNull(PlayerProvider.getUniqueId(s), s);
+        } else {
+            try {
+                final UUID id = UUID.fromString(s);
+                final String name = PlayerProvider.getName(id);
+                if (name == null) {
+                    return null;
+                }
+                user = PixelBuy.get().getDatabase().getDataOrNull(id, name);
+            } catch (IllegalArgumentException e) {
                 return null;
             }
-            user = PixelBuy.get().getDatabase().getDataOrNull(id, player.getName());
-        } catch (IllegalArgumentException e) {
-            if (s.length() > 20) {
-                return null;
-            }
-            user = PixelBuy.get().getDatabase().getDataOrNull(PlayerIdProvider.getUniqueId(s), s);
         }
         if (user == null) {
             return null;
@@ -104,7 +104,7 @@ public class UserCommand extends PixelCommand {
                 }
                 final String key = order.getProvider() + ":" + order.getId();
                 final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
-                String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
+                String buyer = order.getBuyer() != null ? PlayerProvider.getName(order.getBuyer()) : "<unknown>";
                 if (buyer == null) {
                     buyer = order.getBuyer().toString();
                 }
