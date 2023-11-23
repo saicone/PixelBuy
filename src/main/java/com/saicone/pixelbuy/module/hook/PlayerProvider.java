@@ -45,7 +45,12 @@ public class PlayerProvider {
     public static UUID getUniqueId(@NotNull String name) {
         UUID cached = ID_CACHE.getIfPresent(name);
         if (cached == null) {
-            ID_CACHE.put(name, INSTANCE.uniqueId(name));
+            var player = Bukkit.getPlayer(name);
+            if (player != null) {
+                ID_CACHE.put(name, player.getUniqueId());
+            } else {
+                ID_CACHE.put(name, INSTANCE.uniqueId(name));
+            }
             cached = ID_CACHE.getIfPresent(name);
         }
         return cached;
@@ -55,7 +60,13 @@ public class PlayerProvider {
     public static String getName(@NotNull UUID uniqueId) {
         String cached = NAME_CACHE.getIfPresent(uniqueId);
         if (cached == null) {
-            final String name = INSTANCE.name(uniqueId);
+            final String name;
+            var player = Bukkit.getPlayer(uniqueId);
+            if (player != null) {
+                name = player.getName();
+            } else {
+                name = INSTANCE.name(uniqueId);
+            }
             NAME_CACHE.put(uniqueId, name == null ? "" : name);
             cached = NAME_CACHE.getIfPresent(uniqueId);
         }
