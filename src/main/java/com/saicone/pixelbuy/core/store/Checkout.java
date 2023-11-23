@@ -59,7 +59,7 @@ public class Checkout {
         if (!order.getGroup().equals(store.getGroup()) && append.contains(order.getGroup())) {
             for (var entry : store.getItems().entrySet()) {
                 if (entry.getValue().getAppend().contains(order.getGroup())) {
-                    if (order.getItems().contains(entry.getKey())) {
+                    if (order.getItems().contains(entry.getKey()) && !order.getItems(store.getGroup()).contains(entry.getKey())) {
                         order.addItem(store.getGroup(), entry.getValue().getId());
                     }
                 }
@@ -269,9 +269,7 @@ public class Checkout {
             if (order.getGroup().equals(store.getGroup()) || !order.getItems().isEmpty()) {
                 for (StoreOrder.Item item : order.getItems()) {
                     retrievePrice(order, web, item);
-                    if (item.getPrice() > 0.001f) {
-                        donated += item.getPrice();
-                    }
+                    donated += item.getPrice();
                 }
             } else if (!order.getAllItems().isEmpty()) {
                 final Map<String, Float> map = new HashMap<>();
@@ -291,12 +289,11 @@ public class Checkout {
                     }
                 }
                 for (Map.Entry<String, Float> entry : map.entrySet()) {
-                    if (entry.getValue() > 0.001f) {
-                        donated += entry.getValue();
-                    }
+                    donated += entry.getValue();
                 }
             }
         }
+        donated = (float) (Math.floor(donated * 100) / 100.0);
         if (user.getDonated() != donated) {
             // Update donated
             user.setDonated(donated);
