@@ -187,7 +187,9 @@ public class HikariDatabase implements DataClient {
                     } else {
                         PixelBuy.log(2, "Found duplicated UUID " + foundId + " for username '" + username + "' with id " + uniqueId);
                         // Remove old id
-                        saveUser(true, new StoreUser(uniqueId, null, 0.0f));
+                        final StoreUser oldUser = new StoreUser(uniqueId, null, result.getFloat("donated"));
+                        oldUser.setEdited(true);
+                        saveUser(true, oldUser);
                     }
                 }
             }
@@ -297,7 +299,7 @@ public class HikariDatabase implements DataClient {
 
             try (PreparedStatement stmt = con.prepareStatement(schema("insert:user"))) {
                 stmt.setString(1, user.getUniqueId().toString());
-                stmt.setString(2, user.getName().toLowerCase());
+                stmt.setString(2, user.getName() == null ? null : user.getName().toLowerCase());
                 stmt.setFloat(3, user.getDonated());
                 stmt.execute();
             }
