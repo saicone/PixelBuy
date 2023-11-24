@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 public class UserCommand extends PixelCommand {
 
     private static final String INDEX = MStrings.color("&6#- ");
+    private static final int PAGE_SIZE = 5;
 
     public UserCommand() {
         super("user");
@@ -82,24 +83,25 @@ public class UserCommand extends PixelCommand {
 
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getUserAsync(sender, cmd[cmd.length - 2], (user) -> {
-            final int page = args.length > 0 ? OptionalType.of(args[0]).asInt(-1) : 1;
+            final boolean numArg = args.length > 0 && Strings.isNumber(args[0]);
+            final int page = numArg ? OptionalType.of(args[0]).asInt(-1) : 1;
             if (page < 1) {
                 getSubCommand("info").sendUsage(sender, cmd, args);
                 return;
             }
+            final String currentGroup = args.length > 1 ? args[1] : (numArg || args.length < 1 ? PixelBuy.get().getStore().getGroup() : args[0]);
 
             final Set<StoreOrder> orders = user.getOrders();
-            Lang.COMMAND_DISPLAY_USER_INFO.sendTo(sender, user.getUniqueId(), user.getName(), user.getDonated(), page, (orders.size() - 1) / 10 + 1);
-            final String currentGroup = args.length > 1 ? args[1] : PixelBuy.get().getStore().getGroup();
+            Lang.COMMAND_DISPLAY_USER_INFO.sendTo(sender, user.getUniqueId(), user.getName(), user.getDonated(), page, (orders.size() - 1) / PAGE_SIZE + 1);
             int orderNum = 1;
-            int start = (page - 1) * 10;
+            int start = (page - 1) * PAGE_SIZE;
             int i = 0;
             for (StoreOrder order : orders) {
                 if (i < start) {
                     i++;
                     continue;
                 }
-                if (orderNum >= 10) {
+                if (orderNum > PAGE_SIZE) {
                     break;
                 }
                 final String key = order.getProvider() + ":" + order.getId();
@@ -113,7 +115,7 @@ public class UserCommand extends PixelCommand {
                     s = Strings.replaceArgs(s, key, saved, order.getGroup(), buyer, order.getDate(), order.getExecution().name());
                     if (first) {
                         first = false;
-                        sender.sendMessage(INDEX.replace("#", String.valueOf(i + 1)) + s);
+                        sender.sendMessage(INDEX.replace("#", String.valueOf(orderNum)) + s);
                     } else {
                         sender.sendMessage("   " + s);
                     }

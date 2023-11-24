@@ -64,7 +64,7 @@ Command:
     Description: 'Manage store users'
     Info:
       Description: 'Get information about store user'
-      Usage: '{prefix}&eYou should use: &c/{0} &8[&7page&8]'
+      Usage: '{prefix}&eYou should use: &c/{0} &8[&7page&8] &8[&7group&8]'
     Calculate:
       Description: 'Calculate store user donated amount'
       Amount: '{prefix}&fThe user &e{0} &fhas donated &a{1}'
@@ -73,6 +73,7 @@ Command:
     Description: 'Manage store orders'
     Info:
       Description: 'Get information about store order'
+      Usage: '{prefix}&eYou should use: &c/{0} &8[&7group&8]'
     Fix:
       Description: 'Change failed items to pending state'
       Done: '{prefix}&aThe order &f{0} &afailed items was changed to PENDING state'

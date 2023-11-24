@@ -64,7 +64,7 @@ Command:
     Description: 'Administrar los usuarios de la tienda'
     Info:
       Description: 'Obtener información sobre el usuario'
-      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7página&8]'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7página&8] &8[&7grupo&8]'
     Calculate:
       Description: 'Calcular la cantidad donada del usuario'
       Amount: '{prefix}&fEl usuario &e{0} &fha donado &a{1}'
@@ -73,6 +73,7 @@ Command:
     Description: 'Administrar las órdenes de compra'
     Info:
       Description: 'Obtener información sobre la orden de compra'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7grupo&8]'
     Fix:
       Description: 'Cambiar los items fallidos por el estado de entrega pendiente'
       Done: '{prefix}&aLos items fallidos de la orden orden &f{0} &afueron cambiados al estado de entrega pendiente'
