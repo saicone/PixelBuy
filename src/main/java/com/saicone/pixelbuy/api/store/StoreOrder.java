@@ -1,5 +1,6 @@
 package com.saicone.pixelbuy.api.store;
 
+import com.saicone.pixelbuy.core.store.StoreItem;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -369,9 +370,14 @@ public class StoreOrder {
         }
 
         @Override
+        public String toString() {
+            return id;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o instanceof String) return id.equals((String) o);
+            if (o instanceof StoreItem) return id.equals(((StoreItem) o).getId());
             if (o == null || getClass() != o.getClass()) return false;
 
             Item item = (Item) o;

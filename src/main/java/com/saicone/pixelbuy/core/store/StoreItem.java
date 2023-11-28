@@ -4,6 +4,7 @@ import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.PixelBuyAPI;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
@@ -167,5 +168,21 @@ public class StoreItem {
         for (StoreAction action : onRefund) {
             action.run(client, amount);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o instanceof StoreOrder.Item) return id.equals(((StoreOrder.Item) o).getId());
+        if (o == null || getClass() != o.getClass()) return false;
+
+        StoreItem storeItem = (StoreItem) o;
+
+        return id.equals(storeItem.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

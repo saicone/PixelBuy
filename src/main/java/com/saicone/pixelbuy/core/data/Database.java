@@ -219,13 +219,20 @@ public class Database implements Listener {
         final StoreUser cachedUser = cached.get(uniqueId);
         if (cachedUser != null) {
             if (!cachedUser.isLoaded()) {
-                loadOrders(sync, cachedUser);
+                if (!sync) {
+                    Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+                        loadOrders(true, cachedUser);
+                        consumer.accept(cachedUser);
+                    });
+                    return;
+                }
+                loadOrders(true, cachedUser);
             }
             consumer.accept(cachedUser);
             return;
         }
         if (!sync) {
-            // Temp value
+            // Add temp value
             cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
         }
         client.getUser(sync, uniqueId, username, user -> {

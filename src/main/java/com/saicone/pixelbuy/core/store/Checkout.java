@@ -44,6 +44,7 @@ public class Checkout {
                 append.addAll(entry.getValue().getAppend());
             }
         }
+        PixelBuy.log(4, "Loaded " + append.size() + " appendable groups: " + String.join(", ", append));
     }
 
     @NotNull
@@ -59,7 +60,7 @@ public class Checkout {
         if (!order.getGroup().equals(store.getGroup()) && append.contains(order.getGroup())) {
             for (var entry : store.getItems().entrySet()) {
                 if (entry.getValue().getAppend().contains(order.getGroup())) {
-                    if (order.getItems().contains(entry.getKey()) && !order.getItems(store.getGroup()).contains(entry.getKey())) {
+                    if (order.getItems().contains(entry.getValue()) && !order.getItems(store.getGroup()).contains(entry.getValue())) {
                         order.addItem(store.getGroup(), entry.getValue().getId());
                     }
                 }
