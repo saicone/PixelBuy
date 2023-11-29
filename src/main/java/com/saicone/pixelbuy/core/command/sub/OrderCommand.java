@@ -252,7 +252,7 @@ public class OrderCommand extends PixelCommand {
         public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 if (args.length > 0 && args[0].equalsIgnoreCase("error")) {
-                    sendLang(sender, "Info.Error", String.valueOf(item.getError()));
+                    sendLang(sender, "Info.Error", item.getId(), String.valueOf(item.getError()));
                 } else {
                     Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.sendTo(sender, item.getId(), item.getAmount(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
                 }
