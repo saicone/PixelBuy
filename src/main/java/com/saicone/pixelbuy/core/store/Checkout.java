@@ -87,8 +87,8 @@ public class Checkout {
 
         final StoreOrder o = user.mergeOrder(order);
         append(o);
-        // Save created order
-        PixelBuy.get().getDatabase().saveData(o);
+        // Mark data as edited
+        o.setEdited(true);
         user.setEdited(true);
         process(user);
         return true;

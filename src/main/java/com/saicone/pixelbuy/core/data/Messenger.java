@@ -55,6 +55,8 @@ public class Messenger extends AbstractMessenger {
                 clear();
                 this.deliveryClient = null;
                 this.channel = channel;
+            }
+            if (!incomingConsumers.containsKey(channel)) {
                 subscribe(channel, (msg) -> {
                     if (Bukkit.isPrimaryThread()) {
                         Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> process(msg));
@@ -198,7 +200,7 @@ public class Messenger extends AbstractMessenger {
                     break;
                 case "UPDATE_ORDER":
                     if (user.isLoaded()) {
-                        database.getClient().getOrder(split[2], Integer.parseInt(split[3]), split[4], user::mergeOrder);
+                        database.getClient().getOrder(split[2], Integer.parseInt(split[3]), split[4], user::updateOrder);
                     }
                     break;
                 case "DELETE_ORDER":
