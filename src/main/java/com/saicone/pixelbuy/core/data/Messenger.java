@@ -162,8 +162,8 @@ public class Messenger extends AbstractMessenger {
         PixelBuy.log(level, msg);
     }
 
-    public void process(@NotNull StoreUser user) {
-        send(channel, "PROCESS_USER|" + user.getUniqueId());
+    public void process(@NotNull StoreUser user, @NotNull String group) {
+        send(channel, "PROCESS_USER|" + user.getUniqueId() + "|" + group);
     }
 
     public void update(@NotNull StoreUser user) {
@@ -181,7 +181,7 @@ public class Messenger extends AbstractMessenger {
     private void process(@NotNull String message) {
         final String[] split = message.split("[|]");
         PixelBuy.log(4, "Received message: " + message);
-        if (split.length < 2) {
+        if (split.length < 3) {
             return;
         }
         try {
@@ -191,7 +191,7 @@ public class Messenger extends AbstractMessenger {
             }
             switch (split[0].toUpperCase()) {
                 case "PROCESS_USER":
-                    if (Bukkit.getPlayer(user.getUniqueId()) != null) {
+                    if (PixelBuy.get().getStore().getGroup().equals(split[2]) && Bukkit.getPlayer(user.getUniqueId()) != null) {
                         PixelBuy.get().getStore().getCheckout().process(user);
                     }
                     break;

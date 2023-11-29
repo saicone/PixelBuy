@@ -309,7 +309,7 @@ public class Database implements Listener {
     }
 
     public void sendProcess(@NotNull StoreUser user) {
-        messenger.process(user);
+        messenger.process(user, PixelBuy.get().getStore().getGroup());
     }
 
     public void deleteData(@NotNull StoreOrder order) {
