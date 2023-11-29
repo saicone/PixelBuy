@@ -308,6 +308,10 @@ public class Database implements Listener {
         }
     }
 
+    public void sendProcess(@NotNull StoreUser user) {
+        messenger.process(user);
+    }
+
     public void deleteData(@NotNull StoreOrder order) {
         client.deleteOrder(order.getProvider(), order.getId());
         messenger.delete(order);

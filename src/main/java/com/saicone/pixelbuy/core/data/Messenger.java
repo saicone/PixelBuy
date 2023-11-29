@@ -96,6 +96,7 @@ public class Messenger extends AbstractMessenger {
             finalType = type;
         }
 
+        PixelBuy.log(4, "Using delivery client: " + finalType);
         switch (finalType.toUpperCase()) {
             case "SQL":
                 return loadHikariDelivery((HikariDatabase) PixelBuy.get().getDatabase().getClient());
@@ -159,31 +160,26 @@ public class Messenger extends AbstractMessenger {
         PixelBuy.log(level, msg);
     }
 
+    public void process(@NotNull StoreUser user) {
+        send(channel, "PROCESS_USER|" + user.getUniqueId());
+    }
+
     public void update(@NotNull StoreUser user) {
-        if (!isEnabled()) {
-            return;
-        }
         send(channel, "UPDATE_DONATED|" + user.getUniqueId() + "|" + user.getDonated());
     }
 
     public void update(@NotNull StoreOrder order) {
-        if (!isEnabled()) {
-            return;
-        }
         send(channel, "UPDATE_ORDER|" + order.getBuyer() + "|" + order.getProvider() + "|" + order.getId() + "|" + order.getGroup());
     }
 
     public void delete(@NotNull StoreOrder order) {
-        if (!isEnabled()) {
-            return;
-        }
         send(channel, "DELETE_ORDER|" + order.getBuyer() + "|" + order.getProvider() + "|" + order.getId() + "|" + order.getGroup());
     }
 
     private void process(@NotNull String message) {
         final String[] split = message.split("[|]");
         PixelBuy.log(4, "Received message: " + message);
-        if (split.length < 3) {
+        if (split.length < 2) {
             return;
         }
         try {
@@ -192,16 +188,18 @@ public class Messenger extends AbstractMessenger {
                 return;
             }
             switch (split[0].toUpperCase()) {
+                case "PROCESS_USER":
+                    if (Bukkit.getPlayer(user.getUniqueId()) != null) {
+                        PixelBuy.get().getStore().getCheckout().process(user);
+                    }
+                    break;
                 case "UPDATE_DONATED":
                     user.setDonated(Float.parseFloat(split[2]));
                     break;
                 case "UPDATE_ORDER":
-                    database.getClient().getOrder(split[2], Integer.parseInt(split[3]), split[4], order -> {
-                        user.removeOrder(order);
-                        if (user.isLoaded() || Bukkit.getPlayer(user.getUniqueId()) != null) {
-                            PixelBuy.get().getStore().getCheckout().process(order);
-                        }
-                    });
+                    if (user.isLoaded()) {
+                        database.getClient().getOrder(split[2], Integer.parseInt(split[3]), split[4], user::mergeOrder);
+                    }
                     break;
                 case "DELETE_ORDER":
                     if (user.getOrders().isEmpty()) {

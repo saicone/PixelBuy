@@ -87,6 +87,8 @@ public class Checkout {
 
         final StoreOrder o = user.mergeOrder(order);
         append(o);
+        // Save created order
+        PixelBuy.get().getDatabase().saveData(o);
         user.setEdited(true);
         process(user);
         return true;
@@ -106,8 +108,11 @@ public class Checkout {
             if (donated != donated(u)) {
                 PixelBuy.get().getDatabase().saveData(u);
             }
-            if (Bukkit.getPlayer(user.getUniqueId()) != null) {
+            // Unload offline data
+            if (Bukkit.getPlayer(user.getUniqueId()) == null) {
                 PixelBuy.get().getDatabase().unloadUser(u);
+                // Send process update to other servers
+                PixelBuy.get().getDatabase().sendProcess(user);
             }
         });
     }
@@ -160,46 +165,46 @@ public class Checkout {
     private void execute(@NotNull OfflinePlayer player, @NotNull StoreUser user, @NotNull StoreOrder order) {
         final WebSupervisor web = store.getSupervisor(order.getProvider());
         boolean requireOnline = false;
-        for (StoreOrder.Item value : order.getItems(store.getGroup())) {
-            if (value.getState() != StoreOrder.State.PENDING) {
+        for (StoreOrder.Item orderItem : order.getItems(store.getGroup())) {
+            if (orderItem.getState() != StoreOrder.State.PENDING) {
                 continue;
             }
 
-            final StoreItem item = store.getItem(value.getId());
-            if (item == null) {
-                value.state(StoreOrder.State.ERROR).error("The store item '" + value.getId() + "' doesn't exist");
+            final StoreItem storeItem = store.getItem(orderItem.getId());
+            if (storeItem == null) {
+                orderItem.state(StoreOrder.State.ERROR).error("The store item '" + orderItem.getId() + "' doesn't exist");
                 order.setEdited(true);
                 continue;
             }
 
-            if (item.isOnline() && !player.isOnline()) {
+            if (storeItem.isOnline() && !player.isOnline()) {
                 requireOnline = true;
                 continue;
             }
 
-            if (requireOnline && !item.isAlwaysRun()) {
+            if (requireOnline && !storeItem.isAlwaysRun()) {
                 continue;
             }
 
             order.setEdited(true);
 
-            value.state(StoreOrder.State.DONE);
-            if (order.getExecution() == StoreOrder.Execution.BUY && value.getPrice() == 0.0f) {
-                final Integer itemId = item.getPriceElement(order.getProvider());
+            orderItem.state(StoreOrder.State.DONE);
+            if (order.getExecution() == StoreOrder.Execution.BUY && orderItem.getPrice() == 0.0f) {
+                final Integer itemId = storeItem.getPriceElement(order.getProvider());
                 if (itemId != null) {
                     if (web != null) {
                         try {
                             float price = web.getTotal(order.getId(), itemId);
-                            value.price(Math.max(price, 0.0f));
+                            orderItem.price(Math.max(price, 0.0f));
                         } catch (Throwable t) {
                             t.printStackTrace();
-                            value.price(0.0f);
+                            orderItem.price(0.0f);
                         }
                     } else {
-                        value.price(0.0f);
+                        orderItem.price(0.0f);
                     }
                 } else {
-                    value.price(item.getPrice());
+                    orderItem.price(storeItem.getPrice());
                 }
             }
 
@@ -213,14 +218,14 @@ public class Checkout {
                         break;
                     case "order":
                         if (field.startsWith("item_")) {
-                            finalValue = value.get(field.substring(5));
+                            finalValue = orderItem.get(field.substring(5));
                         } else {
                             finalValue = order.get(field);
                         }
                         break;
                     case "store":
                         if (field.startsWith("item_")) {
-                            finalValue = item.get(field.substring(5));
+                            finalValue = storeItem.get(field.substring(5));
                         } else {
                             finalValue = store.get(field);
                         }
@@ -232,7 +237,7 @@ public class Checkout {
                 return finalValue != null ? finalValue : "{" + id + "_" + arg + "}";
             }));
 
-            execute(client, order, item, value);
+            execute(client, order, storeItem, orderItem);
         }
 
         if (order.isEdited()) {
@@ -240,23 +245,23 @@ public class Checkout {
         }
     }
 
-    private void execute(@NotNull StoreClient client, @NotNull StoreOrder order, @NotNull StoreItem item, @NotNull StoreOrder.Item value) {
+    private void execute(@NotNull StoreClient client, @NotNull StoreOrder order, @NotNull StoreItem storeItem, @NotNull StoreOrder.Item orderItem) {
         try {
             switch (order.getExecution()) {
                 case BUY:
-                    item.onBuy(client, value.getAmount());
+                    storeItem.onBuy(client, orderItem.getAmount());
                     break;
                 case RECOVER:
-                    item.onRecover(client, value.getAmount());
+                    storeItem.onRecover(client, orderItem.getAmount());
                     break;
                 case REFUND:
-                    item.onRefund(client, value.getAmount());
+                    storeItem.onRefund(client, orderItem.getAmount());
                     break;
                 default:
                     break;
             }
         } catch (Throwable t) {
-            value.state(StoreOrder.State.ERROR).error(t.getClass().getName() + "\n" + t.getMessage());
+            orderItem.state(StoreOrder.State.ERROR).error(t.getClass().getName() + "\n" + t.getMessage());
         }
     }
 

@@ -109,7 +109,7 @@ public abstract class AbstractMessenger {
     }
 
     public boolean send(@NotNull String channel, @NotNull String message) {
-        if (deliveryClient == null) {
+        if (!isEnabled()) {
             return false;
         }
 
