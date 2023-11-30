@@ -3,9 +3,9 @@ package com.saicone.pixelbuy.core.command.sub;
 import com.google.common.base.Enums;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
-import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelCommand;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.util.MStrings;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -178,17 +179,23 @@ public class OrderCommand extends PixelCommand {
                 sendLang(sender, "Give.Duplicated", cmd[cmd.length - 2]);
                 return false;
             }
-            final StoreUser user = UserCommand.getUser(args[0]);
-            if (user == null) {
-                Lang.COMMAND_DISPLAY_USER_INVALID.sendTo(sender, args[0]);
-                return false;
+            final UUID buyer;
+            if (args[0].length() < 21) {
+                buyer = PlayerProvider.getUniqueId(args[0]);
+            } else {
+                try {
+                    buyer = UUID.fromString(args[0]);
+                } catch (IllegalArgumentException e) {
+                    Lang.COMMAND_DISPLAY_USER_INVALID.sendTo(sender, args[0]);
+                    return false;
+                }
             }
             for (int i = 1; i < args.length; i++) {
                 order.addItem(args[i]);
             }
-            order.setBuyer(user.getUniqueId());
+            order.setBuyer(buyer);
             if (PixelBuy.get().getStore().getCheckout().process(order)) {
-                sendLang(sender, "Give.Done", order.getKey(), user.getName() == null ? user.getUniqueId() : user.getName());
+                sendLang(sender, "Give.Done", order.getKey(), args[0]);
             }
             return false;
         }));
