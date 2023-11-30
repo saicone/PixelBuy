@@ -2,6 +2,7 @@ package com.saicone.pixelbuy;
 
 import com.saicone.ezlib.Dependencies;
 import com.saicone.ezlib.Dependency;
+import com.saicone.ezlib.Ezlib;
 import com.saicone.ezlib.EzlibLoader;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 @Dependencies({
         @Dependency(value = "com.github.cryptomorin:XSeries:9.7.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
@@ -59,7 +61,13 @@ public final class PixelBuy extends JavaPlugin {
     }
 
     public PixelBuy() {
-        libraryLoader = new EzlibLoader().logger((level, msg) -> {
+        final Ezlib ezlib = new Ezlib();
+        ezlib.init();
+        ezlib.dependency("com.google.code.gson:gson:2.10.1")
+             .relocations(Map.of("com{}google{}gson".replace("{}", "."), "com.saicone.pixelbuy.libs.gson"))
+             .parent(true)
+             .load();
+        libraryLoader = new EzlibLoader(EzlibLoader.class.getClassLoader(), null, ezlib).logger((level, msg) -> {
             switch (level) {
                 case 1:
                     getLogger().severe(msg);
