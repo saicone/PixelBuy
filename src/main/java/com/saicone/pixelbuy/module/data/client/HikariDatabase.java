@@ -187,7 +187,7 @@ public class HikariDatabase implements DataClient {
                     } else {
                         PixelBuy.log(2, "Found duplicated UUID " + foundId + " for username '" + username + "' with id " + uniqueId);
                         // Remove old id
-                        final StoreUser oldUser = new StoreUser(uniqueId, null, result.getFloat("donated"));
+                        final StoreUser oldUser = new StoreUser(foundId, null, result.getFloat("donated"));
                         oldUser.setEdited(true);
                         saveUser(true, oldUser);
                     }

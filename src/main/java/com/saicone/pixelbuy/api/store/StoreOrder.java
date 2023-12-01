@@ -233,7 +233,7 @@ public class StoreOrder {
             buyer = order.buyer;
         }
         for (int i = 0; i < dates.length; i++) {
-            if (dates[i] == null) {
+            if (dates[i] == null || (order.dates[i] != null && order.dates[i].toEpochDay() < dates[i].toEpochDay())) {
                 dates[i] = order.dates[i];
             }
         }
