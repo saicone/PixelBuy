@@ -68,6 +68,11 @@ Command:
     Calculate:
       Description: 'Calculate store user donated amount'
       Amount: '{prefix}&fThe user &e{0} &fhas donated &a{1}'
+    Provided:
+      Description: 'Get player information from player provider'
+      Info:
+        - '&eUUID: &f{0}'
+        - '&eName: &f{1}'
   Order:
     Usage: '{prefix}&eStore Order Commands: &7(/{0} <provider:id[:group]> <command>...)'
     Description: 'Manage store orders'

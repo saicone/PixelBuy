@@ -68,6 +68,11 @@ Command:
     Calculate:
       Description: 'Calcular la cantidad donada del usuario'
       Amount: '{prefix}&fEl usuario &e{0} &fha donado &a{1}'
+    Provided:
+      Description: 'Obtener información sobre el jugador'
+      Info:
+        - '&eUUID: &f{0}'
+        - '&eNombre: &f{1}'
   Order:
     Usage: '{prefix}&eComandos de Orden de Compra: &7(/{0} <proveedor:id[:grupo]> <comando>...)'
     Description: 'Administrar las órdenes de compra'

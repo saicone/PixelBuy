@@ -27,6 +27,7 @@ public class UserCommand extends PixelCommand {
         super("user");
         subCommand("info", this::info);
         subCommand("calculate", this::calculate);
+        subCommand("provided", this::provided);
     }
 
     @Override
@@ -148,6 +149,21 @@ public class UserCommand extends PixelCommand {
             if (before != amount) {
                 PixelBuy.get().getDatabase().updatedDonated(user);
             }
+        });
+    }
+
+    public void provided(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+            final UUID uuid;
+            final String name;
+            if (cmd[cmd.length - 2].length() < 21) {
+                name = cmd[cmd.length - 2];
+                uuid = PlayerProvider.getUniqueId(name);
+            } else {
+                uuid = UUID.fromString(cmd[cmd.length - 2]);
+                name = PlayerProvider.getName(uuid);
+            }
+            sendLang(sender, "Provided.Info", uuid, name);
         });
     }
 }
