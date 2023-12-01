@@ -275,7 +275,7 @@ public class Checkout {
             if (order.getGroup().equals(store.getGroup()) || !order.getItems().isEmpty()) {
                 for (StoreOrder.Item item : order.getItems()) {
                     retrievePrice(order, web, item);
-                    donated += item.getPrice();
+                    donated += Math.max(0.0f, item.getPrice());
                 }
             } else if (!order.getAllItems().isEmpty()) {
                 final Map<String, Float> map = new HashMap<>();
@@ -295,7 +295,7 @@ public class Checkout {
                     }
                 }
                 for (Map.Entry<String, Float> entry : map.entrySet()) {
-                    donated += entry.getValue();
+                    donated += Math.max(0.0f, entry.getValue());
                 }
             }
         }

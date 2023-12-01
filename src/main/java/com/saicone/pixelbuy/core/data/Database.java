@@ -312,6 +312,10 @@ public class Database implements Listener {
         messenger.process(user, PixelBuy.get().getStore().getGroup());
     }
 
+    public void updatedDonated(@NotNull StoreUser user) {
+        messenger.update(user);
+    }
+
     public void deleteData(@NotNull StoreOrder order) {
         client.deleteOrder(order.getProvider(), order.getId());
         messenger.delete(order);

@@ -142,8 +142,12 @@ public class UserCommand extends PixelCommand {
 
     public void calculate(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getUserAsync(sender, cmd[cmd.length - 2], (user) -> {
+            final float before = user.getDonated();
             final float amount = PixelBuy.get().getStore().getCheckout().donated(user);
             sendLang(sender, "Calculate.Amount", user.getName() == null ? user.getUniqueId() : user.getName(), amount);
+            if (before != amount) {
+                PixelBuy.get().getDatabase().updatedDonated(user);
+            }
         });
     }
 }

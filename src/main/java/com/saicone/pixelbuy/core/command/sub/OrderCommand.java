@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.UUID;
@@ -190,8 +191,38 @@ public class OrderCommand extends PixelCommand {
                     return false;
                 }
             }
+            String group = order.getGroup();
+            StoreOrder.State itemState = StoreOrder.State.PENDING;
             for (int i = 1; i < args.length; i++) {
-                order.addItem(args[i]);
+                final String arg = args[i];
+                if (arg.startsWith("--")) {
+                    final String key = arg.substring(2, arg.indexOf('='));
+                    final String value = arg.substring(arg.indexOf('=' + 1));
+                    switch (key.toLowerCase().trim()) {
+                        case "group":
+                            group = value;
+                            break;
+                        case "date":
+                            order.setDate(LocalDate.parse(value));
+                            break;
+                        case "execution":
+                            order.setExecution(StoreOrder.Execution.valueOf(value.toUpperCase()));
+                            break;
+                        case "state":
+                            itemState = StoreOrder.State.valueOf(value.toUpperCase());
+                            break;
+                    }
+                } else {
+                    final String[] split = arg.split("[|]");
+                    var item = order.addItem(group, split[0]).state(itemState);
+                    if (split.length > 1) {
+                        try {
+                            item.amount(Integer.parseInt(split[1]));
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
             order.setBuyer(buyer);
             if (PixelBuy.get().getStore().getCheckout().process(order)) {
