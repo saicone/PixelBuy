@@ -163,7 +163,7 @@ public class OrderCommand extends PixelCommand {
                 return false;
             }
             order.setExecution(execution);
-            order.setDate(LocalDate.now());
+            order.setDate(args.length > 1 ? LocalDate.parse(args[1]) : LocalDate.now());
             for (var entry : order.getAllItems().entrySet()) {
                 for (StoreOrder.Item item : entry.getValue()) {
                     item.state(StoreOrder.State.PENDING);

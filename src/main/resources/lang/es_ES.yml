@@ -84,7 +84,7 @@ Command:
       Done: '{prefix}&aLos items fallidos de la orden orden &f{0} &afueron cambiados al estado de entrega pendiente'
     Execute:
       Description: 'Cambiar la ejecución de la orden de compra'
-      Usage: '{prefix}&eDebes usar: &c/{0} &8<&7ejecución&8>'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8<&7ejecución&8> &8[&7fecha&8]'
       Invalid: '{prefix}&cLa ejecución &6{0} &cno existe'
       Done: '{prefix}&aLa ejecución de la orden &f{0} &afue cambiada a &f{1}'
     Give:
@@ -101,6 +101,7 @@ Command:
       Description: 'Administrar los items de compra'
       Info:
         Description: 'Obtener información sobre el item de compra'
+        Usage: '{prefix}&eYou should use: &c/{0} &8[&7error&8]'
         Error:
           - '{prefix}&cEl item de compra &6{0} &ctiene el error:'
           - '&f{1}'

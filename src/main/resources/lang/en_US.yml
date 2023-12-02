@@ -84,7 +84,7 @@ Command:
       Done: '{prefix}&aThe order &f{0} &afailed items was changed to PENDING state'
     Execute:
       Description: 'Change order execution'
-      Usage: '{prefix}&eYou should use: &c/{0} &8<&7execution&8>'
+      Usage: '{prefix}&eYou should use: &c/{0} &8<&7execution&8> &8[&7date&8]'
       Invalid: "{prefix}&cThe execution &6{0} &cdoesn't exist"
       Done: '{prefix}&aThe order &f{0} &aexecution was changed to &f{1}'
     Give:
@@ -101,6 +101,7 @@ Command:
       Description: 'Manage order items'
       Info:
         Description: 'Get information about order item'
+        Usage: '{prefix}&eYou should use: &c/{0} &8[&7error&8]'
         Error:
           - '{prefix}&cThe store item &6{0} &chas the error:'
           - '&f{1}'
