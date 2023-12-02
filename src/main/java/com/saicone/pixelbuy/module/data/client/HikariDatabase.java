@@ -171,19 +171,18 @@ public class HikariDatabase implements DataClient {
     public void getUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
         connect(sync, con -> {
             UUID foundId;
+            StoreUser user = null;
             try (PreparedStatement stmt = con.prepareStatement(schema("select:user"))) {
                 stmt.setString(1, username.toLowerCase());
                 final ResultSet result = stmt.executeQuery();
                 while (result.next()) {
                     foundId = UUID.fromString(result.getString("uuid"));
                     if (foundId.equals(uniqueId)) {
-                        final StoreUser user = new StoreUser(uniqueId, username, result.getFloat("donated"));
+                        user = new StoreUser(uniqueId, username, result.getFloat("donated"));
                         // Update name
                         if (!username.equalsIgnoreCase(result.getString("username"))) {
                             saveUser(true, user);
                         }
-                        consumer.accept(user);
-                        return;
                     } else {
                         PixelBuy.log(2, "Found duplicated UUID " + foundId + " for username '" + username + "' with id " + uniqueId);
                         // Remove old id
@@ -193,7 +192,7 @@ public class HikariDatabase implements DataClient {
                     }
                 }
             }
-            consumer.accept(null);
+            consumer.accept(user);
         });
     }
 
@@ -263,7 +262,7 @@ public class HikariDatabase implements DataClient {
         final String time = result.getString("time");
         if (time != null) {
             int ordinal = 0;
-            for (String s : time.split("\\|")) {
+            for (String s : time.split("[|]")) {
                 if (s.equalsIgnoreCase("null") || !Strings.isNumber(s)) {
                     continue;
                 }
