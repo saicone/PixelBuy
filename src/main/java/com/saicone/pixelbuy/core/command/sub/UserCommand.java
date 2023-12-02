@@ -13,7 +13,6 @@ import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -45,8 +44,7 @@ public class UserCommand extends PixelCommand {
         return 1;
     }
 
-    @Nullable
-    public static StoreUser getUser(@NotNull String s) {
+    public static void getUser(@NotNull String s, @NotNull Consumer<StoreUser> consumer) {
         final StoreUser user;
         if (s.length() < 21) {
             user = PixelBuy.get().getDatabase().getDataOrNull(PlayerProvider.getUniqueId(s), s);
@@ -55,31 +53,37 @@ public class UserCommand extends PixelCommand {
                 final UUID id = UUID.fromString(s);
                 final String name = PlayerProvider.getName(id);
                 if (name == null) {
-                    return null;
+                    consumer.accept(null);
+                    return;
                 }
                 user = PixelBuy.get().getDatabase().getDataOrNull(id, name);
             } catch (IllegalArgumentException e) {
-                return null;
+                consumer.accept(null);
+                return;
             }
         }
         if (user == null) {
-            return null;
+            consumer.accept(null);
+            return;
         }
-        if (!user.isLoaded()) {
+        boolean unload = !user.isLoaded();
+        if (unload) {
             PixelBuy.get().getDatabase().loadOrders(true, user);
         }
-        return user;
+        consumer.accept(user);
+        if (unload && Bukkit.getPlayer(user.getUniqueId()) == null) {
+            PixelBuy.get().getDatabase().unloadUser(user);
+        }
     }
 
     public void getUserAsync(@NotNull CommandSender sender, @NotNull String s, @NotNull Consumer<StoreUser> consumer) {
-        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-            final StoreUser user = getUser(s);
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> getUser(s, user -> {
             if (user == null) {
                 Lang.COMMAND_DISPLAY_USER_INVALID.sendTo(sender, s);
                 return;
             }
             consumer.accept(user);
-        });
+        }));
     }
 
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {

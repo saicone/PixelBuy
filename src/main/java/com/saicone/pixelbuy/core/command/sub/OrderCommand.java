@@ -79,8 +79,11 @@ public class OrderCommand extends PixelCommand {
             while (iterator.hasNext()) {
                 final StoreOrder order = iterator.next();
                 if (order.getProvider().equals(provider) && order.getId() == id && order.getGroup().equals(group)) {
-                    if (consumer.apply(order) == null) {
+                    final Boolean action = consumer.apply(order);
+                    if (action == null) {
                         iterator.remove();
+                    } else if (action == Boolean.TRUE) {
+                        PixelBuy.get().getDatabase().saveDataAsync(order, null);
                     }
                     return;
                 }
