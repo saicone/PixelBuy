@@ -2,43 +2,63 @@ package com.saicone.pixelbuy.module.hook;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.saicone.pixelbuy.PixelBuy;
 import net.luckperms.api.LuckPerms;
-import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class PlayerProvider {
 
     private static PlayerProvider INSTANCE = new PlayerProvider();
     private static final Cache<String, UUID> ID_CACHE = CacheBuilder.newBuilder().expireAfterAccess(3L, TimeUnit.HOURS).build();
     private static final Cache<UUID, String> NAME_CACHE = CacheBuilder.newBuilder().expireAfterAccess(3L, TimeUnit.HOURS).build();
+    private static final Map<String, Supplier<PlayerProvider>> SUPPLIERS = new LinkedHashMap<>();
+
+    static {
+        SUPPLIERS.put("LUCKPERMS", () -> {
+            if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+                return new LuckPermsProvider();
+            }
+            return null;
+        });
+    }
 
     public static void compute(@NotNull String type) {
-        switch (type.trim().toUpperCase()) {
-            case "AUTO":
-                if (PixelBuy.get().getDatabase().isUserLoadAll()) {
-                    INSTANCE = new PixelBuyProvider();
+        if (type.equalsIgnoreCase("AUTO")) {
+            for (var entry : SUPPLIERS.entrySet()) {
+                final PlayerProvider provider = entry.getValue().get();
+                if (provider != null) {
+                    INSTANCE = provider;
                     return;
                 }
-                break;
-            case "PIXELBUY":
-                INSTANCE = new PixelBuyProvider();
-                break;
-            case "LUCKPERMS":
-                if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
-                    INSTANCE = new LuckPermsProvider();
-                    return;
+            }
+        } else {
+            for (var entry : SUPPLIERS.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(type)) {
+                    final PlayerProvider provider = entry.getValue().get();
+                    if (provider != null) {
+                        INSTANCE = provider;
+                        return;
+                    }
                 }
-                break;
-            default:
-                break;
+            }
         }
         INSTANCE = new PlayerProvider();
+    }
+
+    public static void supply(@NotNull String type, @NotNull Supplier<PlayerProvider> supplier) {
+        SUPPLIERS.put(type, supplier);
+    }
+
+    @NotNull
+    public static PlayerProvider get() {
+        return INSTANCE;
     }
 
     @NotNull
@@ -84,44 +104,30 @@ public class PlayerProvider {
         return Bukkit.getOfflinePlayer(uniqueId).getName();
     }
 
-    private static final class PixelBuyProvider extends PlayerProvider {
-        @Override
-        public @NotNull UUID uniqueId(@NotNull String name) {
-            final UUID id = PixelBuy.get().getDatabase().getUniqueId(name);
-            return id == null ? super.uniqueId(name) : id;
-        }
-
-        @Override
-        public @Nullable String name(@NotNull UUID uniqueId) {
-            var user = PixelBuy.get().getDatabase().getCached().get(uniqueId);
-            return user == null ? super.name(uniqueId) : user.getName();
-        }
-    }
-
     private static final class LuckPermsProvider extends PlayerProvider {
 
         private final LuckPerms luckPerms = net.luckperms.api.LuckPermsProvider.get();
 
         @Override
         public @NotNull UUID uniqueId(@NotNull String name) {
-            final User user;
+            final UUID uuid;
             try {
-                user = luckPerms.getUserManager().getUser(name);
+                uuid = luckPerms.getUserManager().lookupUniqueId(name).get();
             } catch (Throwable t) {
                 return super.uniqueId(name);
             }
-            return user == null ? super.uniqueId(name) : user.getUniqueId();
+            return uuid == null ? super.uniqueId(name) : uuid;
         }
 
         @Override
         public @Nullable String name(@NotNull UUID uniqueId) {
-            final User user;
+            final String name;
             try {
-                user = luckPerms.getUserManager().getUser(uniqueId);
+                name = luckPerms.getUserManager().lookupUsername(uniqueId).get();
             } catch (Throwable t) {
                 return super.name(uniqueId);
             }
-            return user == null ? super.name(uniqueId) : user.getUsername();
+            return name == null ? super.name(uniqueId) : name;
         }
     }
 }

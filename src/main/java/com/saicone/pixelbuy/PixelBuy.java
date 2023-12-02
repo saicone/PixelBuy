@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Dependencies({
         @Dependency(value = "com.github.cryptomorin:XSeries:9.7.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
@@ -103,6 +104,24 @@ public final class PixelBuy extends JavaPlugin {
         database.onLoad();
         log(3, "Database loaded");
 
+        PlayerProvider.supply("PIXELBUY", () -> {
+           if (database.isUserLoadAll()) {
+               return new PlayerProvider() {
+                   @Override
+                   public @NotNull UUID uniqueId(@NotNull String name) {
+                       final UUID id = database.getUniqueId(name);
+                       return id == null ? super.uniqueId(name) : id;
+                   }
+
+                   @Override
+                   public @Nullable String name(@NotNull UUID uniqueId) {
+                       var user = database.getCached().get(uniqueId);
+                       return user == null ? super.name(uniqueId) : user.getName();
+                   }
+               };
+           }
+           return null;
+        });
         onReloadSettings();
 
         command.onLoad(settings);

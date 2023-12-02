@@ -162,10 +162,10 @@ public class UserCommand extends PixelCommand {
             final String name;
             if (cmd[cmd.length - 2].length() < 21) {
                 name = cmd[cmd.length - 2];
-                uuid = PlayerProvider.getUniqueId(name);
+                uuid = PlayerProvider.get().uniqueId(name);
             } else {
                 uuid = UUID.fromString(cmd[cmd.length - 2]);
-                name = PlayerProvider.getName(uuid);
+                name = PlayerProvider.get().name(uuid);
             }
             sendLang(sender, "Provided.Info", uuid, name);
         });
