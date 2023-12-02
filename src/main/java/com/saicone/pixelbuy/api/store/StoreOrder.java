@@ -153,10 +153,6 @@ public class StoreOrder {
         this.buyer = buyer;
     }
 
-    public void setDate() {
-        setDate(LocalDate.now());
-    }
-
     public void setDate(@NotNull LocalDate date) {
         setDate(execution, date);
     }
@@ -174,7 +170,6 @@ public class StoreOrder {
 
     public void setExecution(@NotNull Execution execution) {
         this.execution = execution;
-        setDate();
     }
 
     public void setEdited(boolean edited) {
