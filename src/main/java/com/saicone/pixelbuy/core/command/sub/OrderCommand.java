@@ -201,7 +201,7 @@ public class OrderCommand extends PixelCommand {
                 final String arg = args[i];
                 if (arg.startsWith("--")) {
                     final String key = arg.substring(2, arg.indexOf('='));
-                    final String value = arg.substring(arg.indexOf('=' + 1));
+                    final String value = arg.substring(arg.indexOf('=') + 1);
                     switch (key.toLowerCase().trim()) {
                         case "group":
                             group = value;

@@ -12,19 +12,22 @@ import java.util.List;
 
 public class CommandAction extends StoreAction {
 
-    public static final Builder<CommandAction> BUILDER = new Builder<CommandAction>("(?i)((run|execute)-?)?(command|cmd)")
-            .accept(config -> {
+    public static final Builder<CommandAction> BUILDER = new Builder<CommandAction>("(?i)((run|execute)-?)?(multi(ples)?-?)?(command|cmd)s?")
+            .accept((id, config) -> {
                 final List<String> commands = config.getRegex("(?i)(value|command|cmd)s?").asList(OptionalType::asString);
                 final boolean console = config.getRegex("(?i)console(-?sender)?").asBoolean(true);
-                return new CommandAction(commands, console);
+                final boolean multiple = id.toLowerCase().contains("multi") || config.getRegex("(?i)multiples?").asBoolean(false);
+                return new CommandAction(commands, console, multiple);
             });
 
     private final List<String> commands;
     private final boolean console;
+    private final boolean multiple;
 
-    public CommandAction(@NotNull List<String> commands, boolean console) {
+    public CommandAction(@NotNull List<String> commands, boolean console, boolean multiple) {
         this.commands = commands;
         this.console = console;
+        this.multiple = multiple;
     }
 
     @NotNull
@@ -34,6 +37,10 @@ public class CommandAction extends StoreAction {
 
     public boolean isConsole() {
         return console;
+    }
+
+    public boolean isMultiple() {
+        return multiple;
     }
 
     @Override
@@ -55,7 +62,13 @@ public class CommandAction extends StoreAction {
     }
 
     private void dispatch(@NotNull CommandSender sender, @NotNull List<String> cmds, int amount) {
-        for (int i = 0; i < amount; i++) {
+        if (isMultiple()) {
+            for (int i = 0; i < amount; i++) {
+                for (String cmd : cmds) {
+                    Bukkit.getServer().dispatchCommand(sender, cmd);
+                }
+            }
+        } else {
             for (String cmd : cmds) {
                 Bukkit.getServer().dispatchCommand(sender, cmd);
             }

@@ -2,7 +2,6 @@ package com.saicone.pixelbuy.api.store;
 
 import com.google.common.base.Suppliers;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
-import com.saicone.pixelbuy.util.ThrowableFunction;
 import org.bukkit.configuration.ConfigurationSection;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Contract;
@@ -10,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -35,7 +36,7 @@ public abstract class StoreAction {
         private final @Language("RegExp") String regex;
         private final Pattern pattern;
 
-        private ThrowableFunction<BukkitSettings, A> accept;
+        private BiFunction<String, BukkitSettings, A> accept;
 
         public Builder(@NotNull @Language("RegExp") String regex) {
             this.regex = regex;
@@ -54,7 +55,13 @@ public abstract class StoreAction {
 
         @NotNull
         @Contract("_ -> this")
-        public Builder<A> accept(@NotNull ThrowableFunction<BukkitSettings, A> accept) {
+        public Builder<A> accept(@NotNull Function<BukkitSettings, A> accept) {
+            return accept((id, config) -> accept.apply(config));
+        }
+
+        @NotNull
+        @Contract("_ -> this")
+        public Builder<A> accept(@NotNull BiFunction<String, BukkitSettings, A> accept) {
             this.accept = accept;
             return this;
         }
@@ -65,7 +72,7 @@ public abstract class StoreAction {
         }
 
         @NotNull
-        public A build(@Nullable Object object) throws IllegalArgumentException {
+        public A build(@NotNull String id, @Nullable Object object) throws IllegalArgumentException {
             final BukkitSettings config;
             if (object instanceof BukkitSettings) {
                 config = (BukkitSettings) object;
@@ -76,7 +83,7 @@ public abstract class StoreAction {
                 config.set("value", object);
             }
             try {
-                return accept.apply(config);
+                return accept.apply(id, config);
             } catch (Throwable t) {
                 throw new IllegalArgumentException("Cannot convert the provided object to required action type", t);
             }

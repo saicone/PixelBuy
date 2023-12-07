@@ -286,7 +286,7 @@ public class PixelStore {
     public StoreAction buildAction(@NotNull String id, @Nullable Object object) {
         for (var entry : actionTypes.entrySet()) {
             if (entry.getValue().getPattern().matcher(id).matches()) {
-                return entry.getValue().build(object);
+                return entry.getValue().build(id, object);
             }
         }
         return null;
