@@ -115,10 +115,18 @@ Command:
         Usage: '{prefix}&eYou should use: &c/{0} &8<&7price&8>'
         Invalid: '{prefix}&cThe argument &6{0} &cis not a valid price'
         Done: '{prefix}&aThe item price was changed to &f{0}'
+      Amount:
+        Description: 'Change order item amount'
+        Usage: '{prefix}&eYou should use: &c/{0} &8<&7amount&8>'
+        Invalid: '{prefix}&cThe argument &6{0} &cis not a valid number'
+        Done: '{prefix}&aThe item amount was changed to &f{0}'
       Add:
         Description: 'Add item to store order'
         Usage: '{prefix}&eYou should use: &c/{0} &8[&7state&8] &8[&7price&8]'
         Done: '{prefix}&aThe item &f{0} &awas added to &f{0} &aorder'
+      Delete:
+        Description: 'Delete item from order'
+        Done: '{prefix}&aThe item &f{0} &awas deleted from &f{0} &aorder'
   Data:
     Usage: '{prefix}&eDatabase Commands: &7(/{0} <command>...)'
     Description: 'Interact with database'

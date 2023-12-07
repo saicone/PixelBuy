@@ -249,7 +249,9 @@ public class OrderCommand extends PixelCommand {
             subCommand("info", this::info);
             subCommand("state", 1, this::state);
             subCommand("price", 1, this::price);
+            subCommand("amount", 1, this::amount);
             subCommand("add", 1, this::add);
+            subCommand("delete", this::delete);
         }
 
         @Override
@@ -272,15 +274,22 @@ public class OrderCommand extends PixelCommand {
                 final String group;
                 final String id;
                 if (split.length > 1) {
-                    group = split[0];
-                    id = split[1];
+                    group = split[1];
+                    id = split[0];
                 } else {
                     group = PixelBuy.get().getStore().getGroup();
                     id = s;
                 }
-                for (StoreOrder.Item item : order.getItems(group)) {
+                final Iterator<StoreOrder.Item> iterator = order.getItems(group).iterator();
+                while (iterator.hasNext()) {
+                    final StoreOrder.Item item = iterator.next();
                     if (item.getId().equals(id)) {
-                        return consumer.apply(order, item);
+                        final Boolean result = consumer.apply(order, item);
+                        if (result == null) {
+                            iterator.remove();
+                            return true;
+                        }
+                        return result;
                     }
                 }
                 if (create) {
@@ -327,6 +336,18 @@ public class OrderCommand extends PixelCommand {
             });
         }
 
+        public void amount(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+            if (!Strings.isNumber(args[0]) || args[0].startsWith("-")) {
+                sendLang(sender, "Amount.Invalid", args[0]);
+                return;
+            }
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
+                item.amount(Integer.parseInt(args[0]));
+                sendLang(sender, "Amount.Done", item.getPrice());
+                return true;
+            });
+        }
+
         public void add(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], true, (order, item) -> {
                 final StoreOrder.State state = args.length > 0 ? Enums.getIfPresent(StoreOrder.State.class, args[0]).or(item.getState()) : item.getState();
@@ -335,6 +356,13 @@ public class OrderCommand extends PixelCommand {
                 item.state(state).price(price).error(error);
                 sendLang(sender, "Add.Done", item.getId(), order.getKey());
                 return true;
+            });
+        }
+
+        public void delete(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+            getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
+                sendLang(sender, "Delete.Done", item.getId(), order.getKey());
+                return null;
             });
         }
     }

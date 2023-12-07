@@ -115,10 +115,18 @@ Command:
         Usage: '{prefix}&eDebes usar: &c/{0} &8<&7precio&8>'
         Invalid: '{prefix}&cEl argumento &6{0} &cno es un precio válido'
         Done: '{prefix}&aEl precio del item fue cambiado a &f{0}'
+      Amount:
+        Description: 'Cambiar la cantidad del item'
+        Usage: '{prefix}&eDebes usar: &c/{0} &8<&7cantidad&8>'
+        Invalid: '{prefix}&cEl argumento &6{0} &cno es una cantidad válida'
+        Done: '{prefix}&aLa cantidad del item fue cambiada a &f{0}'
       Add:
         Description: 'Agregar el item a la orden de compra'
         Usage: '{prefix}&eDebes usar: &c/{0} &8[&7estado&8] &8[&7precio&8] &8[&7mensaje&8]'
         Done: '{prefix}&aEl item &f{0} &afue agregado a la orden de compra &f{0}'
+      Delete:
+        Description: 'Eliminar el item de la orden de compra'
+        Done: '{prefix}&aEl item &f{0} &afue eliminado de la orden de compra &f{0}'
   Data:
     Usage: '{prefix}&eComandos de la Base de Satos: &7(/{0} <comando>...)'
     Description: 'Interactuar con la base de datos'
