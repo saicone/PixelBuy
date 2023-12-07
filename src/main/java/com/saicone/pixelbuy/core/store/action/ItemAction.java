@@ -16,7 +16,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ItemAction extends StoreAction {
 
@@ -34,18 +36,6 @@ public class ItemAction extends StoreAction {
         return new ItemAction(item);
     });
 
-    private static final ItemStack DEFAULT_ITEM;
-
-    static {
-        final ItemStack item = new ItemStack(Material.PAPER);
-        item.addUnsafeEnchantment(Enchantment.LURE, 1);
-        final ItemMeta meta = item.getItemMeta();
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.setDisplayName(MStrings.color("&e&lInvalid Item"));
-        item.setItemMeta(meta);
-        DEFAULT_ITEM = item;
-    }
-
     private final SettingsItem item;
 
     public ItemAction(@NotNull SettingsItem item) {
@@ -60,33 +50,37 @@ public class ItemAction extends StoreAction {
     @Override
     public void run(@NotNull StoreClient client, int amount) {
         if (client.isOnline()) {
-            ItemStack item;
-            try {
-                item = getItem().parse(client::parse).build();
-                if (amount > 1 && item.getType() != Material.AIR) {
-                    item.setAmount(item.getAmount() * amount);
-                }
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-                item = DEFAULT_ITEM;
-            }
-            if (item.getType() == Material.AIR) {
-                item = DEFAULT_ITEM;
-            }
             final Player player = client.getPlayer();
-            final Map<Integer, ItemStack> items = player.getInventory().addItem(item);
-            if (!items.isEmpty()) {
-                if (Bukkit.isPrimaryThread()) {
+            for (int i = 0; i < amount; i++) {
+                final int count = i + 1;
+                giveItem(player, s -> client.parse(s.replace("{action_count}", String.valueOf(count))));
+            }
+        }
+    }
+
+    private void giveItem(@NotNull Player player, @NotNull Function<String, String> function) {
+        ItemStack item;
+        try {
+            item = getItem().parse(function).build();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            item = buildDefaultItem("Caught exception while building");
+        }
+        if (item.getType() == Material.AIR) {
+            item = buildDefaultItem("Item material cannot be AIR");
+        }
+        final Map<Integer, ItemStack> items = player.getInventory().addItem(item);
+        if (!items.isEmpty()) {
+            if (Bukkit.isPrimaryThread()) {
+                for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
+                    player.getWorld().dropItem(player.getLocation(), entry.getValue());
+                }
+            } else {
+                Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
                     for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
                         player.getWorld().dropItem(player.getLocation(), entry.getValue());
                     }
-                } else {
-                    Bukkit.getScheduler().runTask(PixelBuy.get(), () -> {
-                        for (Map.Entry<Integer, ItemStack> entry : items.entrySet()) {
-                            player.getWorld().dropItem(player.getLocation(), entry.getValue());
-                        }
-                    });
-                }
+                });
             }
         }
     }
@@ -94,5 +88,17 @@ public class ItemAction extends StoreAction {
     @Override
     public String toString() {
         return new Gson().toJson(getItem().asMap());
+    }
+
+    @NotNull
+    public static ItemStack buildDefaultItem(@NotNull String reason) {
+        final ItemStack item = new ItemStack(Material.PAPER);
+        item.addUnsafeEnchantment(Enchantment.LURE, 1);
+        final ItemMeta meta = item.getItemMeta();
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        meta.setDisplayName(MStrings.color("&c&lInvalid Item"));
+        meta.setLore(MStrings.color(List.of("&7Reason&8: &f" + reason)));
+        item.setItemMeta(meta);
+        return item;
     }
 }
