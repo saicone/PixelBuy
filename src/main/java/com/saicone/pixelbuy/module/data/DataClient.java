@@ -81,6 +81,16 @@ public interface DataClient {
 
     void saveUsers(boolean sync, @NotNull Collection<StoreUser> users);
 
+    default void saveOrderAsync(@NotNull StoreOrder order) {
+        saveOrder(false, order);
+    }
+
+    default void saveOrder(@NotNull StoreOrder order) {
+        saveOrder(true, order);
+    }
+
+    void saveOrder(boolean sync, @NotNull StoreOrder order);
+
     default void saveOrdersAsync(@NotNull Collection<StoreOrder> orders) {
         saveOrders(false, orders);
     }

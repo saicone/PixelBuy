@@ -282,7 +282,7 @@ public class Database implements Listener {
     }
 
     public void saveData(@NotNull StoreOrder order) {
-        client.saveOrders(Collections.singleton(order));
+        client.saveOrder(order);
         messenger.update(order);
     }
 

@@ -132,14 +132,21 @@ public class Checkout {
             return;
         }
         final List<StoreOrder> orders = new ArrayList<>();
+        final List<StoreOrder> edited = new ArrayList<>();
         for (StoreOrder order : user.getOrders()) {
             if (!order.has(store.getGroup(), StoreOrder.State.PENDING)) {
+                if (order.isEdited()) {
+                    edited.add(order);
+                }
                 continue;
             }
 
             final OrderProcessEvent event = new OrderProcessEvent(user, order);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
+                if (order.isEdited()) {
+                    edited.add(order);
+                }
                 continue;
             }
 
@@ -154,6 +161,9 @@ public class Checkout {
                 final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
                 for (StoreOrder order : orders) {
                     execute(player, user, order);
+                }
+                for (StoreOrder order : edited) {
+                    PixelBuy.get().getDatabase().saveData(order);
                 }
                 if (consumer != null) {
                     consumer.accept(user);

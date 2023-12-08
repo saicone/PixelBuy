@@ -334,6 +334,37 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
+    public void saveOrder(boolean sync, @NotNull StoreOrder order) {
+        if (order.getBuyer() == null || !order.isEdited()) {
+            return;
+        }
+        connect(sync, con -> {
+            final boolean saved = order.getDataId() >= 1;
+            try (PreparedStatement stmt = con.prepareStatement(schema(saved ? "update:order" : "insert:order"), Statement.RETURN_GENERATED_KEYS)) {
+                order.setEdited(false);
+                if (saved) {
+                    setOrder(stmt, order, 1);
+                    stmt.setInt(5, order.getDataId());
+                    stmt.addBatch();
+                } else {
+                    stmt.setString(1, order.getProvider());
+                    stmt.setInt(2, order.getId());
+                    stmt.setString(3, order.getGroup());
+                    setOrder(stmt, order, 4);
+                    stmt.addBatch();
+                }
+                final int rows = stmt.executeUpdate();
+                if (!saved && rows > 0) {
+                    final ResultSet result = stmt.getGeneratedKeys();
+                    if (result.next()) {
+                        order.setDataId(result.getInt(1));
+                    }
+                }
+            }
+        });
+    }
+
+    @Override
     public void saveOrders(boolean sync, @NotNull Collection<StoreOrder> orders) {
         if (orders.isEmpty()) {
             return;
