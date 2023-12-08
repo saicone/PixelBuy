@@ -1,11 +1,15 @@
 package com.saicone.pixelbuy.core.web.supervisor;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.saicone.pixelbuy.PixelBuy;
+import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.web.WebType;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +25,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * WooMinecraft supervisor implementation.<br>
@@ -46,12 +51,15 @@ import java.util.StringJoiner;
 public class WooMinecraftWeb extends WebSupervisor {
 
     private String baseUrl;
+    private String apiKey;
     private URL wmcUrl;
     private int delay;
     private String wcUrl;
 
     private int getTask;
-    private boolean onTask;
+    private transient boolean onTask;
+    private transient JsonObject lastOrders;
+    private final Cache<Integer, StoreOrder> cachedOrders = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 
     public WooMinecraftWeb(@NotNull String id, @NotNull String group) {
         super(id, group);
@@ -73,9 +81,9 @@ public class WooMinecraftWeb extends WebSupervisor {
         }
 
         String wmcPath = config.getRegex("(?i)(api-?)?path").asString("wp-json/wmc/v1/server/{key}");
-        final String key = config.getRegex("(?i)(api-?)?key").asString();
-        if (key != null) {
-            wmcPath = wmcPath.replace("{key}", key);
+        this.apiKey = config.getRegex("(?i)(api-?)?key").asString();
+        if (apiKey != null) {
+            wmcPath = wmcPath.replace("{key}", apiKey);
         }
         try {
             this.wmcUrl = new URL(parseUrl(this.baseUrl, wmcPath));
@@ -171,6 +179,52 @@ public class WooMinecraftWeb extends WebSupervisor {
         return json.get("price").getAsFloat();
     }
 
+    @Override
+    public @Nullable StoreOrder lookupOrder(int orderId) {
+        final StoreOrder cached = cachedOrders.getIfPresent(orderId);
+        if (cached != null) {
+            return cached;
+        }
+        final JsonObject json;
+        try {
+            json = getOrderJson(orderId);
+        } catch (Throwable t) {
+            return null;
+        }
+        try {
+            String playerId = null;
+            List<String> commands = null;
+            for (JsonElement element : json.getAsJsonArray("meta_data")) {
+                if (playerId != null && commands != null) {
+                    break;
+                }
+                final JsonObject meta = element.getAsJsonObject();
+                final String key = meta.get("key").getAsString();
+                if (key.equalsIgnoreCase("player_id")) {
+                    playerId = meta.get("value").getAsString();
+                } else if (key.equalsIgnoreCase("_wmc_commands_" + apiKey)) {
+                    commands = new ArrayList<>();
+                    final JsonElement value = meta.get("value");
+                    if (value.isJsonArray()) {
+                        for (JsonElement command : value.getAsJsonArray()) {
+                            commands.add(command.getAsString());
+                        }
+                    } else {
+                        commands.add(value.getAsString());
+                    }
+                }
+            }
+            if (playerId != null && commands != null) {
+                final StoreOrder order = buildOrder(orderId, PlayerProvider.getUniqueId(playerId), commands);
+                cachedOrders.put(orderId, order);
+                return order;
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return null;
+    }
+
     @NotNull
     public JsonObject getOrderJson(int orderId) {
         final URL url;
@@ -186,13 +240,13 @@ public class WooMinecraftWeb extends WebSupervisor {
         if (wmcUrl == null || wmcUrl.toString().isBlank()) {
             return;
         }
-        final JsonObject json = readJson(wmcUrl);
-        if (json.get("data") != null) {
-            PixelBuy.log(2, json.get("code").getAsString());
+        lastOrders = readJson(wmcUrl);
+        if (lastOrders.get("data") != null) {
+            PixelBuy.log(2, lastOrders.get("code").getAsString());
             return;
         }
 
-        final JsonArray orders = json.getAsJsonArray("orders");
+        final JsonArray orders = lastOrders.getAsJsonArray("orders");
         if (orders == null || orders.isEmpty()) {
             return;
         }

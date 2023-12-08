@@ -66,6 +66,10 @@ public abstract class PixelCommand extends BukkitCommandNode {
         Lang.NO_PERM.sendTo(sender, getPermission());
     }
 
+    public void sendUsage(@NotNull String id, @NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+        getSubCommand(id).sendUsage(sender, cmd, args);
+    }
+
     @Override
     public void sendSubUsage(@NotNull CommandSender sender) {
         Lang.COMMAND_DISPLAY_SUB.sendTo(sender, getName(), getDescription(sender));

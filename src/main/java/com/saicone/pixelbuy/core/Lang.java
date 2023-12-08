@@ -24,6 +24,7 @@ public class Lang extends LangLoader {
     public static final Value COMMAND_DISPLAY_USER_INVALID = new Value("Command.Display.User.Invalid");
     public static final Value COMMAND_DISPLAY_USER_INFO = new Value("Command.Display.User.Info");
     public static final Value COMMAND_DISPLAY_ORDER_INVALID = new Value("Command.Display.Order.Invalid");
+    public static final Value COMMAND_DISPLAY_ORDER_FORMAT = new Value("Command.Display.Order.Format");
     public static final Value COMMAND_DISPLAY_ORDER_INFO = new Value("Command.Display.Order.Info");
     public static final Value COMMAND_DISPLAY_ORDER_ITEM_INVALID = new Value("Command.Display.Order.Item.Invalid");
     public static final Value COMMAND_DISPLAY_ORDER_ITEM_INFO = new Value("Command.Display.Order.Item.Info");

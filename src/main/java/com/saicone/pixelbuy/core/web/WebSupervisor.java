@@ -60,6 +60,11 @@ public abstract class WebSupervisor {
         return Float.MIN_VALUE;
     }
 
+    @Nullable
+    public StoreOrder lookupOrder(int orderId) {
+        return null;
+    }
+
     public void onLoad(@NotNull BukkitSettings config) {
     }
 

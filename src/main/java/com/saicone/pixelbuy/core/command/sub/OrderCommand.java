@@ -5,6 +5,7 @@ import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelCommand;
+import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.util.MStrings;
 import com.saicone.pixelbuy.util.Strings;
@@ -30,6 +31,7 @@ public class OrderCommand extends PixelCommand {
         subCommand("execute", 1, this::execution);
         subCommand("give", 2, this::give);
         subCommand("delete", this::delete);
+        subCommand("lookup", this::lookup);
         subCommand(new Item());
     }
 
@@ -113,31 +115,35 @@ public class OrderCommand extends PixelCommand {
         }));
     }
 
+    public void displayOrder(@NotNull CommandSender sender, @NotNull StoreOrder order) {
+        final String key = order.getProvider() + ":" + order.getId();
+        final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
+        String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
+        if (buyer == null) {
+            buyer = order.getBuyer().toString();
+        }
+        Lang.COMMAND_DISPLAY_ORDER_INFO.sendTo(sender, key, saved, order.getGroup(), buyer, order.getDate(), order.getExecution().name());
+        boolean first = true;
+        int cmdNum = 1;
+        for (StoreOrder.Item item : order.getItems(PixelBuy.get().getStore().getGroup())) {
+            final String stateText = PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState());
+            for (String s : Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.getDisplay(sender)) {
+                s = Strings.replaceArgs(s, item.getId(), item.getAmount(), item.getPrice(), stateText);
+                if (first) {
+                    first = false;
+                    sender.sendMessage(INDEX.replace("#", String.valueOf(cmdNum)) + s);
+                } else {
+                    sender.sendMessage("   " + s);
+                }
+            }
+            first = true;
+            cmdNum++;
+        }
+    }
+
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getOrderAsync(sender, cmd[cmd.length - 2], order -> {
-            final String key = order.getProvider() + ":" + order.getId();
-            final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
-            String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
-            if (buyer == null) {
-                buyer = order.getBuyer().toString();
-            }
-            Lang.COMMAND_DISPLAY_ORDER_INFO.sendTo(sender, key, saved, order.getGroup(), buyer, order.getDate(), order.getExecution().name());
-            boolean first = true;
-            int cmdNum = 1;
-            for (StoreOrder.Item item : order.getItems(PixelBuy.get().getStore().getGroup())) {
-                final String stateText = PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState());
-                for (String s : Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.getDisplay(sender)) {
-                    s = Strings.replaceArgs(s, item.getId(), item.getAmount(), item.getPrice(), stateText);
-                    if (first) {
-                        first = false;
-                        sender.sendMessage(INDEX.replace("#", String.valueOf(cmdNum)) + s);
-                    } else {
-                        sender.sendMessage("   " + s);
-                    }
-                }
-                first = true;
-                cmdNum++;
-            }
+            displayOrder(sender, order);
             return false;
         });
     }
@@ -178,7 +184,7 @@ public class OrderCommand extends PixelCommand {
     public void give(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> getOrder(cmd[cmd.length - 2], true, order -> {
             if (order == null) {
-                sendLang(sender, "Give.Format", cmd[cmd.length - 2]);
+                Lang.COMMAND_DISPLAY_ORDER_FORMAT.sendTo(sender, cmd[cmd.length - 2]);
                 return false;
             }
             if (order.getDataId() > 0) {
@@ -242,6 +248,43 @@ public class OrderCommand extends PixelCommand {
             PixelBuy.get().getDatabase().deleteDataAsync(order, () -> sendLang(sender, "Delete.Done", order.getKey()));
             return null;
         });
+    }
+
+    public void lookup(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
+        final String s = cmd[cmd.length - 2];
+        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> getOrder(s, true, order -> {
+            if (order == null) {
+                Lang.COMMAND_DISPLAY_ORDER_FORMAT.sendTo(sender, s);
+                return false;
+            }
+            if (order.getDataId() > 0) {
+                sendLang(sender, "Lookup.Database", s);
+                return false;
+            }
+            final String[] split = cmd[cmd.length - 2].split(":", 3);
+            final WebSupervisor supervisor = PixelBuy.get().getStore().getSupervisor(split[0]);
+            if (supervisor != null) {
+                final StoreOrder sOrder = supervisor.lookupOrder(Integer.parseInt(split[1]));
+                if (sOrder != null) {
+                    if (args.length > 0) {
+                         if (args[0].equalsIgnoreCase("run")) {
+                             if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
+                                 final String name = PlayerProvider.getName(sOrder.getBuyer());
+                                 sendLang(sender, "Give.Done", sOrder.getKey(), name == null ? sOrder.getBuyer() : name);
+                             }
+                         } else {
+                             sendUsage("lookup", sender, cmd, args);
+                         }
+                    } else {
+                        displayOrder(sender, sOrder);
+                        sendLang(sender, "Lookup.Supervisor", s, String.join(" ", cmd));
+                    }
+                    return false;
+                }
+            }
+            Lang.COMMAND_DISPLAY_ORDER_INVALID.sendTo(sender, s);
+            return false;
+        }));
     }
 
     public class Item extends PixelCommand {

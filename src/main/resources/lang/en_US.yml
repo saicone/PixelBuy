@@ -33,6 +33,7 @@ Command:
         - '&eOrders [{3}/{4}]:'
     Order:
       Invalid: "{prefix}&cThe store order &6{0} &cdoesn't exist"
+      Format: '{prefix}&cThe text &6{0} &cis not a valid order format'
       Info:
         - '&eKey: &f{0}'
         - '&eSaved: {1}'
@@ -90,12 +91,16 @@ Command:
     Give:
       Description: 'Give order to player'
       Usage: '{prefix}&eYou should use: &c/{0} &8<&7player&8> &8<&7items&8>'
-      Format: '{prefix}&cThe text &6{0} &cis not a valid order format'
       Duplicated: '{prefix}&cThe order &6{0} &calready exists'
       Done: '{prefix}&aThe order &f{0} &awas given to &f{1}'
     Delete:
       Description: 'Delete order from database'
       Done: '{prefix}&aThe order &f{0} &awas deleted'
+    Lookup:
+      Description: 'Check if order exists on database or web supervisor'
+      Usage: '{prefix}&eYou should use: &c/{0} &8[&7run&8]'
+      Database: '{prefix}&aThe order &f{0} &aalready exists on database'
+      Supervisor: '{prefix}&aThe order &f{0} &aexists on web supervisor, use &f/{1} run &ato process the order'
     Item:
       Usage: '{prefix}&eStore Order Item Commands: &7(/{0} <[group:]id> <command>...)'
       Description: 'Manage order items'

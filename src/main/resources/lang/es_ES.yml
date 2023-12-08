@@ -33,6 +33,7 @@ Command:
         - '&eÓrdenes de compra [{3}/{4}]:'
     Order:
       Invalid: '{prefix}&cLa orden de compra &6{0} &cno existe'
+      Format: '{prefix}&cEl texto &6{0} &cno tiene un formato válido de orden de compra'
       Info:
         - '&eKey: &f{0}'
         - '&eGuardada: {1}'
@@ -90,12 +91,16 @@ Command:
     Give:
       Description: 'Entregar la orden a un usuario'
       Usage: '{prefix}&eDebes usar: &c/{0} &8<&7jugador&8> &8<&7items&8>'
-      Format: '{prefix}&cEl texto &6{0} &cno tiene un formato válido de orden de compra'
       Duplicated: '{prefix}&cLa orden de compra &6{0} &cya existe'
       Done: '{prefix}&aLa orden de compra &f{0} &afue entregada a &f{1}'
     Delete:
       Description: 'Borrar una orden de la base de datos'
       Done: '{prefix}&aLa orden de compra &f{0} &afue eliminada con éxito'
+    Lookup:
+      Description: 'Revisar si la orden existe en la base de datos o en el supervidor de web'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7run&8]'
+      Database: '{prefix}&aLa orden de compra &f{0} &aya existe en la base de datos'
+      Supervisor: '{prefix}&aLa orden de compra &f{0} &aexiste en el supervisor de web, usa &f/{1} run &apara procesar la orden'
     Item:
       Usage: '{prefix}&eComandos de Items de Compra: &7(/{0} <[grupo:]id> <comando>...)'
       Description: 'Administrar los items de compra'
