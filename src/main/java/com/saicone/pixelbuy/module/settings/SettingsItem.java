@@ -2,6 +2,7 @@ package com.saicone.pixelbuy.module.settings;
 
 import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
+import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.hook.CustomItems;
 import com.saicone.pixelbuy.util.ConfigTag;
 import com.saicone.pixelbuy.util.MStrings;
@@ -47,8 +48,9 @@ public class SettingsItem extends BukkitSettings {
 
     @Nullable
     public ItemStack getProvidedItem() throws IllegalArgumentException {
-        final BukkitSettings material = getConfigurationSection("material");
-        if (material != null) {
+        final Object object = get(settings -> settings.getIgnoreCase("material"));
+        if (object instanceof ConfigurationSection) {
+            final BukkitSettings material = BukkitSettings.of(object);
             final String id = material.getRegex("(?i)id|type").asString();
             if (id == null || id.isBlank()) {
                 throw new IllegalArgumentException("Cannot create ItemStack with empty ID");
@@ -68,8 +70,12 @@ public class SettingsItem extends BukkitSettings {
                         throw new IllegalArgumentException("The item provider '" + provider + "' doesn't exist");
                 }
             } else {
-                set("material", id);
+                set(material.getName(), id);
             }
+        } else if (object != null) {
+            return CustomItems.from(String.valueOf(object));
+        } else {
+            throw new IllegalArgumentException("Cannot create ItemStack with empty material");
         }
         return null;
     }
@@ -126,6 +132,9 @@ public class SettingsItem extends BukkitSettings {
 
     @NotNull
     public ItemStack build() throws IllegalArgumentException {
+        if (PixelBuy.get().getLang().getLogLevel() >= 4) {
+            PixelBuy.log(4, "Building item: " + asMap());
+        }
         ItemStack item = getProvidedItem();
         if (item == null) {
             item = new ItemStack(XMaterial.NETHER_PORTAL.parseMaterial());

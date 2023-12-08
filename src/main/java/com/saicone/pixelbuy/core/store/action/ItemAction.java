@@ -27,7 +27,7 @@ public class ItemAction extends StoreAction {
         protected @NotNull BukkitSettings parseSettings(@NotNull Object object) {
             return SettingsItem.of(object);
         }
-    }.accept(config -> {
+    }.defaultKey("material").accept(config -> {
         if (config instanceof SettingsItem) {
             return new ItemAction((SettingsItem) config);
         }

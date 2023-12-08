@@ -36,6 +36,7 @@ public abstract class StoreAction {
         private final @Language("RegExp") String regex;
         private final Pattern pattern;
 
+        private String defaultKey = "value";
         private BiFunction<String, BukkitSettings, A> accept;
 
         public Builder(@NotNull @Language("RegExp") String regex) {
@@ -51,6 +52,13 @@ public abstract class StoreAction {
         @NotNull
         public Pattern getPattern() {
             return pattern;
+        }
+
+        @NotNull
+        @Contract("_ -> this")
+        public Builder<A> defaultKey(@NotNull String defaultKey) {
+            this.defaultKey = defaultKey;
+            return this;
         }
 
         @NotNull
@@ -80,7 +88,7 @@ public abstract class StoreAction {
                 config = parseSettings(object);
             } else {
                 config = new BukkitSettings();
-                config.set("value", object);
+                config.set(defaultKey, object);
             }
             try {
                 return accept.apply(id, config);
