@@ -17,8 +17,8 @@ import java.util.Map;
 public class Lang extends LangLoader {
 
     public static final Value NO_PERM = new Value("NoPerm");
-    public static final Value TEXT_YES = new Value("Text.Yes");
-    public static final Value TEXT_NO = new Value("Text.No");
+    public static final Value TEXT_YES = new Value("Text.True");
+    public static final Value TEXT_NO = new Value("Text.False");
     public static final Value COMMAND_DISPLAY_SUB = new Value("Command.Display.Sub");
     public static final Value COMMAND_DISPLAY_USAGE = new Value("Command.Display.Usage");
     public static final Value COMMAND_DISPLAY_USER_INVALID = new Value("Command.Display.User.Invalid");

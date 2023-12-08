@@ -43,7 +43,7 @@ public abstract class PixelCommand extends BukkitCommandNode {
     @Override
     public @NotNull String getUsage(@NotNull CommandSender sender) {
         final String usage = PixelBuy.get().getLang().getLangTextOrNull(sender, "Command." + getPath() + ".Usage");
-        return usage != null ? usage : Lang.COMMAND_DISPLAY_USAGE.getText();
+        return usage != null ? usage : Lang.COMMAND_DISPLAY_USAGE.getText(sender);
     }
 
     @Override

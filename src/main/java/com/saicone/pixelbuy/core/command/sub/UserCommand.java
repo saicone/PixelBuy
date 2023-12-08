@@ -128,8 +128,9 @@ public class UserCommand extends PixelCommand {
                 first = true;
                 int cmdNum = 1;
                 for (StoreOrder.Item item : order.getItems(currentGroup)) {
+                    final String stateText = PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState());
                     for (String s : Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.getDisplay(sender)) {
-                        s = Strings.replaceArgs(s, item.getId(), item.getAmount(), item.getPrice(), PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState()));
+                        s = Strings.replaceArgs(s, item.getId(), item.getAmount(), item.getPrice(), stateText);
                         if (first) {
                             first = false;
                             sender.sendMessage("   " + INDEX.replace("#", String.valueOf(cmdNum)) + s);

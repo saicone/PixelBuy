@@ -2,8 +2,8 @@ Prefix: '&8[&ePixel&6Buy&8] '
 NoPerm: "&cNo tienes el permiso &6{0}"
 
 Text:
-  Yes: '&aSí'
-  No: '&cNo'
+  True: '&aSí'
+  False: '&cNo'
 
 Order:
   Buy:
