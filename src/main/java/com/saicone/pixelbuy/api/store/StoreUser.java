@@ -107,13 +107,17 @@ public class StoreUser {
     }
 
     public boolean addOrder(@NotNull StoreOrder order) {
-        order.setBuyer(uniqueId);
+        if (order.getBuyer() == null || !uniqueId.equals(order.getBuyer())) {
+            order.setBuyer(uniqueId);
+        }
         return orders.add(order);
     }
 
     @NotNull
     public StoreOrder mergeOrder(@NotNull StoreOrder order) {
-        order.setBuyer(uniqueId);
+        if (order.getBuyer() == null || !uniqueId.equals(order.getBuyer())) {
+            order.setBuyer(uniqueId);
+        }
         if (orders.add(order)) {
             return order;
         }
