@@ -18,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class ItemAction extends StoreAction {
 
@@ -53,22 +53,12 @@ public class ItemAction extends StoreAction {
             final Player player = client.getPlayer();
             for (int i = 0; i < amount; i++) {
                 final int count = i + 1;
-                giveItem(player, s -> client.parse(s.replace("{action_count}", String.valueOf(count))));
+                buildItem(getItem().parse(s -> client.parse(s.replace("{action_count}", String.valueOf(count)))), item -> giveItem(player, item));
             }
         }
     }
 
-    private void giveItem(@NotNull Player player, @NotNull Function<String, String> function) {
-        ItemStack item;
-        try {
-            item = getItem().parse(function).build();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-            item = buildDefaultItem("Caught exception while building");
-        }
-        if (item.getType() == Material.AIR) {
-            item = buildDefaultItem("Item material cannot be AIR");
-        }
+    private void giveItem(@NotNull Player player, @NotNull ItemStack item) {
         final Map<Integer, ItemStack> items = player.getInventory().addItem(item);
         if (!items.isEmpty()) {
             if (Bukkit.isPrimaryThread()) {
@@ -82,6 +72,30 @@ public class ItemAction extends StoreAction {
                     }
                 });
             }
+        }
+    }
+
+    @NotNull
+    private ItemStack buildItem(@NotNull SettingsItem settingsItem) {
+        ItemStack item;
+        try {
+            item = settingsItem.build();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            item = buildDefaultItem("Caught exception while building");
+        }
+        if (item.getType() == Material.AIR) {
+            item = buildDefaultItem("Item material cannot be AIR");
+        }
+        return item;
+    }
+
+    private void buildItem(@NotNull SettingsItem settingsItem, @NotNull Consumer<ItemStack> consumer) {
+        if (settingsItem.getProvider().equalsIgnoreCase("mmoitems") && !Bukkit.isPrimaryThread()) {
+            // MMOItems only can be handled synchronously
+            Bukkit.getScheduler().runTask(PixelBuy.get(), () -> consumer.accept(buildItem(settingsItem)));
+        } else {
+            consumer.accept(buildItem(settingsItem));
         }
     }
 

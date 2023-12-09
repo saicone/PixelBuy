@@ -46,12 +46,28 @@ public class SettingsItem extends BukkitSettings {
         super(delegate);
     }
 
-    @Nullable
-    public ItemStack getProvidedItem() throws IllegalArgumentException {
+    @NotNull
+    public String getProvider() {
         final Object object = get(settings -> settings.getIgnoreCase("material"));
         if (object instanceof ConfigurationSection) {
             final BukkitSettings material = BukkitSettings.of(object);
-            final String id = material.getRegex("(?i)id|type").asString();
+            return material.getRegex("(?i)provider|plugin|custom|from").asString("minecraft");
+        } else if (object instanceof String) {
+            final int index = ((String) object).indexOf(':');
+            if (index > 0) {
+                return ((String) object).substring(0, index);
+            }
+        }
+        return "minecraft";
+    }
+
+    @Nullable
+    public ItemStack getProvidedItem() throws IllegalArgumentException {
+        final Object object = get(settings -> settings.getIgnoreCase("material"));
+        ItemStack provided = null;
+        if (object instanceof ConfigurationSection) {
+            final BukkitSettings material = BukkitSettings.of(object);
+            final String id = material.getIgnoreCase("id").asString();
             if (id == null || id.isBlank()) {
                 throw new IllegalArgumentException("Cannot create ItemStack with empty ID");
             }
@@ -59,13 +75,15 @@ public class SettingsItem extends BukkitSettings {
             if (provider != null && !provider.isBlank()) {
                 switch (provider.trim().toLowerCase()) {
                     case "oraxen":
-                        return CustomItems.fromOraxen(id);
+                        provided = CustomItems.fromOraxen(id);
+                        break;
                     case "mmoitems":
                         final String type = material.getRegex("(?i)type|category|group").asString();
                         if (type == null) {
                             throw new IllegalArgumentException("The MMOItem provider require 'type' configuration");
                         }
-                        return CustomItems.fromMMOItems(type, id);
+                        provided = CustomItems.fromMMOItems(type, id);
+                        break;
                     default:
                         throw new IllegalArgumentException("The item provider '" + provider + "' doesn't exist");
                 }
@@ -73,11 +91,14 @@ public class SettingsItem extends BukkitSettings {
                 set(material.getName(), id);
             }
         } else if (object != null) {
-            return CustomItems.from(String.valueOf(object));
+            provided = CustomItems.from(String.valueOf(object));
         } else {
             throw new IllegalArgumentException("Cannot create ItemStack with empty material");
         }
-        return null;
+        if (provided != null) {
+            set("material", null);
+        }
+        return provided;
     }
 
     public void set(@NotNull ItemStack item) {

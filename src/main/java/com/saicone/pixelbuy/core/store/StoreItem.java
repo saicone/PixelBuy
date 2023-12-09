@@ -10,6 +10,7 @@ import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.OptionalType;
 import com.saicone.pixelbuy.util.Strings;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,18 +46,24 @@ public class StoreItem {
     public void onReload(@NotNull BukkitSettings config) {
         this.categories = config.getRegex("(?i)categor(y|ies)").asCollection(new HashSet<>(), OptionalType::asString);
         this.price = WebValue.of(config.getIgnoreCase("price").getValue(), type -> type.asFloat(0.0f), OptionalType::asInt, WebSupervisor::getPrice);
-        final SettingsItem item = config.getItem(settings -> settings.getRegex("(?i)display(-?item)?"));
-        if (item == null) {
+        final SettingsItem displayItem = config.getItem(settings -> settings.getRegex("(?i)display(-?item)?"));
+        if (displayItem == null) {
             this.display = null;
         } else {
-            this.display = item.parse(s -> Strings.replaceBracketPlaceholder(s, s1 -> s1.equals("store"), (id, arg) -> {
+            final SettingsItem item = displayItem.parse(s -> Strings.replaceBracketPlaceholder(s, s1 -> s1.equals("store"), (id, arg) -> {
                 final String field = arg.toLowerCase();
                 if (field.startsWith("item_")) {
                     return get(field.substring(5));
                 } else {
                     return PixelBuy.get().getStore().get(field);
                 }
-            })).build();
+            }));
+            if (item.getProvider().equalsIgnoreCase("mmoitems") && !Bukkit.isPrimaryThread()) {
+                // MMOItems only can be handled synchronously
+                Bukkit.getScheduler().runTask(PixelBuy.get(), () -> this.display = item.build());
+            } else {
+                this.display = item.build();
+            }
         }
         this.online = config.getIgnoreCase("options", "online").asBoolean(false);
         this.alwaysRun = config.getIgnoreCase("options", "alwaysrun").asBoolean(false);
