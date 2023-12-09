@@ -97,7 +97,13 @@ public class Database implements Listener {
     public void onDisable() {
         if (client != null) {
             messenger.onDisable();
-            Bukkit.getOnlinePlayers().forEach(this::unloadUser);
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                final StoreUser user = getCached(player.getUniqueId());
+                if (user != null) {
+                    saveData(user);
+                    unloadUser(user);
+                }
+            });
             client.saveUsers(cached.values());
             client.onClose();
         }
