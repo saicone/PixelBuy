@@ -1,5 +1,7 @@
 package com.saicone.pixelbuy.core.web;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.saicone.pixelbuy.PixelBuy;
@@ -19,11 +21,14 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public abstract class WebSupervisor {
 
     private final String id;
     private final String group;
+
+    private final Cache<String, JsonObject> cachedJson = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
 
     public WebSupervisor(@NotNull String id, @NotNull String group) {
         this.id = id;
@@ -120,6 +125,21 @@ public abstract class WebSupervisor {
             order.addItem(getGroup(), item);
         }
         return order;
+    }
+
+    @NotNull
+    protected JsonObject readJson(@NotNull String url) {
+        final JsonObject cached = cachedJson.getIfPresent(url);
+        if (cached != null) {
+            return cached;
+        }
+        try {
+            final JsonObject json = readJson(new URL(url).openConnection());
+            cachedJson.put(url, json);
+            return json;
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot parse the URL as json data", e);
+        }
     }
 
     @NotNull

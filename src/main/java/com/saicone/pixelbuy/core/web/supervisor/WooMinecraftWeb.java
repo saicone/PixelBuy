@@ -169,13 +169,7 @@ public class WooMinecraftWeb extends WebSupervisor {
         if (wcUrl == null) {
             return super.getPrice(itemId);
         }
-        final URL url;
-        try {
-            url = new URL(wcUrl.replace("{type}", "products").replace("{id}", String.valueOf(itemId)));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("The item '" + itemId + "' json cannot be retrieved", e);
-        }
-        final JsonObject json = readJson(url);
+        final JsonObject json = readJson(wcUrl.replace("{type}", "products").replace("{id}", String.valueOf(itemId)));
         return json.get("price").getAsFloat();
     }
 
@@ -227,13 +221,7 @@ public class WooMinecraftWeb extends WebSupervisor {
 
     @NotNull
     public JsonObject getOrderJson(int orderId) {
-        final URL url;
-        try {
-            url = new URL(wcUrl.replace("{type}", "orders").replace("{id}", String.valueOf(orderId)));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("The order '" + orderId + "' json cannot be retrieved", e);
-        }
-        return readJson(url);
+        return readJson(wcUrl.replace("{type}", "orders").replace("{id}", String.valueOf(orderId)));
     }
 
     public void getOrders() {
