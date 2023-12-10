@@ -190,17 +190,15 @@ public class SettingsItem extends BukkitSettings {
             if (appendLore != null) {
                 final List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
 
-                final List<String> loreBefore = append.getIgnoreCase("before").asList(type -> {
+                final List<String> loreBefore = appendLore.getIgnoreCase("before").asList(type -> {
                     final String s = type.asString();
                     return s == null ? null : MStrings.color(s);
                 });
                 if (!loreBefore.isEmpty()) {
-                    for (int i = loreBefore.size() - 1; i >= 0; i--) {
-                        lore.add(0, loreBefore.get(i));
-                    }
+                    lore.addAll(0, loreBefore);
                 }
 
-                final List<String> loreAfter = append.getIgnoreCase("after").asList(type -> {
+                final List<String> loreAfter = appendLore.getIgnoreCase("after").asList(type -> {
                     final String s = type.asString();
                     return s == null ? null : MStrings.color(s);
                 });
@@ -212,6 +210,8 @@ public class SettingsItem extends BukkitSettings {
                     meta.setLore(lore);
                 }
             }
+
+            item.setItemMeta(meta);
         }
 
         final BukkitSettings nbt = getConfigurationSection(settings -> settings.getIgnoreCase("nbt"));
