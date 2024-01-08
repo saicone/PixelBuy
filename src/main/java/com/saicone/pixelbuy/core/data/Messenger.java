@@ -1,43 +1,48 @@
 package com.saicone.pixelbuy.core.data;
 
-import com.saicone.ezlib.EzlibLoader.Dependency;
+import com.saicone.delivery4j.AbstractMessenger;
+import com.saicone.delivery4j.DeliveryClient;
+import com.saicone.delivery4j.client.HikariDelivery;
+import com.saicone.delivery4j.client.RabbitMQDelivery;
+import com.saicone.delivery4j.client.RedisDelivery;
+import com.saicone.ezlib.Dependencies;
+import com.saicone.ezlib.Dependency;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.client.HikariDatabase;
-import com.saicone.pixelbuy.module.delivery.AbstractMessenger;
-import com.saicone.pixelbuy.module.delivery.DeliveryClient;
-import com.saicone.pixelbuy.module.delivery.client.HikariDelivery;
-import com.saicone.pixelbuy.module.delivery.client.RabbitMQDelivery;
-import com.saicone.pixelbuy.module.delivery.client.RedisDelivery;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+@Dependencies(value = {
+        @Dependency("com.saicone.delivery4j:delivery4j:main-SNAPSHOT"),
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-hikari:main-SNAPSHOT",
+                transitive = false,
+                relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
+        ),
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-redis:main-SNAPSHOT",
+                relocate = {
+                        "redis.clients.jedis", "{package}.libs.jedis",
+                        "com.google.gson", "{package}.libs.gson",
+                        "org.apache.commons.pool2", "{package}.libs.commons.pool2",
+                        "org.json", "{package}.libs.json"
+                }
+        ),
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-rabbitmq:main-SNAPSHOT",
+                relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
+        ),
+        @Dependency("org.slf4j:slf4j-nop:1.7.36")
+}, relocations = {"com.saicone.delivery4j", "{package}.libs.delivery4j", "org.slf4j", "{package}.libs.slf4j"}
+)
 public class Messenger extends AbstractMessenger {
-
-    private static final Dependency SLF4J_DEPENDENCY = new Dependency()
-            .path("org.slf4j:slf4j-nop:1.7.36")
-            .relocate("org.slf4j", "{package}.libs.slf4j");
-    private static final Dependency REDIS_DEPENDENCY = new Dependency()
-            .path("redis{}clients:jedis:4.4.6")
-            .relocate(
-                    "redis{}clients{}jedis", "{package}.libs.jedis",
-                    "com.google.gson", "{package}.libs.gson",
-                    "org.apache.commons.pool2", "{package}.libs.commons.pool2",
-                    "org.json", "{package}.libs.json",
-                    "org.slf4j", "{package}.libs.slf4j"
-            );
-    private static final Dependency RABBITMQ_DEPENDENCY = new Dependency()
-            .path("com{}rabbitmq:amqp-client:5.20.0")
-            .relocate(
-                    "com{}rabbitmq", "{package}.libs.rabbitmq",
-                    "org.slf4j", "{package}.libs.slf4j"
-            );
 
     private final Database database;
 
@@ -57,11 +62,12 @@ public class Messenger extends AbstractMessenger {
                 this.channel = channel;
             }
             if (!incomingConsumers.containsKey(channel)) {
-                subscribe(channel, (msg) -> {
+                subscribe(channel, (lines) -> {
+                    PixelBuy.log(4, "Received messenger message: " + Arrays.toString(lines));
                     if (Bukkit.isPrimaryThread()) {
-                        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> process(msg));
+                        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> process(lines));
                     } else {
-                        process(msg);
+                        process(lines);
                     }
                 });
             }
@@ -113,7 +119,7 @@ public class Messenger extends AbstractMessenger {
     }
 
     @NotNull
-    private HikariDelivery loadHikariDelivery(@NotNull HikariDatabase database) {
+    private DeliveryClient loadHikariDelivery(@NotNull HikariDatabase database) {
         if (!database.getType().isExternal()) {
             throw new IllegalArgumentException("The current SQL database is not an external database type");
         }
@@ -121,10 +127,8 @@ public class Messenger extends AbstractMessenger {
     }
 
     @NotNull
-    private RedisDelivery loadRedisDelivery(@Nullable BukkitSettings config) {
+    private DeliveryClient loadRedisDelivery(@Nullable BukkitSettings config) {
         Objects.requireNonNull(config, "Cannot find Redis configuration");
-        PixelBuy.get().getLibraryLoader().applyDependency(SLF4J_DEPENDENCY);
-        PixelBuy.get().getLibraryLoader().applyDependency(REDIS_DEPENDENCY);
         final String url = config.getIgnoreCase("url").asString();
         if (url == null) {
             final String host = config.getIgnoreCase("host").asString("localhost");
@@ -139,10 +143,8 @@ public class Messenger extends AbstractMessenger {
     }
 
     @NotNull
-    private RabbitMQDelivery loadRabbitMQDelivery(@Nullable BukkitSettings config) {
+    private DeliveryClient loadRabbitMQDelivery(@Nullable BukkitSettings config) {
         Objects.requireNonNull(config, "Cannot find RabbitMQ configuration");
-        PixelBuy.get().getLibraryLoader().applyDependency(SLF4J_DEPENDENCY);
-        PixelBuy.get().getLibraryLoader().applyDependency(RABBITMQ_DEPENDENCY);
         final String exchange = config.getIgnoreCase("exchange").asString("pixelbuy");
         final String url = config.getIgnoreCase("url").asString();
         if (url == null) {
@@ -158,56 +160,72 @@ public class Messenger extends AbstractMessenger {
     }
 
     @Override
-    protected void log(int level, @NotNull String msg) {
+    public void log(int level, @NotNull Throwable t) {
+        PixelBuy.logException(level, t);
+    }
+
+    @Override
+    public void log(int level, @NotNull String msg) {
         PixelBuy.log(level, msg);
     }
 
+    @Override
+    public @NotNull Runnable async(@NotNull Runnable runnable) {
+        final BukkitTask task = Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), runnable);
+        return task::cancel;
+    }
+
+    @Override
+    public @NotNull Runnable asyncRepeating(@NotNull Runnable runnable, long time, @NotNull TimeUnit unit) {
+        final long ticks = unit.toMillis(time) / 50;
+        final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), runnable, ticks, ticks);
+        return task::cancel;
+    }
+
     public void process(@NotNull StoreUser user, @NotNull String group) {
-        send(channel, "PROCESS_USER|" + user.getUniqueId() + "|" + group);
+        send(channel, "PROCESS_USER", user.getUniqueId(), group);
     }
 
     public void update(@NotNull StoreUser user) {
-        send(channel, "UPDATE_DONATED|" + user.getUniqueId() + "|" + user.getDonated());
+        send(channel, "UPDATE_DONATED", user.getUniqueId(), user.getDonated());
     }
 
     public void update(@NotNull StoreOrder order) {
-        send(channel, "UPDATE_ORDER|" + order.getBuyer() + "|" + order.getProvider() + "|" + order.getId() + "|" + order.getGroup());
+        send(channel, "UPDATE_ORDER", order.getBuyer(), order.getProvider(), order.getId(), order.getGroup());
     }
 
     public void delete(@NotNull StoreOrder order) {
-        send(channel, "DELETE_ORDER|" + order.getBuyer() + "|" + order.getProvider() + "|" + order.getId() + "|" + order.getGroup());
+        send(channel, "DELETE_ORDER", order.getBuyer(), order.getProvider(), order.getId(), order.getGroup());
     }
 
-    private void process(@NotNull String message) {
-        final String[] split = message.split("[|]");
-        PixelBuy.log(4, "Received message: " + message);
-        if (split.length < 3) {
+    private void process(@NotNull String[] lines) {
+        if (lines.length < 3) {
             return;
         }
         try {
-            final StoreUser user = database.getCached(UUID.fromString(split[1]));
+            final StoreUser user = database.getCached(UUID.fromString(lines[1]));
             if (user == null) {
                 return;
             }
-            switch (split[0].toUpperCase()) {
+            switch (lines[0].toUpperCase()) {
                 case "PROCESS_USER":
-                    if (PixelBuy.get().getStore().getGroup().equals(split[2]) && Bukkit.getPlayer(user.getUniqueId()) != null) {
+                    if (PixelBuy.get().getStore().getGroup().equals(lines[2]) && Bukkit.getPlayer(user.getUniqueId()) != null) {
                         PixelBuy.get().getStore().getCheckout().process(user);
                     }
                     break;
                 case "UPDATE_DONATED":
-                    user.setDonated(Float.parseFloat(split[2]));
+                    user.setDonated(Float.parseFloat(lines[2]));
                     break;
                 case "UPDATE_ORDER":
                     if (user.isLoaded()) {
-                        database.getClient().getOrder(split[2], Integer.parseInt(split[3]), split[4], user::updateOrder);
+                        database.getClient().getOrder(lines[2], Integer.parseInt(lines[3]), lines[4], user::updateOrder);
                     }
                     break;
                 case "DELETE_ORDER":
                     if (user.getOrders().isEmpty()) {
                         break;
                     }
-                    user.removeOrder(split[2], Integer.parseInt(split[3]), split[4]);
+                    user.removeOrder(lines[2], Integer.parseInt(lines[3]), lines[4]);
                     break;
                 default:
                     break;
