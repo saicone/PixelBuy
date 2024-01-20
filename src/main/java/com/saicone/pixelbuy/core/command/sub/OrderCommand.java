@@ -55,7 +55,7 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void getOrder(@NotNull String s, boolean create, @NotNull Function<StoreOrder, Boolean> consumer) {
-        final String[] split = s.split(":", 3);
+        String[] split = s.split(":", 3);
         int index = -1;
         for (int i = 0; i < split.length; i++) {
             if (Strings.isNumber(split[i])) {
@@ -66,6 +66,9 @@ public class OrderCommand extends PixelCommand {
         if (index < 0 || index > 1) {
             consumer.apply(null);
             return;
+        }
+        if (index == 0) {
+            split = s.split(":", 2);
         }
         final String provider = index == 0 ? PixelBuy.get().getStore().getDefaultSupervisor() : split[0];
         final int id = Integer.parseInt(split[index]);
