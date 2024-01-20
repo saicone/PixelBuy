@@ -66,7 +66,7 @@ public abstract class WebSupervisor {
     }
 
     @Nullable
-    public StoreOrder lookupOrder(int orderId) {
+    public StoreOrder lookupOrder(int orderId, @Nullable String player) {
         return null;
     }
 

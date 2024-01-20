@@ -7,6 +7,8 @@ Display:
 Options:
   # Current store group, must be different between server modes
   Group: 'survival'
+  # Default web supervisor
+  Supervisor: 'woominecraft-example'
 
 # Shop categories
 Categories:

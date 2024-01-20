@@ -31,7 +31,7 @@ public class OrderCommand extends PixelCommand {
         subCommand("execute", 1, this::execution);
         subCommand("give", 2, this::give);
         subCommand("delete", this::delete);
-        subCommand("lookup", this::lookup);
+        subCommand("lookup", 1, this::lookup);
         subCommand(new Item());
     }
 
@@ -56,19 +56,22 @@ public class OrderCommand extends PixelCommand {
 
     public void getOrder(@NotNull String s, boolean create, @NotNull Function<StoreOrder, Boolean> consumer) {
         final String[] split = s.split(":", 3);
-        if (split.length < 2) {
+        int index = -1;
+        for (int i = 0; i < split.length; i++) {
+            if (Strings.isNumber(split[i])) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0 || index > 1) {
             consumer.apply(null);
             return;
         }
-        final String provider = split[0];
-        if (!Strings.isNumber(split[1])) {
-            consumer.apply(null);
-            return;
-        }
-        final int id = Integer.parseInt(split[1]);
+        final String provider = index == 0 ? PixelBuy.get().getStore().getDefaultSupervisor() : split[0];
+        final int id = Integer.parseInt(split[index]);
         final String group;
-        if (split.length > 2) {
-            group = split[2];
+        if (index + 1 < split.length) {
+            group = split[index + 1];
         } else {
             group = PixelBuy.get().getStore().getGroup();
         }
@@ -262,19 +265,16 @@ public class OrderCommand extends PixelCommand {
                 return false;
             }
             final String[] split = cmd[cmd.length - 2].split(":", 3);
-            final WebSupervisor supervisor = PixelBuy.get().getStore().getSupervisor(split[0]);
+            final WebSupervisor supervisor = PixelBuy.get().getStore().getSupervisor(split.length > 1 ? split[0] : PixelBuy.get().getStore().getDefaultSupervisor());
             if (supervisor != null) {
-                final StoreOrder sOrder = supervisor.lookupOrder(Integer.parseInt(split[1]));
+                final boolean run = args[0].equalsIgnoreCase("run");
+                final StoreOrder sOrder = supervisor.lookupOrder(Integer.parseInt(split.length > 1 ? split[1] : split[0]), run ? null : args[0]);
                 if (sOrder != null) {
-                    if (args.length > 0) {
-                         if (args[0].equalsIgnoreCase("run")) {
-                             if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
-                                 final String name = PlayerProvider.getName(sOrder.getBuyer());
-                                 sendLang(sender, "Give.Done", sOrder.getKey(), name == null ? sOrder.getBuyer() : name);
-                             }
-                         } else {
-                             sendUsage("lookup", sender, cmd, args);
-                         }
+                    if (run) {
+                        if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
+                            final String name = PlayerProvider.getName(sOrder.getBuyer());
+                            sendLang(sender, "Give.Done", sOrder.getKey(), name == null ? sOrder.getBuyer() : name);
+                        }
                     } else {
                         displayOrder(sender, sOrder);
                         sendLang(sender, "Lookup.Supervisor", s, String.join(" ", cmd));

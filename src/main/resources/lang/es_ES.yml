@@ -75,7 +75,7 @@ Command:
         - '&eUUID: &f{0}'
         - '&eNombre: &f{1}'
   Order:
-    Usage: '{prefix}&eComandos de Orden de Compra: &7(/{0} <proveedor:id[:grupo]> <comando>...)'
+    Usage: '{prefix}&eComandos de Orden de Compra: &7(/{0} [proveedor:]<id>[:grupo] <comando>...)'
     Description: 'Administrar las órdenes de compra'
     Info:
       Description: 'Obtener información sobre la orden de compra'
@@ -98,7 +98,7 @@ Command:
       Done: '{prefix}&aLa orden de compra &f{0} &afue eliminada con éxito'
     Lookup:
       Description: 'Revisar si la orden existe en la base de datos o en el supervidor de web'
-      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7run&8]'
+      Usage: '{prefix}&eDebes usar: &c/{0} &8<&7jugador | run&8>'
       Database: '{prefix}&aLa orden de compra &f{0} &aya existe en la base de datos'
       Supervisor: '{prefix}&aLa orden de compra &f{0} &aexiste en el supervisor de web, usa &f/{1} run &apara procesar la orden'
     Item:

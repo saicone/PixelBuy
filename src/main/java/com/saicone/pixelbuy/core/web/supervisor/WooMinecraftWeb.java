@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
+import com.saicone.pixelbuy.core.store.StoreItem;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.web.WebType;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
@@ -174,7 +175,7 @@ public class WooMinecraftWeb extends WebSupervisor {
     }
 
     @Override
-    public @Nullable StoreOrder lookupOrder(int orderId) {
+    public @Nullable StoreOrder lookupOrder(int orderId, @Nullable String player) {
         final StoreOrder cached = cachedOrders.getIfPresent(orderId);
         if (cached != null) {
             return cached;
@@ -186,7 +187,7 @@ public class WooMinecraftWeb extends WebSupervisor {
             return null;
         }
         try {
-            String playerId = null;
+            String playerId = player;
             List<String> commands = null;
             for (JsonElement element : json.getAsJsonArray("meta_data")) {
                 if (playerId != null && commands != null) {
@@ -205,6 +206,22 @@ public class WooMinecraftWeb extends WebSupervisor {
                         }
                     } else {
                         commands.add(value.getAsString());
+                    }
+                }
+            }
+            if (commands == null) {
+                for (JsonElement element : json.getAsJsonArray("line_items")) {
+                    final JsonObject item = element.getAsJsonObject();
+                    final int productId = item.get("product_id").getAsInt();
+                    final StoreItem storeItem = PixelBuy.get().getStore().getItem(it -> {
+                        Integer id = it.getPriceId(getId());
+                        return id != null && id == productId;
+                    });
+                    if (storeItem != null) {
+                        if (commands == null) {
+                            commands = new ArrayList<>();
+                        }
+                        commands.add(storeItem.getId());
                     }
                 }
             }

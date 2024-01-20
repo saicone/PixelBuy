@@ -116,6 +116,11 @@ public class StoreItem {
     }
 
     @Nullable
+    public Integer getPriceId(@NotNull String provider) {
+        return price.getElement(provider);
+    }
+
+    @Nullable
     public Integer getPriceElement(@NotNull String provider) {
         return price.getElement(provider);
     }

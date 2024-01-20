@@ -75,7 +75,7 @@ Command:
         - '&eUUID: &f{0}'
         - '&eName: &f{1}'
   Order:
-    Usage: '{prefix}&eStore Order Commands: &7(/{0} <provider:id[:group]> <command>...)'
+    Usage: '{prefix}&eStore Order Commands: &7(/{0} [provider:]<id>[:group] <command>...)'
     Description: 'Manage store orders'
     Info:
       Description: 'Get information about store order'
@@ -98,7 +98,7 @@ Command:
       Done: '{prefix}&aThe order &f{0} &awas deleted'
     Lookup:
       Description: 'Check if order exists on database or web supervisor'
-      Usage: '{prefix}&eYou should use: &c/{0} &8[&7run&8]'
+      Usage: '{prefix}&eYou should use: &c/{0} &8<&7player | run&8>'
       Database: '{prefix}&aThe order &f{0} &aalready exists on database'
       Supervisor: '{prefix}&aThe order &f{0} &aexists on web supervisor, use &f/{1} run &ato process the order'
     Item:

@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 public class PixelStore {
 
@@ -28,8 +29,9 @@ public class PixelStore {
 
     private String name;
     private String group;
+    private String defaultSupervisor;
     private final Map<String, StoreCategory> categories = new HashMap<>();
-    private final Map<String, WebSupervisor> supervisors = new HashMap<>();
+    private final Map<String, WebSupervisor> supervisors = new LinkedHashMap<>();
     private BukkitSettings baseItem;
     private final Map<String, StoreItem> items = new HashMap<>();
 
@@ -111,6 +113,12 @@ public class PixelStore {
             return true;
         });
 
+        // Load default supervisor
+        defaultSupervisor = config.getIgnoreCase("options", "supervisor").asString();
+        if (defaultSupervisor == null && !supervisors.isEmpty()) {
+            defaultSupervisor = supervisors.entrySet().iterator().next().getKey();
+        }
+
         // Load added supervisors
         for (String key : section.getKeys(false)) {
             if (supervisors.containsKey(key)) {
@@ -189,6 +197,8 @@ public class PixelStore {
                 return name;
             case "group":
                 return group;
+            case "supervisor":
+                return defaultSupervisor;
             case "categories":
                 return String.join("\n", categories.keySet());
             case "categories_size":
@@ -236,6 +246,11 @@ public class PixelStore {
         return groups;
     }
 
+    @NotNull
+    public String getDefaultSupervisor() {
+        return defaultSupervisor;
+    }
+
     @Nullable
     public StoreCategory getCategory(@NotNull String id) {
         return categories.get(id);
@@ -259,6 +274,16 @@ public class PixelStore {
     @Nullable
     public StoreItem getItem(@NotNull String id) {
         return items.get(id);
+    }
+
+    @Nullable
+    public StoreItem getItem(@NotNull Predicate<StoreItem> condition) {
+        for (Map.Entry<String, StoreItem> entry : items.entrySet()) {
+            if (condition.test(entry.getValue())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     @NotNull
