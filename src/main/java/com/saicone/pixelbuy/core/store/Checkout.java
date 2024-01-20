@@ -7,6 +7,7 @@ import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
+import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -70,16 +71,18 @@ public class Checkout {
 
     public boolean process(@NotNull StoreOrder order) {
         if (order.getBuyer() == null) {
+            PixelBuy.log(4, "Cannot process the order '" + order.getKey() + "' due doesn't contains buyer");
             return false;
         }
 
         StoreUser user = PixelBuy.get().getDatabase().getCached(order.getBuyer());
-        final OfflinePlayer player = Bukkit.getOfflinePlayer(order.getBuyer());
         if (user == null) {
-            if (player.getName() == null) {
+            final String name = PlayerProvider.getName(order.getBuyer());
+            if (name == null) {
+                PixelBuy.log(4, "Cannot process the order '" + order.getKey() + "' due null player name");
                 return false;
             }
-            user = PixelBuy.get().getDatabase().getData(player.getUniqueId(), player.getName());
+            user = PixelBuy.get().getDatabase().getData(order.getBuyer(), name);
         }
         if (!user.isLoaded()) {
             PixelBuy.get().getDatabase().loadOrders(true, user);
