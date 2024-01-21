@@ -12,6 +12,7 @@ import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -122,6 +123,10 @@ public class OrderCommand extends PixelCommand {
     }
 
     public void displayOrder(@NotNull CommandSender sender, @NotNull StoreOrder order) {
+        displayOrder(sender, order, null);
+    }
+
+    public void displayOrder(@NotNull CommandSender sender, @NotNull StoreOrder order, @Nullable String group) {
         final String key = order.getProvider() + ":" + order.getId();
         final String saved = order.getDataId() > 0 ? Lang.TEXT_YES.getText(sender) : Lang.TEXT_NO.getText(sender);
         String buyer = order.getBuyer() != null ? Bukkit.getOfflinePlayer(order.getBuyer()).getName() : "<unknown>";
@@ -131,7 +136,7 @@ public class OrderCommand extends PixelCommand {
         Lang.COMMAND_DISPLAY_ORDER_INFO.sendTo(sender, key, saved, order.getGroup(), buyer, order.getDate(), order.getExecution().name());
         boolean first = true;
         int cmdNum = 1;
-        for (StoreOrder.Item item : order.getItems(PixelBuy.get().getStore().getGroup())) {
+        for (StoreOrder.Item item : order.getItems(group != null ? group : PixelBuy.get().getStore().getGroup())) {
             final String stateText = PixelBuy.get().getLang().getLangText(sender, "Order." + order.getExecution() + "." + item.getState());
             for (String s : Lang.COMMAND_DISPLAY_ORDER_ITEM_INFO.getDisplay(sender)) {
                 s = Strings.replaceArgs(s, item.getId(), item.getAmount(), item.getPrice(), stateText);
@@ -149,7 +154,7 @@ public class OrderCommand extends PixelCommand {
 
     public void info(@NotNull CommandSender sender, @NotNull String[] cmd, @NotNull String[] args) {
         getOrderAsync(sender, cmd[cmd.length - 2], order -> {
-            displayOrder(sender, order);
+            displayOrder(sender, order, args.length > 0 ? args[0] : null);
             return false;
         });
     }
@@ -334,6 +339,7 @@ public class OrderCommand extends PixelCommand {
                         final Boolean result = consumer.apply(order, item);
                         if (result == null) {
                             iterator.remove();
+                            order.setEdited(true);
                             return true;
                         }
                         return result;
@@ -367,6 +373,7 @@ public class OrderCommand extends PixelCommand {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 item.state(state).error(args.length > 1 ? String.join(" ", Arrays.copyOfRange(args, 1, args.length)) : null);
                 sendLang(sender, "State.Done", state.name());
+                order.setEdited(true);
                 return true;
             });
         }
@@ -379,6 +386,7 @@ public class OrderCommand extends PixelCommand {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 item.price(Float.parseFloat(args[0]));
                 sendLang(sender, "Price.Done", item.getPrice());
+                order.setEdited(true);
                 return true;
             });
         }
@@ -391,6 +399,7 @@ public class OrderCommand extends PixelCommand {
             getItemAsync(sender, cmd[cmd.length - 4], cmd[cmd.length - 2], (order, item) -> {
                 item.amount(Integer.parseInt(args[0]));
                 sendLang(sender, "Amount.Done", item.getPrice());
+                order.setEdited(true);
                 return true;
             });
         }
@@ -402,6 +411,7 @@ public class OrderCommand extends PixelCommand {
                 final String error = args.length > 2 ? String.join(" ", Arrays.copyOfRange(args, 2, args.length)) : null;
                 item.state(state).price(price).error(error);
                 sendLang(sender, "Add.Done", item.getId(), order.getKey());
+                order.setEdited(true);
                 return true;
             });
         }

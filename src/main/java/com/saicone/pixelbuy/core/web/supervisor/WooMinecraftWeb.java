@@ -246,9 +246,6 @@ public class WooMinecraftWeb extends WebSupervisor {
             return;
         }
         lastOrders = readJson(wmcUrl);
-        if (PixelBuy.get().getLang().getLogLevel() >= 4) {
-            PixelBuy.log(4, "Last orders data: " + lastOrders);
-        }
         if (lastOrders.get("data") != null) {
             PixelBuy.log(2, lastOrders.get("code").getAsString());
             return;
@@ -257,6 +254,10 @@ public class WooMinecraftWeb extends WebSupervisor {
         final JsonArray orders = lastOrders.getAsJsonArray("orders");
         if (orders == null || orders.isEmpty()) {
             return;
+        }
+
+        if (PixelBuy.get().getLang().getLogLevel() >= 4) {
+            PixelBuy.log(4, "Last orders data: " + lastOrders);
         }
 
         final List<Integer> processed = new ArrayList<>();
