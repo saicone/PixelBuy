@@ -5,7 +5,7 @@ import com.saicone.pixelbuy.core.command.sub.*;
 public class PixelBuyCommand extends PixelCommand {
 
     public PixelBuyCommand() {
-        super("pixelbuy", new DataCommand(), new OrderCommand(), new ReloadCommand(), new StoreCommand(), new UserCommand());
+        super("pixelbuy", new TestCommand(), new ConversionCommand(), new DataCommand(), new OrderCommand(), new ReloadCommand(), new StoreCommand(), new UserCommand());
     }
 
     @Override
