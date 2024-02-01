@@ -23,12 +23,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:main-SNAPSHOT"),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-hikari:main-SNAPSHOT",
+        @Dependency("com.saicone.delivery4j:delivery4j:1.0"),
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-hikari:1.0",
                 transitive = false,
                 relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-redis:main-SNAPSHOT",
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-redis:1.0",
                 relocate = {
                         "redis.clients.jedis", "{package}.libs.jedis",
                         "com.google.gson", "{package}.libs.gson",
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
                         "org.json", "{package}.libs.json"
                 }
         ),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-rabbitmq:main-SNAPSHOT",
+        @Dependency(value = "com.saicone.delivery4j:delivery4j-rabbitmq:1.0",
                 relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
         ),
         @Dependency("org.slf4j:slf4j-nop:1.7.36")
