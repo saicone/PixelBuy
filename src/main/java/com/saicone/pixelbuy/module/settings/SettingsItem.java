@@ -17,10 +17,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -159,6 +156,16 @@ public class SettingsItem extends BukkitSettings {
         ItemStack item = getProvidedItem();
         if (item == null) {
             item = new ItemStack(XMaterial.NETHER_PORTAL.parseMaterial());
+        }
+
+        final String matStr = this.getString("material");
+        if (matStr != null && !matStr.isBlank()) {
+            final Optional<XMaterial> materialOpt = XMaterial.matchXMaterial(matStr);
+            if (materialOpt.isEmpty()) {
+                PixelBuy.log(2, "Cannot find the material: " + matStr);
+                set("material", null);
+                item = new ItemStack(XMaterial.NETHER_PORTAL.parseMaterial());
+            }
         }
 
         XItemStack.edit(item, this, MStrings::color, null);

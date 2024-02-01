@@ -2,6 +2,7 @@ package com.saicone.pixelbuy.module.hook;
 
 import com.google.common.base.Suppliers;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -48,7 +49,13 @@ public class CustomItems {
 
     @Nullable
     public static ItemStack fromOraxen(@NotNull String id) {
-        return ORAXEN.get() ? OraxenItems.getItemById(id).build() : null;
+        if (ORAXEN.get()) {
+            final ItemBuilder builder = OraxenItems.getItemById(id);
+            if (builder != null) {
+                return builder.build();
+            }
+        }
+        return null;
     }
 
     @Nullable
