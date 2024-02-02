@@ -32,6 +32,7 @@ public class StoreItem {
     // Options
     private boolean online;
     private boolean alwaysRun;
+    private boolean alwaysSave;
     private Set<String> append = Set.of();
 
     // Executions
@@ -67,6 +68,7 @@ public class StoreItem {
         }
         this.online = config.getIgnoreCase("options", "online").asBoolean(false);
         this.alwaysRun = config.getIgnoreCase("options", "alwaysrun").asBoolean(false);
+        this.alwaysSave = config.getIgnoreCase("options", "alwayssave").asBoolean(true);
         this.append = config.getIgnoreCase("options", "append").asCollection(new HashSet<>(), OptionalType::asString);
         this.onBuy = PixelBuyAPI.buildActions(config.getIgnoreCase("onBuy").getValue());
         this.onRecover = PixelBuyAPI.buildActions(config.getIgnoreCase("onRecover").getValue());
@@ -155,6 +157,10 @@ public class StoreItem {
 
     public boolean isAlwaysRun() {
         return alwaysRun;
+    }
+
+    public boolean isAlwaysSave() {
+        return alwaysSave;
     }
 
     public void onBuy(@NotNull StoreClient client, int amount) {

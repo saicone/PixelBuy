@@ -9,6 +9,8 @@ import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.store.StoreItem;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,17 +87,20 @@ public abstract class WebSupervisor {
 
     public boolean processOffline(@NotNull String name, int id, @NotNull List<String> items) {
         boolean result = true;
-        for (var entry : PixelBuy.get().getStore().getItems().entrySet()) {
-            final StoreItem item = entry.getValue();
-            if (!items.contains(item.getId())) {
-                continue;
-            }
-            if (item.isAlwaysRun()) {
-                result = true;
-                break;
-            }
-            if (item.isOnline()) {
-                result = false;
+        final Player player = Bukkit.getPlayer(name);
+        if (player == null || !player.isOnline()) {
+            for (var entry : PixelBuy.get().getStore().getItems().entrySet()) {
+                final StoreItem item = entry.getValue();
+                if (!items.contains(item.getId())) {
+                    continue;
+                }
+                if (item.isAlwaysSave()) {
+                    result = true;
+                    break;
+                }
+                if (item.isOnline()) {
+                    result = false;
+                }
             }
         }
         if (result) {
