@@ -11,7 +11,17 @@ description: How to install PixelBuy
 
 ## Download
 
+### Stable version
+
 There's no download link.
+
+### Latest build
+
+1. Go to [repository actions](https://github.com/saicone/PixelBuy/actions/workflows/build.yml).
+2. Click on latest workflow run.
+3. Download the file "PixelBuy Artifact".
+4. Open the downloaded zip file and any subfolder inside.
+5. Extract PixelBuy `.jar` file from zip.
 
 ## Compatibility
 
