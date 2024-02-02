@@ -6,6 +6,7 @@ import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.hook.CustomItems;
 import com.saicone.pixelbuy.util.ConfigTag;
 import com.saicone.pixelbuy.util.MStrings;
+import com.saicone.pixelbuy.util.Strings;
 import com.saicone.rtag.RtagItem;
 import com.saicone.rtag.tag.TagBase;
 import com.saicone.rtag.tag.TagCompound;
@@ -196,6 +197,25 @@ public class SettingsItem extends BukkitSettings {
             final BukkitSettings appendLore = append.getConfigurationSection(settings -> settings.getIgnoreCase("lore"));
             if (appendLore != null) {
                 final List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+
+                for (String key : appendLore.getKeys(false)) {
+                    if (Strings.isNumber(key)) {
+                        try {
+                            final int index = Integer.parseInt(key) - 1;
+                            if (index >= 0 && index < lore.size()) {
+                                final List<String> lines = appendLore.getAny(key).asList(type -> {
+                                    final String s = type.asString();
+                                    return s == null ? null : MStrings.color(s);
+                                });
+                                lore.addAll(index, lines);
+                            } else {
+                                throw new IllegalArgumentException("Trying to apply lore at index " + index + " while lore size is " + lore.size());
+                            }
+                        } catch (NumberFormatException e) {
+                            PixelBuy.logException(2, e);
+                        }
+                    }
+                }
 
                 final List<String> loreBefore = appendLore.getIgnoreCase("before").asList(type -> {
                     final String s = type.asString();
