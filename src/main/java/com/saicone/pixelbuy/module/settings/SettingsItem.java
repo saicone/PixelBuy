@@ -169,6 +169,10 @@ public class SettingsItem extends BukkitSettings {
             }
         }
 
+        final ConfigurationSection section;
+        if (XMaterial.supports(11) && item.hasItemMeta() && item.getItemMeta().isUnbreakable()) {
+            set("unbreakable", true);
+        }
         XItemStack.edit(item, this, MStrings::color, null);
 
         final BukkitSettings append = getConfigurationSection(settings -> settings.getIgnoreCase("append"));
