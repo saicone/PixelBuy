@@ -137,3 +137,10 @@ Command:
     Description: 'Interactuar con la base de datos'
   Store:
     Description: 'Abrir la tienda'
+    Categories:
+      Info:
+        - '{prefix}&fCategorías de la tienda:'
+    Items:
+      Usage: '{prefix}&eDebes usar: &c/{0} &8[&7categoría&8] &8[&7página&8]'
+      Info:
+        - '{prefix}&fInformación sobre los items de la tienda [{0}/{1}]:'

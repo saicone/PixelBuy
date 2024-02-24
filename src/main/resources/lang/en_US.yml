@@ -137,3 +137,10 @@ Command:
     Description: 'Interact with database'
   Store:
     Description: 'Open pixel store'
+    Categories:
+      Info:
+        - '{prefix}&fStore categories:'
+    Items:
+      Usage: '{prefix}&eYou should use: &c/{0} &8[&7category&8] &8[&7page&8]'
+      Info:
+        - '{prefix}&fStore items information [{0}/{1}]:'
