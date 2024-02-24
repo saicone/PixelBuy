@@ -169,7 +169,6 @@ public class SettingsItem extends BukkitSettings {
             }
         }
 
-        final ConfigurationSection section;
         if (XMaterial.supports(11) && item.hasItemMeta() && item.getItemMeta().isUnbreakable()) {
             set("unbreakable", true);
         }
