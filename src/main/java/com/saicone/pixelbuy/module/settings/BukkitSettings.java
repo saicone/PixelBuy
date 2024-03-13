@@ -398,7 +398,7 @@ public class BukkitSettings extends YamlConfiguration {
     private static Object parse(@NotNull String path, @Nullable Object object, @NotNull BiFunction<String, String, String> function) {
         if (object instanceof String) {
             return function.apply(path, (String) object);
-        } else if (object instanceof List) {
+        } else if (object instanceof Iterable) {
             final List<Object> list = new ArrayList<>();
             int i = 0;
             for (Object o : OptionalType.of(object)) {
@@ -413,6 +413,8 @@ public class BukkitSettings extends YamlConfiguration {
                 map.put(key, parse(path + "." + key, entry.getValue(), function));
             }
             return map;
+        } else if (object instanceof ConfigurationSection) {
+            return parse((ConfigurationSection) object, new BukkitSettings(), function);
         } else {
             return object;
         }
