@@ -134,8 +134,8 @@ public class Checkout {
         if (!user.isLoaded()) {
             return;
         }
-        final List<StoreOrder> orders = new ArrayList<>();
-        final List<StoreOrder> edited = new ArrayList<>();
+        final Set<StoreOrder> orders = new HashSet<>();
+        final Set<StoreOrder> edited = new HashSet<>();
         for (StoreOrder order : user.getOrders()) {
             if (!order.has(store.getGroup(), StoreOrder.State.PENDING)) {
                 if (order.isEdited()) {
@@ -175,7 +175,7 @@ public class Checkout {
         }
     }
 
-    private void execute(@NotNull OfflinePlayer player, @NotNull StoreUser user, @NotNull StoreOrder order) {
+    private synchronized void execute(@NotNull OfflinePlayer player, @NotNull StoreUser user, @NotNull StoreOrder order) {
         final WebSupervisor web = store.getSupervisor(order.getProvider());
         boolean requireOnline = false;
         for (StoreOrder.Item orderItem : order.getItems(store.getGroup())) {
