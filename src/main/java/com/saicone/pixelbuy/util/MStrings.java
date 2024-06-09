@@ -447,7 +447,7 @@ public class MStrings {
 
         builder.append(toSpecial(text, speed, block));
 
-        return finalInt + (blockIndex - i) + 1;
+        return finalInt + (blockIndex - i);
     }
 
     @NotNull
