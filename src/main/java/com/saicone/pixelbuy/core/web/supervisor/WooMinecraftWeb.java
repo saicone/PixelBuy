@@ -91,7 +91,7 @@ public class WooMinecraftWeb extends WebSupervisor {
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-        this.delay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7);
+        this.delay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7) * 20;
 
         String wcPath = config.getRegex("(?i)woocommerce", "(?i)(api-?)?path").asString("wp-json/wc/v3/{type}/{id}?consumer_key={key}&consumer_secret={secret}");
         final String consumerKey = config.getRegex("(?i)woocommerce", "(?i)consumer-?key").asString();
@@ -110,7 +110,9 @@ public class WooMinecraftWeb extends WebSupervisor {
             return;
         }
         getTask = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), () -> {
+            PixelBuy.log(4, "Checking orders...");
             if (onTask) {
+                PixelBuy.log(4, "Cannot check orders due task lock");
                 return;
             }
             onTask = true;
@@ -120,7 +122,7 @@ public class WooMinecraftWeb extends WebSupervisor {
                 PixelBuy.logException(1, t);
             }
             onTask = false;
-        }, delay, delay).getTaskId();
+        }, 200, delay).getTaskId();
     }
 
     @Override
