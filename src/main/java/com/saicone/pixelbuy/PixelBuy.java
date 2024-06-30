@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @Dependencies({
-        @Dependency(value = "com.github.cryptomorin:XSeries:11.0.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
-        @Dependency(value = "com.saicone.rtag:rtag-item:1.5.3", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
+        @Dependency(value = "com.github.cryptomorin:XSeries:11.2.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
+        @Dependency(value = "com.saicone.rtag:rtag-item:1.5.4", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
         @Dependency(value = "com.zaxxer:HikariCP:5.1.0", relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"})
 })
 public final class PixelBuy extends JavaPlugin {
