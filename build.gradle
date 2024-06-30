@@ -36,6 +36,7 @@ dependencies {
     compileOnly 'com.github.oraxen:oraxen:1.173.0'
     compileOnly('io.lumine:MythicLib-dist:1.6.2-SNAPSHOT') { transitive = false } // Required by MMOItems
     compileOnly('net.Indyuce:MMOItems-API:6.10-SNAPSHOT') { transitive = false }
+    compileOnly('com.github.LoneDev6:API-ItemsAdder:3.6.3-beta-14') { transitive = false }
     compileOnly 'me.clip:placeholderapi:2.11.6'
     compileOnly 'net.luckperms:api:5.4'
 

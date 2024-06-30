@@ -1,6 +1,7 @@
 package com.saicone.pixelbuy.module.hook;
 
 import com.google.common.base.Suppliers;
+import dev.lone.itemsadder.api.CustomStack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import net.Indyuce.mmoitems.MMOItems;
@@ -15,6 +16,7 @@ public class CustomItems {
 
     private static final Supplier<Boolean> ORAXEN = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Oraxen"));
     private static final Supplier<Boolean> MMOITEMS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("MMOItems"));
+    private static final Supplier<Boolean> ITEMSADDER = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("ItemsAdder"));
 
     public static boolean isOraxenCompatible() {
         return ORAXEN.get();
@@ -22,6 +24,10 @@ public class CustomItems {
 
     public static boolean isMMOItemsCompatible() {
         return MMOITEMS.get();
+    }
+
+    public static boolean isItemsAdderCompatible() {
+        return ITEMSADDER.get();
     }
 
     @Nullable
@@ -35,13 +41,15 @@ public class CustomItems {
 
     @Nullable
     public static ItemStack from(@NotNull String provider, @NotNull String material) {
-        final String[] split = material.split(":");
         switch (provider.toLowerCase()) {
             case "oraxen":
-                return fromOraxen(split[0]);
+                return fromOraxen(material);
             case "mmoitem":
             case "mmoitems":
+                final String[] split = material.split(":");
                 return fromMMOItems(split[0], split[1]);
+            case "itemsadder":
+                return fromItemsAdder(material);
             default:
                 return null;
         }
@@ -61,5 +69,11 @@ public class CustomItems {
     @Nullable
     public static ItemStack fromMMOItems(@NotNull String type, @NotNull String id) {
         return MMOITEMS.get() ? MMOItems.plugin.getItem(type, id) : null;
+    }
+
+    @Nullable
+    public static ItemStack fromItemsAdder(@NotNull String id) {
+        final CustomStack stack = CustomStack.getInstance(id);
+        return stack == null ? null : stack.getItemStack();
     }
 }

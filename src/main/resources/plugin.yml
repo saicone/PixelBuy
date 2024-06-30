@@ -8,4 +8,9 @@ version: ${version}
 
 description: Free plugin for donation system
 
-softdepend: [PlaceholderAPI, LuckPerms, Oraxen, MMOItems]
+softdepend:
+  - PlaceholderAPI
+  - LuckPerms
+  - Oraxen
+  - MMOItems
+  - ItemsAdder
