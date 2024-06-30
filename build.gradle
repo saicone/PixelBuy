@@ -33,7 +33,7 @@ processResources {
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.21-R0.1-SNAPSHOT'
 
-    compileOnly 'com.github.oraxen:oraxen:1.177.0'
+    compileOnly 'com.github.oraxen:oraxen:1.173.0'
     compileOnly('io.lumine:MythicLib-dist:1.6.2-SNAPSHOT') { transitive = false } // Required by MMOItems
     compileOnly('net.Indyuce:MMOItems-API:6.10-SNAPSHOT') { transitive = false }
     compileOnly 'me.clip:placeholderapi:2.11.6'

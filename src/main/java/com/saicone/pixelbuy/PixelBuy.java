@@ -149,8 +149,7 @@ public final class PixelBuy extends JavaPlugin {
     public void onReloadSettings() {
         PlayerProvider.compute(settings.getIgnoreCase("plugin", "playerprovider").asString("AUTO"));
         if (settings.getIgnoreCase("placeholder", "register").asBoolean(true)) {
-            placeholderNames = settings.getIgnoreCase("placeholder", "names").asList(OptionalType::asString);
-            Placeholders.register(this, placeholderNames, (player, params) -> {
+            placeholderNames = Placeholders.register(this, settings.getIgnoreCase("placeholder", "names").asList(OptionalType::asString), (player, params) -> {
                 params = params.toLowerCase();
                 if (params.startsWith("top")) {
                     if (params.length() == 3) {

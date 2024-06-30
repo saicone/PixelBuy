@@ -42,7 +42,7 @@ public class Placeholders {
         return s;
     }
 
-    public static void register(@NotNull Plugin plugin, @NotNull Collection<String> names, @NotNull BiFunction<Player, String, Object> onPlaceholderRequest) {
+    public static <T extends Collection<String>> T register(@NotNull Plugin plugin, @NotNull T names, @NotNull BiFunction<Player, String, Object> onPlaceholderRequest) {
         if (isEnabled()) {
             for (String name : names) {
                 new Expansion(name, plugin) {
@@ -55,9 +55,10 @@ public class Placeholders {
                 }.register();
             }
         }
+        return names;
     }
 
-    public static void registerOffline(@NotNull Plugin plugin, @NotNull Collection<String> names, @NotNull BiFunction<OfflinePlayer, String, Object> function) {
+    public static <T extends Collection<String>> T registerOffline(@NotNull Plugin plugin, @NotNull T names, @NotNull BiFunction<OfflinePlayer, String, Object> function) {
         if (isEnabled()) {
             for (String name : names) {
                 new Expansion(name, plugin) {
@@ -69,9 +70,10 @@ public class Placeholders {
                 }.register();
             }
         }
+        return names;
     }
 
-    public static void unregister(@NotNull Collection<String> names) {
+    public static <T extends Collection<String>> T unregister(@NotNull T names) {
         if (isEnabled()) {
             for (String name : names) {
                 final PlaceholderExpansion expansion = PlaceholderAPIPlugin.getInstance().getLocalExpansionManager().getExpansion(name);
@@ -80,6 +82,7 @@ public class Placeholders {
                 }
             }
         }
+        return names;
     }
 
     public static class Expansion extends PlaceholderExpansion {
