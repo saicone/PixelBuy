@@ -82,6 +82,9 @@ public class SettingsItem extends BukkitSettings {
                         }
                         provided = CustomItems.fromMMOItems(type, id);
                         break;
+                    case "itemsadder":
+                        provided = CustomItems.fromItemsAdder(id);
+                        break;
                     default:
                         throw new IllegalArgumentException("The item provider '" + provider + "' doesn't exist");
                 }
@@ -156,7 +159,7 @@ public class SettingsItem extends BukkitSettings {
         }
         ItemStack item = getProvidedItem();
         if (item == null) {
-            item = new ItemStack(XMaterial.NETHER_PORTAL.parseMaterial());
+            item = new ItemStack(XMaterial.STONE.parseMaterial());
         }
 
         final String matStr = this.getString("material");
@@ -165,7 +168,7 @@ public class SettingsItem extends BukkitSettings {
             if (materialOpt.isEmpty()) {
                 PixelBuy.log(2, "Cannot find the material: " + matStr);
                 set("material", null);
-                item = new ItemStack(XMaterial.NETHER_PORTAL.parseMaterial());
+                item = new ItemStack(XMaterial.STONE.parseMaterial());
             }
         }
 

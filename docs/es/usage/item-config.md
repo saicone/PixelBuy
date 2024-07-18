@@ -152,7 +152,17 @@ material:
 
 ### ItemsAdder
 
-No hay soporte actualmente.
+Obtener items del plugin ItemsAdder.
+
+```yaml
+# Configuración simple
+material: 'itemsadder:custom_item'
+
+# Configuración avanzada
+material:
+  provider: itemsadder
+  id: custom_item
+```
 
 ## Agregados
 

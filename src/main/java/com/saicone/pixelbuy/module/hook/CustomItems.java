@@ -73,7 +73,12 @@ public class CustomItems {
 
     @Nullable
     public static ItemStack fromItemsAdder(@NotNull String id) {
-        final CustomStack stack = CustomStack.getInstance(id);
-        return stack == null ? null : stack.getItemStack();
+        if (ITEMSADDER.get()) {
+            final CustomStack stack = CustomStack.getInstance(id);
+            if (stack != null) {
+                return stack.getItemStack();
+            }
+        }
+        return null;
     }
 }

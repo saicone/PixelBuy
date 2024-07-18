@@ -23,3 +23,7 @@ PixelBuy can use Oraxen to get custom items by using an advanced material config
 ## MMOItems
 
 PixelBuy can use MMOItems to get custom items by using an advanced material configuration.
+
+## ItemsAdder
+
+PixelBuy can use ItemsAdder to get custom items by using an advanced material configuration.
