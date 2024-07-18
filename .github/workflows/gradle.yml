@@ -3,6 +3,8 @@ name: Java CI
 on:
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   build:

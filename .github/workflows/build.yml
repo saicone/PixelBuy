@@ -3,6 +3,8 @@ name: Build Plugin
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'docs/**'
 
 jobs:
   build:
