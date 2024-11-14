@@ -85,7 +85,7 @@ public class Checkout {
             user = PixelBuy.get().getDatabase().getData(order.getBuyer(), name);
         }
         if (!user.isLoaded()) {
-            PixelBuy.get().getDatabase().loadOrders(true, user);
+            PixelBuy.get().getDatabase().loadOrders(user);
         }
 
         final StoreOrder o = user.mergeOrder(order);

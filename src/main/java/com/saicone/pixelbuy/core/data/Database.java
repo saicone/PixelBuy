@@ -17,11 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-public class Database implements Listener {
+public class Database implements Listener, Executor {
 
     private final Map<UUID, StoreUser> cached = new ConcurrentHashMap<>();
     private List<UUID> sorted = List.of();
@@ -41,12 +42,18 @@ public class Database implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        loadUser(event.getPlayer());
+        final UUID uniqueId = event.getPlayer().getUniqueId();
+        final StoreUser cachedUser = cached.get(uniqueId);
+        if (cachedUser == null) {
+            // Add temp value
+            cached.put(uniqueId, new StoreUser(uniqueId, event.getPlayer().getName(), 0.0f));
+        }
+        execute(() -> loadUser(event.getPlayer()));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        unloadUser(event.getPlayer());
+        saveDataAsync(getCached(event.getPlayer().getUniqueId())).thenAccept(this::unloadUser);
     }
 
     public void onLoad() {
@@ -80,15 +87,19 @@ public class Database implements Listener {
         }
 
         if (!registered) {
-            loadOnlineUsers(true);
             registered = true;
             Bukkit.getPluginManager().registerEvents(this, PixelBuy.get());
+            loadOnlineUsers();
             if (userLoadAll) {
-                loadUsers(true);
+                loadUsers();
             }
-        } else if (userLoadAll) {
-            loadOnlineUsers(false);
-            loadUsers(false);
+        } else {
+            execute(() -> {
+                loadOnlineUsers();
+                if (userLoadAll) {
+                    loadUsers();
+                }
+            });
         }
 
         messenger.onLoad();
@@ -158,14 +169,13 @@ public class Database implements Listener {
         if (user != null) {
             return user;
         }
-        client.getUser(uniqueId, username, loaded -> {
-            if (loaded == null) {
-                loaded = new StoreUser(uniqueId, username, 0.0f);
-            }
-            loaded.setLoaded(true);
-            client.getOrders(uniqueId, loaded::addOrder);
-            cached.put(uniqueId, loaded);
-        });
+        StoreUser loaded = client.getUser(uniqueId, username);
+        if (loaded == null) {
+            loaded = new StoreUser(uniqueId, username, 0.0f);
+        }
+        loaded.setLoaded(true);
+        client.getOrders(uniqueId, loaded::addOrder);
+        cached.put(uniqueId, loaded);
         return cached.get(uniqueId);
     }
 
@@ -176,7 +186,8 @@ public class Database implements Listener {
             return cachedUser;
         }
         cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
-        client.getUserAsync(uniqueId, username, user -> {
+        execute(() -> {
+            StoreUser user = client.getUser(uniqueId, username);
             if (user == null) {
                 user = new StoreUser(uniqueId, username, 0.0f);
             }
@@ -187,7 +198,7 @@ public class Database implements Listener {
             } else {
                 foundUser.addDonated(user.getDonated());
             }
-            loadOrders(true, foundUser);
+            loadOrders(foundUser);
         });
         return cached.get(uniqueId);
     }
@@ -198,79 +209,54 @@ public class Database implements Listener {
         if (user != null) {
             return user;
         }
-        client.getUser(uniqueId, username, loaded -> {
-            if (loaded != null) {
-                loaded.setLoaded(true);
-                client.getOrders(uniqueId, loaded::addOrder);
-                cached.put(uniqueId, loaded);
-            }
-        });
+        final StoreUser loaded = client.getUser(uniqueId, username);
+        if (loaded != null) {
+            loaded.setLoaded(true);
+            client.getOrders(uniqueId, loaded::addOrder);
+            cached.put(uniqueId, loaded);
+        }
         return cached.get(uniqueId);
     }
 
-    public void loadOrders(boolean sync, @NotNull StoreUser user) {
+    public void loadOrders(@NotNull StoreUser user) {
         user.setLoaded(true);
-        client.getOrders(sync, user.getUniqueId(), user::mergeOrder);
+        client.getOrders(user.getUniqueId(), user::mergeOrder);
     }
 
     public void loadUser(@NotNull Player player) {
-        loadUser(player, user -> PixelBuy.get().getStore().getCheckout().onJoin(user));
+        final StoreUser user = loadUser(player.getUniqueId(), player.getName());
+        PixelBuy.get().getStore().getCheckout().onJoin(user);
     }
 
-    public void loadUser(@NotNull Player player, @NotNull Consumer<StoreUser> consumer) {
-        loadUser(false, player.getUniqueId(), player.getName(), consumer);
-    }
-
-    public void loadUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
+    public StoreUser loadUser(@NotNull UUID uniqueId, @NotNull String username) {
         final StoreUser cachedUser = cached.get(uniqueId);
         if (cachedUser != null) {
             if (!cachedUser.isLoaded()) {
-                if (!sync) {
-                    Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                        loadOrders(true, cachedUser);
-                        consumer.accept(cachedUser);
-                    });
-                    return;
-                }
-                loadOrders(true, cachedUser);
+                loadOrders(cachedUser);
             }
-            consumer.accept(cachedUser);
-            return;
+            return cachedUser;
         }
-        if (!sync) {
-            // Add temp value
-            cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
+        StoreUser user = client.getUser(uniqueId, username);
+        if (user == null) {
+            user = new StoreUser(uniqueId, username, 0.0f);
         }
-        client.getUser(sync, uniqueId, username, user -> {
-            if (user == null) {
-                user = new StoreUser(uniqueId, username, 0.0f);
-            }
-            StoreUser foundUser = cached.get(user.getUniqueId());
-            if (foundUser == null) {
-                cached.put(uniqueId, user);
-                foundUser = user;
-            } else {
-                foundUser.addDonated(user.getDonated());
-            }
-            loadOrders(true, foundUser);
-            consumer.accept(foundUser);
-        });
-    }
-
-    public void loadUsers(boolean sync) {
-        client.getUsers(sync, user -> cached.put(user.getUniqueId(), user));
-    }
-
-    public void loadOnlineUsers(boolean sync) {
-        if (sync) {
-            Bukkit.getOnlinePlayers().forEach(this::loadUser);
+        StoreUser foundUser = cached.get(user.getUniqueId());
+        if (foundUser == null) {
+            cached.put(uniqueId, user);
+            foundUser = user;
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> Bukkit.getOnlinePlayers().forEach(this::loadUser));
+            foundUser.addDonated(user.getDonated());
         }
+        loadOrders(foundUser);
+        return foundUser;
     }
 
-    public void unloadUser(@NotNull Player player) {
-        saveDataAsync(getCached(player.getUniqueId()), this::unloadUser);
+    public void loadUsers() {
+        client.getUsers(user -> cached.put(user.getUniqueId(), user));
+    }
+
+    public void loadOnlineUsers() {
+        Bukkit.getOnlinePlayers().forEach(this::loadUser);
     }
 
     public void unloadUser(@NotNull StoreUser user) {
@@ -292,26 +278,26 @@ public class Database implements Listener {
         messenger.update(order);
     }
 
-    public void saveDataAsync(@Nullable StoreUser user, @Nullable Consumer<StoreUser> consumer) {
-        if (user != null) {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                saveData(user);
-                if (consumer != null) {
-                    consumer.accept(user);
-                }
-            });
+    @NotNull
+    public CompletableFuture<StoreUser> saveDataAsync(@Nullable StoreUser user) {
+        if (user == null) {
+            return CompletableFuture.completedFuture(null);
         }
+        return CompletableFuture.supplyAsync(() -> {
+            saveData(user);
+            return user;
+        }, this);
     }
 
-    public void saveDataAsync(@Nullable StoreOrder order, @Nullable Consumer<StoreOrder> consumer) {
-        if (order != null) {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                saveData(order);
-                if (consumer != null) {
-                    consumer.accept(order);
-                }
-            });
+    @NotNull
+    public CompletableFuture<StoreOrder> saveDataAsync(@Nullable StoreOrder order) {
+        if (order == null) {
+            return CompletableFuture.completedFuture(null);
         }
+        return CompletableFuture.supplyAsync(() -> {
+            saveData(order);
+            return order;
+        }, this);
     }
 
     public void sendProcess(@NotNull StoreUser user) {
@@ -328,7 +314,7 @@ public class Database implements Listener {
     }
 
     public void deleteDataAsync(@NotNull StoreOrder order, @Nullable Runnable runnable) {
-        Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
+        execute(() -> {
             deleteData(order);
             if (runnable != null) {
                 runnable.run();
@@ -343,5 +329,14 @@ public class Database implements Listener {
             stream = stream.limit(topLimit);
         }
         sorted = stream.map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    @Override
+    public void execute(@NotNull Runnable command) {
+        if (!Bukkit.isPrimaryThread()) {
+            command.run();
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), command);
+        }
     }
 }

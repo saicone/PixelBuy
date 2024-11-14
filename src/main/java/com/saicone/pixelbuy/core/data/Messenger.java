@@ -218,7 +218,10 @@ public class Messenger extends AbstractMessenger {
                     break;
                 case "UPDATE_ORDER":
                     if (user.isLoaded()) {
-                        database.getClient().getOrder(lines[2], Integer.parseInt(lines[3]), lines[4], user::updateOrder);
+                        final StoreOrder order = database.getClient().getOrder(lines[2], Integer.parseInt(lines[3]), lines[4]);
+                        if (order != null) {
+                            user.updateOrder(order);
+                        }
                     }
                     break;
                 case "DELETE_ORDER":

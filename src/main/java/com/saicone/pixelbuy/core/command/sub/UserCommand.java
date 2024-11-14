@@ -68,7 +68,7 @@ public class UserCommand extends PixelCommand {
         }
         boolean unload = !user.isLoaded();
         if (unload) {
-            PixelBuy.get().getDatabase().loadOrders(true, user);
+            PixelBuy.get().getDatabase().loadOrders(user);
         }
         consumer.accept(user);
         if (unload && Bukkit.getPlayer(user.getUniqueId()) == null) {

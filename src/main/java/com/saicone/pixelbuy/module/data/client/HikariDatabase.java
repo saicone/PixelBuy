@@ -15,8 +15,8 @@ import com.saicone.pixelbuy.util.OptionalType;
 import com.saicone.pixelbuy.util.Strings;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class HikariDatabase implements DataClient {
             return;
         }
         hikari = new HikariDataSource(hikariConfig);
-        connectSync(con -> {
+        connect(con -> {
             onStartTable(con, parse(USERS_TABLE), "create:users_table");
             onStartTable(con, parse(ORDERS_TABLE), "create:orders_table");
         });
@@ -168,8 +168,8 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void getUser(boolean sync, @NotNull UUID uniqueId, @NotNull String username, @NotNull Consumer<StoreUser> consumer) {
-        connect(sync, con -> {
+    public @Nullable StoreUser getUser(@NotNull UUID uniqueId, @NotNull String username) {
+        return connect(con -> {
             UUID foundId;
             StoreUser user = null;
             try (PreparedStatement stmt = con.prepareStatement(schema("select:user"))) {
@@ -181,24 +181,24 @@ public class HikariDatabase implements DataClient {
                         user = new StoreUser(uniqueId, username, result.getFloat("donated"));
                         // Update name
                         if (!username.equalsIgnoreCase(result.getString("username"))) {
-                            saveUser(true, user);
+                            saveUser(user);
                         }
                     } else {
                         PixelBuy.log(2, "Found duplicated UUID " + foundId + " for username '" + username + "' with id " + uniqueId);
                         // Remove old id
                         final StoreUser oldUser = new StoreUser(foundId, null, result.getFloat("donated"));
                         oldUser.setEdited(true);
-                        saveUser(true, oldUser);
+                        saveUser(oldUser);
                     }
                 }
             }
-            consumer.accept(user);
+            return user;
         });
     }
 
     @Override
-    public void getUsers(boolean sync, @NotNull Consumer<StoreUser> consumer) {
-        connect(sync, con -> {
+    public void getUsers(@NotNull Consumer<StoreUser> consumer) {
+        connect(con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("select:users"))) {
                 final ResultSet result = stmt.executeQuery();
                 while (result.next()) {
@@ -212,38 +212,34 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void getOrder(boolean sync, @NotNull String provider, int id, @NotNull String group, @NotNull Consumer<StoreOrder> consumer) {
-        connect(sync, con -> {
+    public @Nullable StoreOrder getOrder(@NotNull String provider, int id, @NotNull String group) {
+        return connect(con -> {
+            StoreOrder order = null;
             try (PreparedStatement stmt = con.prepareStatement(schema("select:order"))) {
                 stmt.setString(1, provider);
                 stmt.setInt(2, id);
                 stmt.setString(3, group);
                 final ResultSet result = stmt.executeQuery();
-                boolean consumed = false;
                 while (result.next()) {
                     final String rProvider = result.getString("provider");
                     final int rId = result.getInt("order");
                     final String rGroup = result.getString("group");
-                    if (consumed) {
+                    if (order != null) {
                         PixelBuy.log(2, "Found duplicated order " + rProvider + ":" + rId + " with group " + rGroup);
-                        deleteOrderAsync(rProvider, rId);
+                        deleteOrder(rProvider, rId);
                     } else {
-                        consumed = true;
-                        final StoreOrder order = new StoreOrder(rProvider, rId, rGroup);
+                        order = new StoreOrder(rProvider, rId, rGroup);
                         parseOrder(result, order);
-                        consumer.accept(order);
                     }
                 }
-                if (!consumed) {
-                    consumer.accept(null);
-                }
             }
+            return order;
         });
     }
 
     @Override
-    public void getOrders(boolean sync, @NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
-        connect(sync, con -> {
+    public void getOrders(@NotNull UUID buyer, @NotNull Consumer<StoreOrder> consumer) {
+        connect(con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("select:orders"))) {
                 stmt.setString(1, buyer.toString());
                 final ResultSet result = stmt.executeQuery();
@@ -289,11 +285,11 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveUser(boolean sync, @NotNull StoreUser user) {
+    public void saveUser(@NotNull StoreUser user) {
         if (!user.isEdited()) {
             return;
         }
-        connect(sync, con -> {
+        connect(con -> {
             saveOrders(con, user.getOrders());
 
             try (PreparedStatement stmt = con.prepareStatement(schema("insert:user"))) {
@@ -307,11 +303,11 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveUsers(boolean sync, @NotNull Collection<StoreUser> users) {
+    public void saveUsers(@NotNull Collection<StoreUser> users) {
         if (users.isEmpty()) {
             return;
         }
-        connect(sync, con -> {
+        connect(con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("insert:user"))) {
                 for (StoreUser user : users) {
                     if (!user.isEdited()) {
@@ -334,11 +330,11 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveOrder(boolean sync, @NotNull StoreOrder order) {
+    public void saveOrder(@NotNull StoreOrder order) {
         if (order.getBuyer() == null || !order.isEdited()) {
             return;
         }
-        connect(sync, con -> {
+        connect(con -> {
             final boolean saved = order.getDataId() >= 1;
             try (PreparedStatement stmt = con.prepareStatement(schema(saved ? "update:order" : "insert:order"), Statement.RETURN_GENERATED_KEYS)) {
                 order.setEdited(false);
@@ -365,11 +361,13 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void saveOrders(boolean sync, @NotNull Collection<StoreOrder> orders) {
+    public void saveOrders(@NotNull Collection<StoreOrder> orders) {
         if (orders.isEmpty()) {
             return;
         }
-        connect(sync, con -> saveOrders(con, orders));
+        connect(con -> {
+            saveOrders(con, orders);
+        });
     }
 
     private void saveOrders(@NotNull Connection con, @NotNull Collection<StoreOrder> orders) throws SQLException {
@@ -412,8 +410,8 @@ public class HikariDatabase implements DataClient {
     }
 
     @Override
-    public void deleteOrder(boolean sync, @NotNull String provider, int id) {
-        connect(sync, con -> {
+    public void deleteOrder(@NotNull String provider, int id) {
+        connect(con -> {
             try (PreparedStatement stmt = con.prepareStatement(schema("delete:order"))) {
                 stmt.setString(1, provider);
                 stmt.setInt(2, id);
@@ -443,19 +441,11 @@ public class HikariDatabase implements DataClient {
         return false;
     }
 
-    public void connect(boolean sync, @NotNull SqlConsumer consumer) {
+    public void connect(@NotNull SqlConsumer consumer) {
         if (hikari == null || hikari.isClosed()) {
             return;
         }
 
-        if (sync || !Bukkit.isPrimaryThread()) {
-            connectSync(consumer);
-        } else {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> connectSync(consumer));
-        }
-    }
-
-    public void connectSync(@NotNull SqlConsumer consumer) {
         try (Connection connection = hikari.getConnection()) {
             consumer.accept(connection);
         } catch (SQLException e) {
@@ -463,8 +453,27 @@ public class HikariDatabase implements DataClient {
         }
     }
 
+    public <R> R connect(@NotNull SqlFunction<R> consumer) {
+        if (hikari == null || hikari.isClosed()) {
+            return null;
+        }
+
+        try (Connection connection = hikari.getConnection()) {
+            return consumer.apply(connection);
+        } catch (SQLException e) {
+            PixelBuy.logException(2, e);
+        }
+        return null;
+    }
+
     @FunctionalInterface
     public interface SqlConsumer {
         void accept(@NotNull Connection connection) throws SQLException;
+    }
+
+    @FunctionalInterface
+    public interface SqlFunction<R> {
+        @Nullable
+        R apply(@NotNull Connection connection) throws SQLException;
     }
 }

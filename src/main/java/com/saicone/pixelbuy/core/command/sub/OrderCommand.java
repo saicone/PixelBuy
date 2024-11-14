@@ -92,24 +92,20 @@ public class OrderCommand extends PixelCommand {
                     if (action == null) {
                         iterator.remove();
                     } else if (action == Boolean.TRUE) {
-                        PixelBuy.get().getDatabase().saveDataAsync(order, null);
+                        PixelBuy.get().getDatabase().saveDataAsync(order);
                     }
                     return;
                 }
             }
         }
 
-        PixelBuy.get().getDatabase().getClient().getOrder(provider, id, group, order -> {
-            final StoreOrder finalOrder;
-            if (order == null && create) {
-                finalOrder = new StoreOrder(provider, id, group);
-            } else {
-                finalOrder = order;
-            }
-            if (consumer.apply(finalOrder) == Boolean.TRUE && finalOrder != null) {
-                PixelBuy.get().getDatabase().saveDataAsync(finalOrder, null);
-            }
-        });
+        StoreOrder order = PixelBuy.get().getDatabase().getClient().getOrder(provider, id, group);
+        if (order == null && create) {
+            order = new StoreOrder(provider, id, group);
+        }
+        if (consumer.apply(order) == Boolean.TRUE && order != null) {
+            PixelBuy.get().getDatabase().saveDataAsync(order);
+        }
     }
 
     public void getOrderAsync(@NotNull CommandSender sender, @NotNull String s, @NotNull Function<StoreOrder, Boolean> consumer) {
