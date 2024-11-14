@@ -79,6 +79,7 @@ shadowJar {
     relocate 'com.zaxxer.hikari', project.group + '.libs.hikari'
     relocate 'redis.clients.jedis', project.group + '.libs.jedis'
     relocate 'com.rabbitmq', project.group + '.libs.rabbitmq'
+    relocate 'com.google.common', project.group + '.libs.guava'
     relocate 'com.google.gson', project.group + '.libs.gson'
     relocate 'com.saicone.delivery4j', project.group + '.libs.delivery4j'
     minimize()
