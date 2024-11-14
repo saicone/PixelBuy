@@ -7,7 +7,6 @@ import com.saicone.ezlib.EzlibLoader;
 import com.saicone.pixelbuy.core.Lang;
 import com.saicone.pixelbuy.core.command.PixelBuyCommand;
 import com.saicone.pixelbuy.core.data.Database;
-
 import com.saicone.pixelbuy.core.store.PixelStore;
 import com.saicone.pixelbuy.module.hook.Placeholders;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;

@@ -3,7 +3,11 @@ package com.saicone.pixelbuy.api.store;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class StoreUser {

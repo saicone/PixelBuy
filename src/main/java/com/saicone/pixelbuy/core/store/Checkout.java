@@ -1,7 +1,6 @@
 package com.saicone.pixelbuy.core.store;
 
 import com.saicone.pixelbuy.PixelBuy;
-
 import com.saicone.pixelbuy.api.event.OrderProcessEvent;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
@@ -14,7 +13,11 @@ import org.bukkit.OfflinePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 public class Checkout {
