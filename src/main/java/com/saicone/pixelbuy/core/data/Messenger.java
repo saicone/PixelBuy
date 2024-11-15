@@ -1,34 +1,39 @@
 package com.saicone.pixelbuy.core.data;
 
 import com.saicone.delivery4j.AbstractMessenger;
-import com.saicone.delivery4j.DeliveryClient;
-import com.saicone.delivery4j.client.HikariDelivery;
-import com.saicone.delivery4j.client.RabbitMQDelivery;
-import com.saicone.delivery4j.client.RedisDelivery;
+import com.saicone.delivery4j.Broker;
+import com.saicone.delivery4j.broker.HikariBroker;
+import com.saicone.delivery4j.broker.RabbitMQBroker;
+import com.saicone.delivery4j.broker.RedisBroker;
+import com.saicone.delivery4j.util.DelayedExecutor;
 import com.saicone.ezlib.Dependencies;
 import com.saicone.ezlib.Dependency;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
 import com.saicone.pixelbuy.module.data.client.HikariDatabase;
+import com.saicone.pixelbuy.module.data.delivery.BukkitExecutor;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:1.0"),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-hikari:1.0",
-                transitive = false,
+        @Dependency("com.saicone.delivery4j:delivery4j:1.1"),
+        @Dependency("com.saicone.delivery4j:broker-sql:1.1"),
+        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1",
                 relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-redis:1.0",
+        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1",
                 relocate = {
                         "redis.clients.jedis", "{package}.libs.jedis",
                         "com.google.gson", "{package}.libs.gson",
@@ -36,20 +41,29 @@ import java.util.concurrent.TimeUnit;
                         "org.json", "{package}.libs.json"
                 }
         ),
-        @Dependency(value = "com.saicone.delivery4j:delivery4j-rabbitmq:1.0",
+        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1",
                 relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
+        ),
+        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1",
+                transitive = false,
+                relocate = {"com.google.common", "{package}.libs.guava"}
         ),
         @Dependency("org.slf4j:slf4j-nop:1.7.36")
 }, relocations = {"com.saicone.delivery4j", "{package}.libs.delivery4j", "org.slf4j", "{package}.libs.slf4j"}
 )
-public class Messenger extends AbstractMessenger {
+public class Messenger extends AbstractMessenger implements Broker.Logger {
 
     private final Database database;
+    private final DelayedExecutor<?> executor;
 
     private String channel = "pixelbuy:main";
 
-    public Messenger(@NotNull Database database) {
+    private final Map<Long, CompletableFuture<Long>> ping = new HashMap<>();
+
+    public Messenger(@NotNull Plugin plugin, @NotNull Database database) {
         this.database = database;
+        this.executor = new BukkitExecutor(plugin);
+        setExecutor(database);
     }
 
     public void onLoad() {
@@ -58,30 +72,33 @@ public class Messenger extends AbstractMessenger {
             final String channel = PixelBuy.settings().getIgnoreCase("messenger", "channel").asString("pixelbuy:main");
             if (!channel.equals(this.channel)) {
                 clear();
-                this.deliveryClient = null;
+                setBroker(null);
                 this.channel = channel;
             }
-            if (!incomingConsumers.containsKey(channel)) {
-                subscribe(channel, (lines) -> {
+            if (!getChannels().containsKey(channel)) {
+                subscribe(channel).consume((__, lines) -> {
                     PixelBuy.log(4, "Received messenger message: " + Arrays.toString(lines));
                     if (Bukkit.isPrimaryThread()) {
                         Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> process(lines));
                     } else {
                         process(lines);
                     }
-                });
+                }).cache(true);
             }
-            start();
+            final Broker broker = loadBroker();
+            broker.setExecutor(this.executor);
+            start(broker);
         }
     }
 
     public void onDisable() {
         close();
         clear();
+        setBroker(null);
     }
 
     @Override
-    protected @NotNull DeliveryClient loadDeliveryClient() {
+    protected @NotNull Broker loadBroker() {
         String type = PixelBuy.settings().getIgnoreCase("messenger", "type").asString("AUTO");
         final String finalType;
         if (type.equalsIgnoreCase("AUTO")) {
@@ -91,8 +108,8 @@ public class Messenger extends AbstractMessenger {
             } else if (!"redis://:password@localhost:6379/0".equals(PixelBuy.settings().getIgnoreCase("messenger", "redis", "url").asString())
                     || PixelBuy.settings().getIgnoreCase("messenger", "redis", "host").getValue() != null) {
                 finalType = "REDIS";
-            } else if (PixelBuy.get().getDatabase().getClient() instanceof HikariDatabase) {
-                if (((HikariDatabase) PixelBuy.get().getDatabase().getClient()).getType().isExternal()) {
+            } else if (this.database.getClient() instanceof HikariDatabase) {
+                if (((HikariDatabase) this.database.getClient()).getType().isExternal()) {
                     finalType = "SQL";
                 } else {
                     finalType = type;
@@ -107,11 +124,11 @@ public class Messenger extends AbstractMessenger {
         PixelBuy.log(4, "Using delivery client: " + finalType);
         switch (finalType.toUpperCase()) {
             case "SQL":
-                return loadHikariDelivery((HikariDatabase) PixelBuy.get().getDatabase().getClient());
+                return loadHikariBroker((HikariDatabase) this.database.getClient());
             case "REDIS":
-                return loadRedisDelivery(PixelBuy.settings().getConfigurationSection(settings -> settings.getIgnoreCase("messenger", finalType)));
+                return loadRedisBroker(PixelBuy.settings().getConfigurationSection(settings -> settings.getIgnoreCase("messenger", finalType)));
             case "RABBITMQ":
-                return loadRabbitMQDelivery(PixelBuy.settings().getConfigurationSection(settings -> settings.getIgnoreCase("messenger", finalType)));
+                return loadRabbitMQBroker(PixelBuy.settings().getConfigurationSection(settings -> settings.getIgnoreCase("messenger", finalType)));
             default:
                 break;
         }
@@ -119,15 +136,17 @@ public class Messenger extends AbstractMessenger {
     }
 
     @NotNull
-    private DeliveryClient loadHikariDelivery(@NotNull HikariDatabase database) {
+    private Broker loadHikariBroker(@NotNull HikariDatabase database) {
         if (!database.getType().isExternal()) {
             throw new IllegalArgumentException("The current SQL database is not an external database type");
         }
-        return new HikariDelivery(database.getHikari(), database.getPrefix());
+        final HikariBroker broker = new HikariBroker(database.getHikari());
+        broker.setTablePrefix(database.getPrefix());
+        return broker;
     }
 
     @NotNull
-    private DeliveryClient loadRedisDelivery(@Nullable BukkitSettings config) {
+    private Broker loadRedisBroker(@Nullable BukkitSettings config) {
         Objects.requireNonNull(config, "Cannot find Redis configuration");
         final String url = config.getIgnoreCase("url").asString();
         if (url == null) {
@@ -136,14 +155,14 @@ public class Messenger extends AbstractMessenger {
             final String password = config.getIgnoreCase("password").asString("password");
             final int database = config.getIgnoreCase("database").asInt(0);
             final boolean ssl = config.getIgnoreCase("ssl").asBoolean(false);
-            return RedisDelivery.of(host, port, password, database, ssl);
+            return RedisBroker.of(host, port, password, database, ssl);
         } else {
-            return RedisDelivery.of(url);
+            return RedisBroker.of(url);
         }
     }
 
     @NotNull
-    private DeliveryClient loadRabbitMQDelivery(@Nullable BukkitSettings config) {
+    private Broker loadRabbitMQBroker(@Nullable BukkitSettings config) {
         Objects.requireNonNull(config, "Cannot find RabbitMQ configuration");
         final String exchange = config.getIgnoreCase("exchange").asString("pixelbuy");
         final String url = config.getIgnoreCase("url").asString();
@@ -153,15 +172,10 @@ public class Messenger extends AbstractMessenger {
             final String username = config.getIgnoreCase("username").asString("guest");
             final String password = config.getIgnoreCase("password").asString("guest");
             final String virtualHost = config.getIgnoreCase("virtualhost").asString("%2F");
-            return RabbitMQDelivery.of(host, port, username, password, virtualHost, exchange);
+            return RabbitMQBroker.of(host, port, username, password, virtualHost, exchange);
         } else {
-            return RabbitMQDelivery.of(url, exchange);
+            return RabbitMQBroker.of(url, exchange);
         }
-    }
-
-    @Override
-    public void log(int level, @NotNull Throwable t) {
-        PixelBuy.logException(level, t);
     }
 
     @Override
@@ -170,16 +184,17 @@ public class Messenger extends AbstractMessenger {
     }
 
     @Override
-    public @NotNull Runnable async(@NotNull Runnable runnable) {
-        final BukkitTask task = Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), runnable);
-        return task::cancel;
+    public void log(int level, @NotNull String msg, @NotNull Throwable throwable) {
+        PixelBuy.logException(level, throwable, msg);
     }
 
-    @Override
-    public @NotNull Runnable asyncRepeating(@NotNull Runnable runnable, long time, @NotNull TimeUnit unit) {
-        final long ticks = unit.toMillis(time) / 50;
-        final BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), runnable, ticks, ticks);
-        return task::cancel;
+    @NotNull
+    public CompletableFuture<Long> ping() {
+        final Long key = System.currentTimeMillis();
+        final CompletableFuture<Long> future = new CompletableFuture<Long>().completeOnTimeout(Long.MIN_VALUE, 20, TimeUnit.SECONDS);
+        ping.put(key, future);
+        send(channel, "PING", key);
+        return future;
     }
 
     public void process(@NotNull StoreUser user, @NotNull String group) {
@@ -200,6 +215,18 @@ public class Messenger extends AbstractMessenger {
 
     private void process(@NotNull String[] lines) {
         if (lines.length < 3) {
+            if (lines.length == 2) {
+                if (lines[0].equalsIgnoreCase("PING")) {
+                    send(channel, "PONG", lines[1]);
+                } else if (lines[0].equalsIgnoreCase("PONG")) {
+                    final long key = Long.parseLong(lines[1]);
+                    final long time = System.currentTimeMillis() - key;
+                    final CompletableFuture<Long> future = ping.remove(key);
+                    if (future != null) {
+                        future.complete(time);
+                    }
+                }
+            }
             return;
         }
         try {

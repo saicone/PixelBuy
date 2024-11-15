@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +39,8 @@ public class Database implements Listener, Executor {
     private DataClient client;
     private boolean registered;
 
-    public Database() {
-        this.messenger = new Messenger(this);
+    public Database(@NotNull Plugin plugin) {
+        this.messenger = new Messenger(plugin, this);
     }
 
     @EventHandler
@@ -134,6 +135,11 @@ public class Database implements Listener, Executor {
     @NotNull
     public Map<UUID, StoreUser> getCached() {
         return cached;
+    }
+
+    @NotNull
+    public Messenger getMessenger() {
+        return messenger;
     }
 
     @Nullable

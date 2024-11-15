@@ -21,10 +21,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Dependencies({
-        @Dependency(value = "com.github.cryptomorin:XSeries:11.2.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
-        @Dependency(value = "com.saicone.rtag:rtag-item:1.5.4", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
-        @Dependency(value = "com.zaxxer:HikariCP:5.1.0", relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}),
-        @Dependency(value = "com.google.guava:guava:32.1.2-jre", relocate = {"com.google.common", "{package}.libs.guava"})
+        @Dependency(value = "com.github.cryptomorin:XSeries:11.3.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
+        @Dependency(value = "com.saicone.rtag:rtag-item:1.5.8", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
+        @Dependency(value = "com.google.guava:guava:33.3.1-jre", relocate = {"com.google.common", "{package}.libs.guava"})
 })
 public final class PixelBuy extends JavaPlugin {
 
@@ -64,7 +63,7 @@ public final class PixelBuy extends JavaPlugin {
     public PixelBuy() {
         final Ezlib ezlib = new Ezlib();
         ezlib.init();
-        ezlib.dependency("com.google.code.gson:gson:2.10.1")
+        ezlib.dependency("com.google.code.gson:gson:2.11.0")
              .relocations(Map.of("com{}google{}gson".replace("{}", "."), "com.saicone.pixelbuy.libs.gson"))
              .parent(true)
              .load();
@@ -86,7 +85,7 @@ public final class PixelBuy extends JavaPlugin {
         settings = new SettingsFile("settings.yml", true);
         lang = new Lang(this);
         store = new PixelStore();
-        database = new Database();
+        database = new Database(this);
         command = new PixelBuyCommand();
     }
 

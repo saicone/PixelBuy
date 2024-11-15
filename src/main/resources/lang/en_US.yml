@@ -52,6 +52,8 @@ Command:
   PixelBuy:
     Usage: '{prefix}&ePixelBuy Commands: &7(/{0} <command>...)'
     Description: 'Main plugin command'
+  Ping:
+    Description: 'Get ping from other PixelBuy instance'
   Reload:
     Usage: '{prefix}&eYou should use: &c/{0} &8<&7files|store|database|command|all&8>'
     Description: 'Reload plugin'
