@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class BukkitCommand {
 
+    private static final boolean USE_PREFIX = Bukkit.getServer().getClass().getPackage().getName().startsWith("org.bukkit.craftbukkit.v1_8");
     private static final CommandMap COMMAND_MAP;
     private static final MethodHandle COMMANDS;
 
@@ -57,6 +58,9 @@ public class BukkitCommand {
     }
 
     public static boolean register(@NotNull Command command) {
+        if (USE_PREFIX) {
+            return map().register("pixelbuy", command);
+        }
         final Map<String, Command> map = all();
         map.put(command.getName(), command);
         for (String alias : command.getAliases()) {
