@@ -23,6 +23,7 @@ import java.util.UUID;
 @Dependencies({
         @Dependency(value = "com.github.cryptomorin:XSeries:13.0.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
         @Dependency(value = "com.saicone.rtag:rtag-item:1.5.9", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
+        @Dependency(value = "com.saicone.nbt:nbt:1.0.0", relocate = {"com.saicone.nbt", "{package}.libs.nbt"}),
         @Dependency(value = "com.google.guava:guava:33.3.1-jre", relocate = {"com.google.common", "{package}.libs.guava"})
 })
 public final class PixelBuy extends JavaPlugin {

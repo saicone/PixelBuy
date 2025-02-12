@@ -2,9 +2,9 @@ package com.saicone.pixelbuy.module.settings;
 
 import com.cryptomorin.xseries.XItemStack;
 import com.cryptomorin.xseries.XMaterial;
+import com.saicone.nbt.util.TagConfig;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.module.hook.CustomItems;
-import com.saicone.pixelbuy.util.ConfigTag;
 import com.saicone.pixelbuy.util.MStrings;
 import com.saicone.pixelbuy.util.Strings;
 import com.saicone.rtag.RtagItem;
@@ -141,7 +141,7 @@ public class SettingsItem extends BukkitSettings {
 
     @SuppressWarnings("unchecked")
     public void setNbt(@NotNull Map<String, Object> map) {
-        createSection("nbt", (Map<String, Object>) ConfigTag.toConfigValue(map));
+        createSection("nbt", (Map<String, Object>) TagConfig.toConfigValue(map));
     }
 
     @Override
@@ -254,7 +254,7 @@ public class SettingsItem extends BukkitSettings {
         final BukkitSettings nbt = getConfigurationSection(settings -> settings.getIgnoreCase("nbt"));
         if (nbt != null) {
             return RtagItem.edit(item, tag -> {
-                tag.deepMerge(ConfigTag.fromConfigValue(nbt.asMap()), true);
+                tag.deepMerge(TagConfig.fromConfigValue(nbt.asMap()), true);
             });
         }
 

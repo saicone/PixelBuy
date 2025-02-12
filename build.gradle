@@ -50,6 +50,7 @@ dependencies {
     compileOnly 'com.github.cryptomorin:XSeries:13.0.0'
     compileOnly 'com.saicone.rtag:rtag:1.5.9'
     compileOnly 'com.saicone.rtag:rtag-item:1.5.9'
+    compileOnly 'com.saicone.nbt:nbt:1.0.0'
     compileOnly 'com.saicone.delivery4j:delivery4j:1.1'
     compileOnly 'com.saicone.delivery4j:broker-sql-hikari:1.1'
     compileOnly 'com.saicone.delivery4j:broker-redis:1.1'
