@@ -146,3 +146,8 @@ Command:
       Usage: '{prefix}&eDebes usar: &c/{0} &8[&7categoría&8] &8[&7página&8]'
       Info:
         - '{prefix}&fInformación sobre los items de la tienda [{0}/{1}]:'
+  Give:
+    Usage: '{prefix}&eDebes usar: &c/{0} &8<&7jugador&8> &8<&7item&8>'
+    Description: 'Agregar un item al inventario del jugador'
+    Error: '{prefix}&cEl jugador &6{0} &cno existe'
+    Done: '{prefix}&aEl item fue dado al jugador &f{0}'

@@ -4,6 +4,10 @@ title: Commands
 description: Information about PixelBuy commands.
 ---
 
+```mdx-code-block
+import DocCard from '@theme/DocCard';
+```
+
 PixelBuy has a variety of commands to manage the plugin and data.
 
 **Command arguments:** Every argument rounded by `<>` is required, and `[]` is optional.
@@ -164,3 +168,27 @@ Add the provided item into order with the specified parameters.
 **Usage:** `/pbuy order <order> item <item> delete`
 
 Delete the provided item from order.
+
+## Ping
+
+**Usage:** `/pbuy ping`
+
+Get ping from other PixelBuy instance connected at the same messenger.
+
+## Give
+
+**Usage:** `/pbuy give <player> <item>`
+
+Give item to online player,
+
+The `<item>` argument is a pixelbuy item configuration on [SNBT](https://minecraft.wiki/w/NBT_format#SNBT_format) format.
+
+```mdx-code-block
+<DocCard item={{
+  type: "link",
+  href: "/pixelbuy/usage/item-config/",
+  label: "Item Configuration",
+  description: "Information about PixelBuy item configuration format"
+  }}
+/>
+```

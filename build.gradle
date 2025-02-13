@@ -86,5 +86,6 @@ shadowJar {
     relocate 'com.google.common', project.group + '.libs.guava'
     relocate 'com.google.gson', project.group + '.libs.gson'
     relocate 'com.saicone.delivery4j', project.group + '.libs.delivery4j'
+    relocate 'com.saicone.nbt', project.group + '.libs.nbt'
     minimize()
 }

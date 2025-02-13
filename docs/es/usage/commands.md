@@ -4,6 +4,10 @@ title: Comandos
 description: Información sobre los comandos en PixelBuy.
 ---
 
+```mdx-code-block
+import DocCard from '@theme/DocCard';
+```
+
 PixelBuy tiene una variedad de comandos para manejar el plugin y sus datos.
 
 **Argumentos del comando:** Cualquier argumento denomidado por `<>` es requerido, mientras que `[]` es opcional.
@@ -165,3 +169,27 @@ Agrega el item especificado en la orden de compra con los parámetros del comand
 **Utilización:** `/pbuy order <orden> item <item> delete`
 
 Elimina el item especificado de la orden de compra.
+
+## Ping
+
+**Utilización:** `/pbuy ping`
+
+Obtener el ping desde otra instancia de PixelBuy conectada en el mismo sistema de mensajería.
+
+## Regalar item
+
+**Utilización:** `/pbuy give <jugador> <item>`
+
+Agregar un item al inventario del jugador.
+
+El argumento de `<item>` es una configuración de items de pixelbuy en formato [SNBT](https://minecraft.wiki/w/NBT_format#SNBT_format).
+
+```mdx-code-block
+<DocCard item={{
+  type: "link",
+  href: "/es/pixelbuy/usage/item-config/",
+  label: "Configuración de item",
+  description: "Información sobre el formato para configurar items en PixelBuy"
+  }}
+/>
+```

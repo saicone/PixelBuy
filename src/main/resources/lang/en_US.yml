@@ -146,3 +146,8 @@ Command:
       Usage: '{prefix}&eYou should use: &c/{0} &8[&7category&8] &8[&7page&8]'
       Info:
         - '{prefix}&fStore items information [{0}/{1}]:'
+  Give:
+    Usage: '{prefix}&eYou should use: &c/{0} &8<&7player&8> &8<&7item&8>'
+    Description: 'Give item to player'
+    Error: '{prefix}&cThe player &6{0} &cdoes not exist'
+    Done: '{prefix}&aThe item &f{0} &awas given to player &f{1}'
