@@ -1,5 +1,6 @@
 package com.saicone.pixelbuy.core.web;
 
+import com.saicone.pixelbuy.core.web.supervisor.PixelBuyWeb;
 import com.saicone.pixelbuy.core.web.supervisor.WooMinecraftWeb;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -7,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 public enum WebType {
 
     UNKNOWN,
-    WOO_MINECRAFT("WOOMINECRAFT");
+    WOO_MINECRAFT("WOOMINECRAFT"),
+    CUSTOM("CUSTOM");
 
     public static final WebType[] VALUES = values();
 
@@ -26,6 +28,9 @@ public enum WebType {
     public WebSupervisor newSupervisor(@NotNull String id, @NotNull String group) {
         if (this == WOO_MINECRAFT) {
             return new WooMinecraftWeb(id, group);
+        }
+        if(this == CUSTOM) {
+            return new PixelBuyWeb(id, group);
         }
         return null;
     }
