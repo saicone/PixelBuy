@@ -2,64 +2,59 @@ package com.saicone.pixelbuy.core.web.supervisor;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.store.StoreItem;
+import com.saicone.pixelbuy.core.web.WebConnection;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.web.WebType;
+import com.saicone.pixelbuy.core.web.connection.RestConnection;
+import com.saicone.pixelbuy.core.web.object.WooCommerceOrder;
+import com.saicone.pixelbuy.core.web.object.WordpressError;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
  * WooMinecraft supervisor implementation.<br>
  * This object check WordPress site API with WooMinecraft plugin installed,
- * and process every command separated by comma as store items.<br>
- * <br>
- * <h3>Structure</h3>
- * code = {@code String}<br>
- * message = {@code String}<br>
- * data = {<br>
- * &emsp;status = {@code Integer}<br>
- * }<br>
- * orders = [
- * {<br>
- * &emsp;player = {@code String}<br>
- * &emsp;order_id = {@code Integer}<br>
- * &emsp;commands = {@code List<String>}<br>
- * }
- * ]<br>
+ * and process every command separated by comma as store items.
  *
  * @author Rubenicos
  */
 public class WooMinecraftWeb extends WebSupervisor {
 
-    private String baseUrl;
-    private String apiKey;
-    private URL wmcUrl;
-    private int delay;
-    private String wcUrl;
+    private static final String WOO_MINECRAFT_SERVER = "{url}/wp-json/wmc/v1/server/{password}";
+    private static final String WOO_COMMERCE_ORDER = "{url}/wp-json/wc/v3/orders/{key}";
+    private static final String WOO_COMMERCE_PRODUCT = "{url}/wp-json/wc/v3/products/{key}";
 
-    private int getTask;
+    private static final String CONSUMER_KEY = "consumer_key";
+    private static final String CONSUMER_SECRET = "consumer_secret";
+    private static final String PLAYER_KEY = "player_id";
+
+    // WooMinecraft
+    private WebConnection serverConnection;
+    // WooCommerce
+    private String metaKey;
+    private RestConnection<?> orderConnection;
+    private RestConnection<?> productConnection;
+
+    private int taskDelay;
+    private BukkitTask task;
     private transient boolean onTask;
-    private transient JsonObject lastOrders;
     private final Cache<Integer, StoreOrder> cachedOrders = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 
     public WooMinecraftWeb(@NotNull String id, @NotNull String group) {
@@ -73,43 +68,67 @@ public class WooMinecraftWeb extends WebSupervisor {
 
     @Override
     public void onLoad(@NotNull BukkitSettings config) {
-        this.baseUrl = config.getRegex("(?i)url|link").asString();
-        if (this.baseUrl == null || this.baseUrl.isBlank()) {
-            this.wmcUrl = null;
-            this.wcUrl = null;
-            this.delay = -1;
+        clear();
+
+        final String url = parseUrl(config.getRegex("(?i)url|link").asString());
+        if (url == null || url.isBlank()) {
+            this.serverConnection = null;
+            this.orderConnection = null;
+            this.productConnection = null;
+            this.taskDelay = -1;
             return;
         }
 
-        String wmcPath = config.getRegex("(?i)(api-?)?path").asString("wp-json/wmc/v1/server/{key}");
-        this.apiKey = config.getRegex("(?i)(api-?)?key").asString();
-        if (apiKey != null) {
-            wmcPath = wmcPath.replace("{key}", apiKey);
+        String serverUrl = config.getRegex("(?i)format", "(?i)server(-?url)?").asString(WOO_MINECRAFT_SERVER);
+        serverUrl = serverUrl.replace(URL, url);
+        final String password = addSecret(config.getRegex("(?i)(api-?)?key").asString());
+        if (password != null) {
+            serverUrl = serverUrl.replace(PASSWORD, password);
         }
-        try {
-            this.wmcUrl = new URL(parseUrl(this.baseUrl, wmcPath));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        this.delay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7) * 20;
+        this.serverConnection = RestConnection.params(serverUrl);
 
-        String wcPath = config.getRegex("(?i)woocommerce", "(?i)(api-?)?path").asString("wp-json/wc/v3/{type}/{id}?consumer_key={key}&consumer_secret={secret}");
+        this.metaKey = "_wmc_commands_" + password;
+
         final String consumerKey = config.getRegex("(?i)woocommerce", "(?i)consumer-?key").asString();
         final String consumerSecret = config.getRegex("(?i)woocommerce", "(?i)consumer-?secret").asString();
         if (consumerKey == null || consumerSecret == null) {
-            this.wcUrl = null;
+            this.orderConnection = null;
+            this.productConnection = null;
         } else {
-            wcPath = wcPath.replace("{key}", consumerKey).replace("{secret}", consumerSecret);
-            this.wcUrl = parseUrl(this.baseUrl, wcPath);
+            final String orderUrl = config.getRegex("(?i)format", "(?i)order(-?url)?").asString(WOO_COMMERCE_ORDER).replace(URL, url);
+            final String productUrl = config.getRegex("(?i)format", "(?i)product(-?url)?").asString(WOO_COMMERCE_PRODUCT).replace(URL, url);
+
+            switch (RestConnection.Type.of(config.getRegex("(?i)woocommerce", "(?i)auth(entication)?(-?(method|type)?)").asString()).orElse(RestConnection.Type.PARAMS)) {
+                case PARAMS:
+                    this.orderConnection = RestConnection.params(orderUrl,
+                            CONSUMER_KEY, consumerKey,
+                            CONSUMER_SECRET, consumerSecret
+                    );
+                    this.productConnection = RestConnection.params(productUrl,
+                            CONSUMER_KEY, consumerKey,
+                            CONSUMER_SECRET, consumerSecret
+                    );
+                    break;
+                case BASIC:
+                    this.orderConnection = RestConnection.basic(orderUrl, consumerKey + ":" + consumerSecret);
+                    this.productConnection = RestConnection.basic(productUrl, consumerKey + ":" + consumerSecret);
+                    break;
+                default:
+                    break;
+            }
+            this.orderConnection.cache(5, TimeUnit.MINUTES);
+            this.productConnection.cache(5, TimeUnit.MINUTES);
         }
+
+        this.taskDelay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7) * 20;
     }
 
     @Override
     public void onStart() {
-        if (delay < 1) {
+        if (taskDelay < 1) {
             return;
         }
-        getTask = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), () -> {
+        task = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), () -> {
             PixelBuy.log(4, "Checking orders...");
             if (onTask) {
                 PixelBuy.log(4, "Cannot check orders due task lock");
@@ -117,107 +136,82 @@ public class WooMinecraftWeb extends WebSupervisor {
             }
             onTask = true;
             try {
-                getOrders();
+                processOrders();
             } catch (Throwable t) {
                 PixelBuy.logException(1, t);
             }
             onTask = false;
-        }, 200, delay).getTaskId();
+        }, 200, taskDelay);
     }
 
     @Override
     public void onClose() {
-        if (getTask > 0) {
-            Bukkit.getScheduler().cancelTask(getTask);
-            getTask = -1;
+        if (task != null) {
+            task.cancel();
             onTask = false;
         }
     }
 
-    @Override
-    public @Nullable LocalDate getDate(int orderId) {
-        if (wcUrl == null) {
-            return super.getDate(orderId);
+    @NotNull
+    public Optional<WooCommerceOrder> getOrder(int orderId) {
+        if (this.orderConnection == null) {
+            return Optional.empty();
         }
-        final JsonObject json = getOrderJson(orderId);
-        return LocalDate.parse(json.get("date_created").getAsString());
+        try {
+            return Optional.ofNullable(this.orderConnection.fetch(WooCommerceOrder.class, KEY, orderId));
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot get order " + orderId + " from site connection", e);
+        }
     }
 
-    @Override
-    public float getTotal(int orderId) {
-        if (wcUrl == null) {
-            return super.getTotal(orderId);
+    public float getPrice(@NotNull Object product) {
+        if (this.productConnection == null) {
+            return 0.0f;
         }
-        final JsonObject json = getOrderJson(orderId);
-        return json.get("total").getAsFloat();
-    }
-
-    @Override
-    public float getTotal(int orderId, int itemId) {
-        if (wcUrl == null) {
-            return super.getTotal(orderId, itemId);
-        }
-        final JsonObject json = getOrderJson(orderId);
-        for (JsonElement element : json.getAsJsonArray("line_items")) {
-            final JsonObject item = element.getAsJsonObject();
-            if (item.get("product_id").getAsInt() == itemId) {
-                return item.get("total").getAsFloat();
+        try {
+            final JsonObject json = this.productConnection.fetch(JsonObject.class, KEY, product);
+            if (json == null) {
+                return 0.0f;
             }
+            return json.get("price").getAsFloat();
+        } catch (IOException e) {
+            throw new RuntimeException("Cannot get product " + product + " from site connection", e);
         }
-        return super.getTotal(orderId, itemId);
     }
 
     @Override
-    public float getPrice(int itemId) {
-        if (wcUrl == null) {
-            return super.getPrice(itemId);
-        }
-        final JsonObject json = readJson(wcUrl.replace("{type}", "products").replace("{id}", String.valueOf(itemId)));
-        return json.get("price").getAsFloat();
-    }
-
-    @Override
-    public @Nullable StoreOrder lookupOrder(int orderId, @Nullable String player) {
+    public @NotNull Optional<StoreOrder> lookupOrder(int orderId, @Nullable String player) {
         final StoreOrder cached = cachedOrders.getIfPresent(orderId);
         if (cached != null) {
-            return cached;
+            return Optional.of(cached);
         }
-        final JsonObject json;
-        try {
-            json = getOrderJson(orderId);
-        } catch (Throwable t) {
-            return null;
-        }
-        try {
+        return getOrder(orderId).map(order -> {
             String playerId = player;
             List<String> commands = null;
-            for (JsonElement element : json.getAsJsonArray("meta_data")) {
+
+            for (WooCommerceOrder.MetaData meta : order.metaData()) {
                 if (playerId != null && commands != null) {
                     break;
                 }
-                final JsonObject meta = element.getAsJsonObject();
-                final String key = meta.get("key").getAsString();
-                if (key.equalsIgnoreCase("player_id")) {
-                    playerId = meta.get("value").getAsString();
-                } else if (key.equalsIgnoreCase("_wmc_commands_" + apiKey)) {
+                if (meta.key().equalsIgnoreCase(PLAYER_KEY)) {
+                    playerId = String.valueOf(meta.value());
+                } else if (meta.key().equals(this.metaKey)) {
                     commands = new ArrayList<>();
-                    final JsonElement value = meta.get("value");
-                    if (value.isJsonArray()) {
-                        for (JsonElement command : value.getAsJsonArray()) {
-                            commands.add(command.getAsString());
+                    if (meta.value() instanceof Iterable) {
+                        for (Object element : (Iterable<?>) meta.value()) {
+                            commands.add(String.valueOf(element));
                         }
                     } else {
-                        commands.add(value.getAsString());
+                        commands.add(String.valueOf(meta.value()));
                     }
                 }
             }
-            if (commands == null) {
-                for (JsonElement element : json.getAsJsonArray("line_items")) {
-                    final JsonObject item = element.getAsJsonObject();
-                    final int productId = item.get("product_id").getAsInt();
+
+            if (playerId != null && commands == null) {
+                for (WooCommerceOrder.LineItem item : order.lineItems()) {
                     final StoreItem storeItem = PixelBuy.get().getStore().getItem(it -> {
-                        Integer id = it.getPriceId(getId());
-                        return id != null && id == productId;
+                        Object id = it.getProduct(getId());
+                        return id != null && id.equals(item.productId());
                     });
                     if (storeItem != null) {
                         if (commands == null) {
@@ -227,53 +221,44 @@ public class WooMinecraftWeb extends WebSupervisor {
                     }
                 }
             }
+
             if (playerId != null && commands != null) {
-                final StoreOrder order = buildOrder(orderId, PlayerProvider.getUniqueId(playerId), commands);
-                cachedOrders.put(orderId, order);
-                return order;
+                final StoreOrder storeOrder = new Order(orderId, playerId, commands).asStoreOrder(this, order);
+                cachedOrders.put(orderId, storeOrder);
+                return storeOrder;
             }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return null;
+            return null;
+        });
     }
 
-    @NotNull
-    public JsonObject getOrderJson(int orderId) {
-        return readJson(wcUrl.replace("{type}", "orders").replace("{id}", String.valueOf(orderId)));
-    }
-
-    public void getOrders() {
-        if (wmcUrl == null || wmcUrl.toString().isBlank()) {
-            return;
-        }
-        lastOrders = readJson(wmcUrl);
-        if (lastOrders.get("data") != null) {
-            PixelBuy.log(2, lastOrders.get("code").getAsString());
+    public void processOrders() throws IOException {
+        if (serverConnection == null) {
             return;
         }
 
-        final JsonArray orders = lastOrders.getAsJsonArray("orders");
-        if (orders == null || orders.isEmpty()) {
+        final Server server = serverConnection.fetch(Server.class);
+        if (server == null) {
+            return;
+        }
+        if (server.isError()) {
+            server.throwError(this::hideSecrets);
             return;
         }
 
         if (PixelBuy.get().getLang().getLogLevel() >= 4) {
-            PixelBuy.log(4, "Last orders data: " + lastOrders);
+            PixelBuy.log(4, "Last orders data: " + server);
         }
 
-        final List<Integer> processed = new ArrayList<>();
-        for (JsonElement element : orders) {
-            final JsonObject order = element.getAsJsonObject();
-            final int id = order.get("order_id").getAsInt();
+        final List<String> processed = new ArrayList<>();
+        for (Order order : server.orders()) {
             final List<String> items = new ArrayList<>();
-            for (JsonElement command : order.getAsJsonArray("commands")) {
-                for (String item : command.getAsString().split(",")) {
+            for (String command : order.commands()) {
+                for (String item : command.split(",")) {
                     items.add(item.trim());
                 }
             }
-            if (processOffline(order.get("player").getAsString(), id, items)) {
-                processed.add(id);
+            if (process(order.player(), items, () -> order.asStoreOrder(this))) {
+                processed.add(String.valueOf(order.id()));
             }
         }
         if (!processed.isEmpty()) {
@@ -281,31 +266,137 @@ public class WooMinecraftWeb extends WebSupervisor {
         }
     }
 
-    public void sendOrders(@NotNull List<Integer> processed) {
-        final StringJoiner joiner = new StringJoiner(",", "{\"processedOrders\":[", "]}");
-        for (Integer id : processed) {
-            joiner.add(String.valueOf(id));
+    public void sendOrders(@NotNull List<String> processed) throws IOException {
+        final WordpressError response = serverConnection.send(WordpressError.class, new Server().processedOrders(processed));
+        if (response != null && response.isError()) {
+            response.throwError(this::hideSecrets);
         }
-        try {
-            HttpsURLConnection con = (HttpsURLConnection) wmcUrl.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            con.setRequestProperty("Accept", "application/json");
-            con.setDoOutput(true);
+    }
 
-            final byte[] input = joiner.toString().getBytes(StandardCharsets.UTF_8);
-            try (OutputStream out = con.getOutputStream()) {
-                out.write(input, 0, input.length);
+    public static class Server extends WordpressError {
+
+        private List<Order> orders = new ArrayList<>();
+        private List<String> processedOrders;
+
+        public List<Order> orders() {
+            return orders;
+        }
+
+        public List<String> processedOrders() {
+            return processedOrders;
+        }
+
+        @NotNull
+        @Contract("_ -> this")
+        public Server processedOrders(@NotNull List<String> processedOrders) {
+            this.processedOrders = processedOrders;
+            return this;
+        }
+
+        @Override
+        public String toString() {
+            return "Server{" +
+                    "orders=" + orders +
+                    ", processedOrders=" + processedOrders +
+                    '}';
+        }
+    }
+
+    public static class Order {
+
+        @SerializedName("order_id")
+        private Integer id;
+        private String player;
+        private List<String> commands;
+
+        public Order() {
+            this.commands = new ArrayList<>();
+        }
+
+        public Order(@NotNull Integer id, @NotNull String player, @NotNull List<String> commands) {
+            this.id = id;
+            this.player = player;
+            this.commands = commands;
+        }
+
+        private transient List<String> items;
+
+        public Integer id() {
+            return id;
+        }
+
+        public String player() {
+            return player;
+        }
+
+        public List<String> commands() {
+            return commands;
+        }
+
+        @NotNull
+        public List<String> items() {
+            if (this.items == null) {
+                this.items = new ArrayList<>();
+                for (String command : this.commands) {
+                    for (String item : command.split(",")) {
+                        this.items.add(item.trim());
+                    }
+                }
+            }
+            return this.items;
+        }
+
+        @NotNull
+        public StoreOrder asStoreOrder(@NotNull WooMinecraftWeb web) {
+            return asStoreOrder(web, web.getOrder(id).orElse(null));
+        }
+
+        @NotNull
+        public StoreOrder asStoreOrder(@NotNull WooMinecraftWeb web, @Nullable WooCommerceOrder wOrder) {
+            final StoreOrder order = new StoreOrder(web.getId(), id, web.getGroup());
+            order.setBuyer(PlayerProvider.getUniqueId(player));
+            if (wOrder != null) {
+                order.setDate(LocalDate.parse(wOrder.dateCreated()));
             }
 
-            final JsonObject response = readJson(con);
-            if (response.get("data") != null) {
-                PixelBuy.log(2, response.get("code").getAsString());
+            for (String item : items()) {
+                int amount = 1;
+                float price = 0.0f;
+
+                final StoreItem storeItem = PixelBuy.get().getStore().getItem(item);
+                if (storeItem != null) {
+                    price = storeItem.getPrice();
+
+                    boolean found = false;
+                    final Object product = storeItem.getProduct(web.getId());
+                    if (wOrder != null && product != null) {
+                        for (WooCommerceOrder.LineItem lineItem : wOrder.lineItems()) {
+                            if (lineItem.productId().equals(product)) {
+                                amount = lineItem.quantity();
+                                price = Float.parseFloat(lineItem.total());
+                                found = true;
+                            }
+                        }
+                    }
+
+                    if (!found && product != null) {
+                        price = web.getPrice(product);
+                    }
+                }
+
+                order.addItem(web.getGroup(), item, price).amount(amount);
             }
-            con.getInputStream().close();
-            con.disconnect();
-        } catch (IOException e) {
-            PixelBuy.logException(2, e, "There's an exception while updating the processed orders");
+
+            return order;
+        }
+
+        @Override
+        public String toString() {
+            return "Order{" +
+                    "id=" + id +
+                    ", player='" + player + '\'' +
+                    ", commands=" + commands +
+                    '}';
         }
     }
 }

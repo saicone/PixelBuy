@@ -1,11 +1,10 @@
 # Item unique id
 super-pickaxe:
-  # Item price
-  price:
-    # Default item price
-    default: 2.49
-    # Get item price using product ID from web supervisor
+  # Product identifier from web supervisor
+  product:
     woominecraft-example: 1234
+  # Item price
+  price: 2.49
   # Item categories
   categories:
     - 'items'

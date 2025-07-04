@@ -8,7 +8,7 @@ Options:
   # Current store group, must be different between server modes
   Group: 'survival'
   # Default web supervisor
-  Supervisor: 'woominecraft-example'
+  Supervisor: 'pixelbuy-example'
 
 # Shop categories
 Categories:
@@ -29,57 +29,88 @@ Checkout:
 # Web supervisor configuration
 Supervisor:
   # Supervisor unique ID
-  woominecraft-example:
+  pixelbuy-example:
     # Supervisor types:
+    # PIXELBUY     = Check any REST API compatible with PixelBuy schema.
+    #                For more information visit: https://docs.saicone.com/pixelbuy/developers/schema/
     # WOOMINECRAFT = Check WordPress site with WooMinecraft plugin installed and
     #                process every command separated by comma as store items.
     # TEBEX        = Check Tebex/BuyCraft site and process every command separated
     #                by comma as store items.
-    # CUSTOM = IMPLEMENT YOUR OWN REST API ON YOUR WEBSITE TO PROVIDE ORDERS
-    # LEARN MORE IN THE WIKI (LINK TO SECTION)
-    Type: WOOMINECRAFT
+    Type: PIXELBUY
     # Supervisor group, can be equal as current shop group or different like "global"
     Group: 'survival'
-    # Interval in seconds to check new orders
-    # This checker don't require so much CPU, 7 seconds is recommended
-    # Set to -1 to disable
-    Check-Interval: 7
     # URL of your site
-    # For example http://shop.mysite.com
+    # For example https://shop.mysite.com
     URL: ''
+
+    # === PixelBuy supervisor configuration ===
+    #
+    # The version of PixelBuy schema
+    Version: 1
+    # URL format configuration
+    # Feel free to change it as you want to offer your site API, PixelBuy is also compatible with URL params
+    Format:
+      # {key} = supervisor group
+      Server: '{url}/api/server/{key}'
+      # {key} = order id
+      Order: '{url}/api/order/{key}'
+    # REST API configuration
+    Rest:
+      # Interval in seconds to check new orders
+      # Set to -1 to disable
+      # Set to "DETECT" to use an interval provided by your site
+      Check-Interval: 30
+      # Authentication types:
+      # PARAMS = Use query parameters to provide the secret.
+      # HEADER = Use header property to provide the secret.
+      # BASIC  = Use HTTP Basic authorization.
+      Auth: PARAMS
+      # Property name, this both apply to PARAMS and HEADER authentication
+      Property: 'secret'
+      # Parameter name
+      # The secret key that is used to get information.
+      # Can be a text file path by providing a value with "/" suffix.
+      Secret: ''
+  woominecraft-example:
+    Type: WOOMINECRAFT
+    Group: 'survival'
+    URL: ''
+
+    # === WooMinecraft supervisor configuration ===
+    #
+    # Interval in seconds to check new orders
+    Check-Interval: 600
     # This is a key that YOU set, both needing to be identical
-    # in the WooCommerce configuration and in this config file
+    # in the WooCommerce configuration and in this config file.
+    # Can be a text file path by providing a value with "/" suffix.
     Key: ''
     # Additional configuration to retrieve store item prices
     # This feature uses the WooCommerce API
-    # Go to the admin panel -> WooCommerce -> Settings -> Advanced -> API Keys, and generate a read access key
-    # Then paste the consumer key and secret below
     WooCommerce:
+      # API version
+      # Currently, only version 3 is supported
+      Version: 3
+      # Authentication types:
+      # PARAMS = Use query parameters to provide consumer key and secret.
+      # BASIC  = If your site supports it, use HTTP Basic authorization.
+      Auth: PARAMS
+      # Go to the admin panel -> WooCommerce -> Settings -> Advanced -> API Keys, and generate a read access key
+      # Then paste the consumer key and secret below
       ConsumerKey: ''
       ConsumerSecret: ''
   tebex-example:
     Type: TEBEX
     Group: 'survival'
     URL: ''
-    Secret-Key: ''
-  custom-api:
-    # Supervisor types:
-    # WOOMINECRAFT = Check WordPress site with WooMinecraft plugin installed and
-    #                process every command separated by comma as store items.
-    # TEBEX        = Check Tebex/BuyCraft site and process every command separated
-    #                by comma as store items.
-    # CUSTOM = IMPLEMENT YOUR OWN REST API ON YOUR WEBSITE TO PROVIDE ORDERS
-    # LEARN MORE IN THE WIKI (LINK TO SECTION)
-    Type: CUSTOM
-    # Supervisor group, can be equal as current shop group or different like "global"
-    Group: 'survival'
-    # Interval in seconds to check new orders
-    # This checker don't require so much CPU, 7 seconds is recommended
-    # Set to -1 to disable
-    Check-Interval: 7
-    # URL of your site
-    # For example http://shop.mysite.com
-    URL: ''
+
+    # === Tebex supervisor configuration ===
+    #
+    # Game API configuration
+    Game:
+      # Go to https://creator.tebex.io/game-servers, click Edit on the relevant server
+      # Then paste the secret key below
+      Secret: ''
 
 # Global configuration for all store items
 Items:

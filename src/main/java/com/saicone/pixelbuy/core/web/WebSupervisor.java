@@ -1,36 +1,34 @@
 package com.saicone.pixelbuy.core.web;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.store.StoreItem;
-import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class WebSupervisor {
+
+    protected static final String URL = "{url}";
+    protected static final String KEY = "{key}";
+    protected static final String USERNAME = "{username}";
+    protected static final String PASSWORD = "{password}";
 
     private final String id;
     private final String group;
 
-    private final Cache<String, JsonObject> cachedJson = CacheBuilder.newBuilder().expireAfterWrite(5, TimeUnit.MINUTES).build();
+    protected Gson gson = new Gson();
+    private final Map<String, String> secrets = new HashMap<>();
 
     public WebSupervisor(@NotNull String id, @NotNull String group) {
         this.id = id;
@@ -50,28 +48,6 @@ public abstract class WebSupervisor {
     @NotNull
     public abstract WebType getType();
 
-    @Nullable
-    public LocalDate getDate(int orderId) {
-        return null;
-    }
-
-    public float getTotal(int orderId) {
-        return Float.MIN_VALUE;
-    }
-
-    public float getTotal(int orderId, int itemId) {
-        return Float.MIN_VALUE;
-    }
-
-    public float getPrice(int itemId) {
-        return Float.MIN_VALUE;
-    }
-
-    @Nullable
-    public StoreOrder lookupOrder(int orderId, @Nullable String player) {
-        return null;
-    }
-
     public void onLoad(@NotNull BukkitSettings config) {
     }
 
@@ -81,11 +57,10 @@ public abstract class WebSupervisor {
     public void onClose() {
     }
 
-    public boolean processOnline(@NotNull UUID uniqueId, int id, @NotNull List<String> items) {
-        return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, uniqueId, items));
-    }
+    @NotNull
+    public abstract Optional<StoreOrder> lookupOrder(int orderId, @Nullable String player);
 
-    public boolean processOffline(@NotNull String name, int id, @NotNull List<String> items) {
+    public boolean process(@NotNull String name, @NotNull List<String> items, @NotNull Supplier<StoreOrder> supplier) {
         boolean result = true;
         final Player player = Bukkit.getPlayer(name);
         if (player == null || !player.isOnline()) {
@@ -104,76 +79,49 @@ public abstract class WebSupervisor {
             }
         }
         if (result) {
-            return PixelBuy.get().getStore().getCheckout().process(buildOrder(id, PlayerProvider.getUniqueId(name), items));
+            return PixelBuy.get().getStore().getCheckout().process(supplier.get());
         }
         return false;
     }
 
-    @NotNull
-    public StoreOrder buildOrder(int id, @NotNull UUID buyer, @NotNull List<String> items) {
-        final StoreOrder order = new StoreOrder(getId(), id, getGroup());
-        order.setBuyer(buyer);
-        for (String item : items) {
-            final StoreItem storeItem = PixelBuy.get().getStore().getItem(item);
-            final Integer itemId = storeItem != null ? storeItem.getPriceElement(getId()) : null;
-            if (itemId != null) {
-                try {
-                    final float total = getTotal(id, itemId);
-                    if (total != Float.MIN_VALUE) {
-                        order.addItem(getGroup(), item, total < 0.0f ? 0.0001f : total);
-                        continue;
-                    }
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                }
-            }
-            order.addItem(getGroup(), item);
-        }
-        return order;
+    protected void clear() {
+        secrets.clear();
     }
 
-    @NotNull
-    protected JsonObject readJson(@NotNull String url) {
-        final JsonObject cached = cachedJson.getIfPresent(url);
-        if (cached != null) {
-            return cached;
+    @Nullable
+    @Contract("!null -> !null")
+    protected String addSecret(@Nullable String secret) {
+        if (secret == null) {
+            return null;
         }
-        try {
-            final JsonObject json = readJson(new URL(url).openConnection());
-            cachedJson.put(url, json);
-            return json;
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot parse the URL as json data", e);
-        }
+        secrets.put(secret, "*".repeat(secret.length()));
+        return secret;
     }
 
-    @NotNull
-    protected JsonObject readJson(@NotNull URL url) {
-        try {
-            return readJson(url.openConnection());
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot parse the URL as json data", e);
+    @Nullable
+    @Contract("!null -> !null")
+    protected String hideSecrets(@Nullable String s) {
+        if (s == null) {
+            return null;
         }
+        for (Map.Entry<String, String> entry : secrets.entrySet()) {
+            s = s.replace(entry.getKey(), entry.getValue());
+        }
+        return s;
     }
 
-    @NotNull
-    protected JsonObject readJson(@NotNull URLConnection con) throws IOException {
-        try (InputStreamReader reader = new InputStreamReader(new BufferedInputStream(con.getInputStream()), StandardCharsets.UTF_8)) {
-            return JsonParser.parseReader(reader).getAsJsonObject();
+    @Nullable
+    @Contract("!null -> !null")
+    protected String parseUrl(@Nullable String url) {
+        if (url == null) {
+            return null;
         }
-    }
-
-    @NotNull
-    protected String parseUrl(@NotNull String baseUrl, @NotNull String path) {
-        if (!baseUrl.toLowerCase().startsWith("http")) {
-            baseUrl = "https://" + baseUrl;
+        if (!url.toLowerCase().startsWith("http")) {
+            url = "https://" + url;
         }
-        if (!baseUrl.endsWith("/")) {
-            baseUrl = baseUrl + "/";
+        if (!url.endsWith("/")) {
+            url = url + "/";
         }
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-        return baseUrl + path;
+        return url;
     }
 }

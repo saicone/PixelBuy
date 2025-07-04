@@ -5,26 +5,29 @@ import com.saicone.pixelbuy.api.PixelBuyAPI;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
-import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.OptionalType;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StoreItem {
 
     // Information
     private final String id;
+    private Map<String, Object> product = Map.of();
     private Set<String> categories = Set.of();
-    private WebValue<Float, Integer> price = WebValue.of(0.0f);
+    private Float price = 0.0f;
 
     // Gui
     private ItemStack display;
@@ -45,8 +48,15 @@ public class StoreItem {
     }
 
     public void onReload(@NotNull BukkitSettings config) {
+        this.product = new HashMap<>();
+        final ConfigurationSection product = config.getConfigurationSection(settings -> settings.getIgnoreCase("product"));
+        if (product != null) {
+            for (String key : product.getKeys(false)) {
+                this.product.put(key, product.get(key));
+            }
+        }
         this.categories = config.getRegex("(?i)categor(y|ies)").asCollection(new HashSet<>(), OptionalType::asString);
-        this.price = WebValue.of(config.getIgnoreCase("price").getValue(), type -> type.asFloat(0.0f), OptionalType::asInt, WebSupervisor::getPrice);
+        this.price = config.getIgnoreCase("price").asFloat(0.0f);
         final SettingsItem displayItem = config.getItem(settings -> settings.getRegex("(?i)display(-?item)?"));
         if (displayItem == null) {
             this.display = null;
@@ -104,27 +114,18 @@ public class StoreItem {
         return id;
     }
 
+    @Nullable
+    public Object getProduct(@NotNull String provider) {
+        return product.get(provider);
+    }
+
     @NotNull
     public Set<String> getCategories() {
         return categories;
     }
 
     public float getPrice() {
-        return price.get(null);
-    }
-
-    public float getPrice(@NotNull String provider) {
-        return price.get(provider);
-    }
-
-    @Nullable
-    public Integer getPriceId(@NotNull String provider) {
-        return price.getElement(provider);
-    }
-
-    @Nullable
-    public Integer getPriceElement(@NotNull String provider) {
-        return price.getElement(provider);
+        return price;
     }
 
     @Nullable

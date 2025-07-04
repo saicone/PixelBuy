@@ -2,42 +2,42 @@ package com.saicone.pixelbuy.core.web.supervisor;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
-import com.saicone.pixelbuy.core.store.StoreItem;
+import com.saicone.pixelbuy.core.web.WebConnection;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.web.WebType;
+import com.saicone.pixelbuy.core.web.connection.RestConnection;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
-/**
- * PixelBuyWeb supervisor implementation.
- * This object checks the custom REST API and processes orders.
- *
- */
 public class PixelBuyWeb extends WebSupervisor {
 
-    private String baseUrl;
-    private URL apiUrl;
-    private int delay;
-    private int getTask;
-    private transient boolean onTask;
+    private static final String SERVER_FORMAT = "{url}/api/server/{key}";
+    private static final String ORDER_FORMAT = "{url}/api/order/{key}";
+    private static final String PROPERTY = "secret";
+
+    private WebConnection serverConnection;
+    private WebConnection orderConnection;
+
+    private boolean detectDelay;
+    private int taskDelay;
+    private BukkitTask task;
     private final Cache<Integer, StoreOrder> cachedOrders = CacheBuilder.newBuilder().expireAfterWrite(1, TimeUnit.MINUTES).build();
 
     public PixelBuyWeb(@NotNull String id, @NotNull String group) {
@@ -46,156 +46,311 @@ public class PixelBuyWeb extends WebSupervisor {
 
     @Override
     public @NotNull WebType getType() {
-        return WebType.CUSTOM;
+        return WebType.PIXELBUY;
     }
 
     @Override
     public void onLoad(@NotNull BukkitSettings config) {
-        this.baseUrl = config.getRegex("(?i)url|link").asString();
-        if (this.baseUrl == null || this.baseUrl.isBlank()) {
-            this.apiUrl = null;
-            this.delay = -1;
+        clear();
+
+        final String url = parseUrl(config.getRegex("(?i)url|link").asString());
+        if (url == null || url.isBlank()) {
+            this.serverConnection = null;
+            this.orderConnection = null;
+            this.taskDelay = -1;
             return;
         }
 
-        String apiPath = config.getRegex("(?i)(api-?)?path").asString("api/orders/{serverId}");
-        try {
-            this.apiUrl = new URL(parseUrl(this.baseUrl, apiPath));
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+        final String serverUrl = config.getRegex("(?i)format", "(?i)server(-?url)?").asString(SERVER_FORMAT).replace(URL, url);
+        final String orderUrl = config.getRegex("(?i)format", "(?i)order(-?url)?").asString(ORDER_FORMAT).replace(URL, url);
+
+        final String property = config.getRegex("(?i)rest(-?api)?", "(?i)property").asString(PROPERTY);
+        final String secret = addSecret(config.getRegex("(?i)rest(-?api)?", "(?i)secret(-?key)?").asString(""));
+        if (secret.isBlank()) {
+            this.serverConnection = null;
+            this.orderConnection = null;
+            this.taskDelay = -1;
+            return;
+        } else {
+            switch (RestConnection.Type.of(config.getRegex("(?i)rest(-?api)?", "(?i)auth(entication)?(-?(method|type)?)").asString()).orElse(RestConnection.Type.PARAMS)) {
+                case PARAMS:
+                    this.serverConnection = RestConnection.params(serverUrl, property, secret);
+                    this.orderConnection = RestConnection.params(orderUrl, property, secret);
+                    break;
+                case HEADER:
+                    this.serverConnection = RestConnection.header(serverUrl, property, secret);
+                    this.orderConnection = RestConnection.header(orderUrl, property, secret);
+                    break;
+                case BASIC:
+                    this.serverConnection = RestConnection.basic(serverUrl, secret);
+                    this.orderConnection = RestConnection.basic(orderUrl, secret);
+                    break;
+                default:
+                    break;
+            }
         }
-        this.delay = config.getRegex("(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asInt(7) * 20;
+
+        String taskDelay = config.getRegex("(?i)rest(-?api)?", "(?i)((delay|check(er)?)-?)?(time|interval|seconds?)").asString("30");
+        if (taskDelay.equalsIgnoreCase("DETECT")) {
+            this.detectDelay = true;
+            taskDelay = "10"; // 10 seconds warmup
+        } else {
+            this.detectDelay = false;
+        }
+        this.taskDelay = Integer.parseInt(taskDelay) * 20;
     }
 
     @Override
     public void onStart() {
-        if (delay < 1) {
-            return;
-        }
-        getTask = Bukkit.getScheduler().runTaskTimerAsynchronously(PixelBuy.get(), () -> {
-            PixelBuy.log(4, "Checking orders...");
-            if (onTask) {
-                PixelBuy.log(4, "Cannot check orders due task lock");
-                return;
-            }
-            onTask = true;
+        initTask();
+    }
+
+    private void initTask() {
+        this.task = Bukkit.getScheduler().runTaskLaterAsynchronously(PixelBuy.get(), () -> {
             try {
-                getOrders();
+                int next = (int) processOrders();
+                if (next > 0 && this.detectDelay) {
+                    this.taskDelay = next * 20;
+                }
             } catch (Throwable t) {
                 PixelBuy.logException(1, t);
             }
-            onTask = false;
-        }, 200, delay).getTaskId();
+            initTask();
+        }, this.taskDelay);
     }
 
     @Override
     public void onClose() {
-        if (getTask > 0) {
-            Bukkit.getScheduler().cancelTask(getTask);
-            getTask = -1;
-            onTask = false;
+        if (task != null) {
+            task.cancel();
         }
     }
 
     @Override
-    public @Nullable LocalDate getDate(int orderId) {
-        final JsonObject json = getOrderJson(orderId);
-        return LocalDate.parse(json.get("date").getAsString());
-    }
-
-    @Override
-    public float getTotal(int orderId) {
-        final JsonObject json = getOrderJson(orderId);
-        return json.get("price").getAsFloat();
-    }
-
-    @Override
-    public @Nullable StoreOrder lookupOrder(int orderId, @Nullable String player) {
+    public @NotNull Optional<StoreOrder> lookupOrder(int orderId, @Nullable String player) {
         final StoreOrder cached = cachedOrders.getIfPresent(orderId);
         if (cached != null) {
-            return cached;
-        }
-        final JsonObject json;
-        try {
-            json = getOrderJson(orderId);
-        } catch (Throwable t) {
-            return null;
+            return Optional.of(cached);
         }
         try {
-            String playerId = player;
-            List<String> commands = new ArrayList<>();
-            for (JsonElement element : json.getAsJsonArray("items")) {
-                final JsonObject item = element.getAsJsonObject();
-                commands.add(item.get("key").getAsString());
-            }
-            if (playerId != null && !commands.isEmpty()) {
-                final StoreOrder order = buildOrder(orderId, PlayerProvider.getUniqueId(playerId), commands);
-                cachedOrders.put(orderId, order);
-                return order;
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return null;
-    }
-
-    @NotNull
-    public JsonObject getOrderJson(int orderId) {
-        return readJson(apiUrl.toString().replace("{orderId}", String.valueOf(orderId)));
-    }
-
-    public void getOrders() {
-        if (apiUrl == null || apiUrl.toString().isBlank()) {
-            return;
-        }
-        JsonObject response = readJson(apiUrl);
-        JsonArray orders = response.getAsJsonArray("orders");
-        if (orders == null || orders.isEmpty()) {
-            return;
-        }
-
-        final List<Integer> processed = new ArrayList<>();
-        for (JsonElement element : orders) {
-            final JsonObject order = element.getAsJsonObject();
-            final int id = order.get("id").getAsInt();
-            final List<String> items = new ArrayList<>();
-            for (JsonElement item : order.getAsJsonArray("items")) {
-                items.add(item.getAsJsonObject().get("key").getAsString());
-            }
-            if (processOffline(order.get("player").getAsString(), id, items)) {
-                processed.add(id);
-            }
-        }
-        if (!processed.isEmpty()) {
-            sendOrders(processed);
-        }
-    }
-
-    public void sendOrders(@NotNull List<Integer> processed) {
-        final StringJoiner joiner = new StringJoiner(",", "{\"orders\":[", "]}");
-        for (Integer id : processed) {
-            joiner.add(String.valueOf(id));
-        }
-        try {
-            HttpsURLConnection con = (HttpsURLConnection) apiUrl.openConnection();
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-            con.setRequestProperty("Accept", "application/json");
-            con.setDoOutput(true);
-
-            final byte[] input = joiner.toString().getBytes(StandardCharsets.UTF_8);
-            try (OutputStream out = con.getOutputStream()) {
-                out.write(input, 0, input.length);
-            }
-
-            final JsonObject response = readJson(con);
-            if (response.get("data") != null) {
-                PixelBuy.log(2, response.get("code").getAsString());
-            }
-            con.getInputStream().close();
-            con.disconnect();
+            return Optional.ofNullable(orderConnection.fetch(Order.class)).map(order -> {
+                final StoreOrder storeOrder = order.asStoreOrder(getId(), getGroup());
+                cachedOrders.put(orderId, storeOrder);
+                return storeOrder;
+            });
         } catch (IOException e) {
-            PixelBuy.logException(2, e, "There's an exception while updating the processed orders");
+            throw new RuntimeException(e);
+        }
+    }
+
+    public long processOrders() throws IOException {
+        if (serverConnection == null) {
+            return -1;
+        }
+
+        final Server server = serverConnection.fetch(Server.class);
+        if (server == null) {
+            return -1;
+        }
+        if (server.isError()) {
+            server.throwError(this::hideSecrets);
+            return -1;
+        }
+
+        if (PixelBuy.get().getLang().getLogLevel() >= 4) {
+            PixelBuy.log(4, "Last orders data: " + server);
+        }
+
+        final List<Integer> orders = new ArrayList<>();
+        for (Order order : server.orders()) {
+            if (process(order.playerName(), order.items().stream().map(Item::key).collect(Collectors.toList()), () -> order.asStoreOrder(getId(), getGroup()))) {
+                orders.add(order.id());
+            }
+        }
+
+        if (!orders.isEmpty()) {
+            sendOrders(orders);
+        }
+
+        return server.nextCheck();
+    }
+
+    public void sendOrders(@NotNull List<Integer> orders) throws IOException {
+        final Error response = serverConnection.send(Error.class, new Processed(orders));
+        if (response != null && response.isError()) {
+            response.throwError(this::hideSecrets);
+        }
+    }
+
+    public static class Error {
+
+        private String error;
+        private String message;
+        private Integer status;
+
+        public boolean isError() {
+            return error != null;
+        }
+
+        public String error() {
+            return error;
+        }
+
+        public String message() {
+            return message;
+        }
+
+        public Integer status() {
+            return status;
+        }
+
+        public void throwError(@NotNull UnaryOperator<String> filter) throws IOException {
+            String filtered = message;
+            if (filtered != null) {
+                filtered = filter.apply(filtered);
+            }
+            throw new IOException("[" + error + "/" + status + "]: " + filtered);
+        }
+    }
+
+    public static class Server extends Error {
+
+        private List<Order> orders = new ArrayList<>();
+        @SerializedName("next_check")
+        private long nextCheck;
+
+        public List<Order> orders() {
+            return orders;
+        }
+
+        public long nextCheck() {
+            return nextCheck;
+        }
+
+        @Override
+        public String toString() {
+            return "Server{" +
+                    "orders=" + orders +
+                    ", nextCheck=" + nextCheck +
+                    '}';
+        }
+    }
+
+    public static class Order {
+
+        private Integer id;
+        private String date;
+        private String player;
+        private List<Item> items = new ArrayList<>();
+
+        public Integer id() {
+            return id;
+        }
+
+        public String date() {
+            return date;
+        }
+
+        public String player() {
+            return player;
+        }
+
+        public String playerName() {
+            if (player.contains(":")) {
+                return player.substring(player.indexOf(':') + 1);
+            } else {
+                return player;
+            }
+        }
+
+        public UUID playerId() {
+            if (player.contains(":")) {
+                return UUID.fromString(player.substring(0, player.indexOf(':')));
+            } else {
+                return PlayerProvider.getUniqueId(player);
+            }
+        }
+
+        public List<Item> items() {
+            return items;
+        }
+
+        @NotNull
+        public StoreOrder asStoreOrder(@NotNull String provider, @NotNull String group) {
+            final StoreOrder order = new StoreOrder(provider, id, group);
+            order.setBuyer(playerId());
+            order.setDate(LocalDate.parse(date));
+
+            for (Item item : items()) {
+                order.addItem(group, item.asStoreItem());
+            }
+
+            return order;
+        }
+
+        @Override
+        public String toString() {
+            return "Order{" +
+                    "id=" + id +
+                    ", date='" + date + '\'' +
+                    ", player='" + player + '\'' +
+                    ", items=" + items +
+                    '}';
+        }
+    }
+
+    public static class Item {
+
+        private Integer id;
+        private String key;
+        private Integer amount;
+        private Double price;
+
+        public Integer id() {
+            return id;
+        }
+
+        public String key() {
+            return key;
+        }
+
+        public Integer amount() {
+            return amount;
+        }
+
+        public Double price() {
+            return price;
+        }
+
+        @NotNull
+        public StoreOrder.Item asStoreItem() {
+            return new StoreOrder.Item(key, price.floatValue()).amount(amount);
+        }
+
+        @Override
+        public String toString() {
+            return "Item{" +
+                    "id=" + id +
+                    ", key='" + key + '\'' +
+                    ", amount=" + amount +
+                    ", price=" + price +
+                    '}';
+        }
+    }
+
+    public static class Processed {
+
+        private List<Integer> orders;
+
+        public Processed() {
+        }
+
+        public Processed(List<Integer> orders) {
+            this.orders = orders;
+        }
+
+        public List<Integer> orders() {
+            return orders;
         }
     }
 }

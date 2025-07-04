@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -272,8 +273,9 @@ public class OrderCommand extends PixelCommand {
             final WebSupervisor supervisor = PixelBuy.get().getStore().getSupervisor(split.length > 1 ? split[0] : PixelBuy.get().getStore().getDefaultSupervisor());
             if (supervisor != null) {
                 final boolean run = args[0].equalsIgnoreCase("run");
-                final StoreOrder sOrder = supervisor.lookupOrder(Integer.parseInt(split.length > 1 ? split[1] : split[0]), run ? null : args[0]);
-                if (sOrder != null) {
+                final Optional<StoreOrder> optional = supervisor.lookupOrder(Integer.parseInt(split.length > 1 ? split[1] : split[0]), run ? null : args[0]);
+                if (optional.isPresent()) {
+                    final StoreOrder sOrder = optional.get();
                     if (run) {
                         if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
                             final String name = PlayerProvider.getName(sOrder.getBuyer());

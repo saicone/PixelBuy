@@ -8,8 +8,8 @@ import org.jetbrains.annotations.Nullable;
 public enum WebType {
 
     UNKNOWN,
-    WOO_MINECRAFT("WOOMINECRAFT"),
-    CUSTOM("CUSTOM");
+    PIXELBUY("CUSTOM"),
+    WOO_MINECRAFT("WOOMINECRAFT");
 
     public static final WebType[] VALUES = values();
 
@@ -26,11 +26,11 @@ public enum WebType {
 
     @Nullable
     public WebSupervisor newSupervisor(@NotNull String id, @NotNull String group) {
+        if (this == PIXELBUY) {
+            return new PixelBuyWeb(id, group);
+        }
         if (this == WOO_MINECRAFT) {
             return new WooMinecraftWeb(id, group);
-        }
-        if(this == CUSTOM) {
-            return new PixelBuyWeb(id, group);
         }
         return null;
     }
