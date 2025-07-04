@@ -12,6 +12,7 @@ import com.saicone.pixelbuy.module.hook.Placeholders;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.SettingsFile;
 import com.saicone.pixelbuy.util.OptionalType;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executor;
 
 @Dependencies({
         @Dependency(value = "com.github.cryptomorin:XSeries:13.0.0", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
@@ -26,7 +28,7 @@ import java.util.UUID;
         @Dependency(value = "com.saicone.nbt:nbt:1.0.0", relocate = {"com.saicone.nbt", "{package}.libs.nbt"}),
         @Dependency(value = "com.google.guava:guava:33.3.1-jre", relocate = {"com.google.common", "{package}.libs.guava"})
 })
-public final class PixelBuy extends JavaPlugin {
+public final class PixelBuy extends JavaPlugin implements Executor {
 
     private static PixelBuy instance;
 
@@ -205,5 +207,14 @@ public final class PixelBuy extends JavaPlugin {
     @NotNull
     public PixelBuyCommand getCommand() {
         return command;
+    }
+
+    @Override
+    public void execute(@NotNull Runnable command) {
+        if (!Bukkit.isPrimaryThread()) {
+            command.run();
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(this, command);
+        }
     }
 }

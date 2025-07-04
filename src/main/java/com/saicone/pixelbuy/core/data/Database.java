@@ -22,10 +22,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-public class Database implements Listener, Executor {
+public class Database implements Listener {
 
     private final Map<UUID, StoreUser> cached = new ConcurrentHashMap<>();
     private List<UUID> sorted = List.of();
@@ -51,7 +50,7 @@ public class Database implements Listener, Executor {
             // Add temp value
             cached.put(uniqueId, new StoreUser(uniqueId, event.getPlayer().getName(), 0.0f));
         }
-        execute(() -> loadUser(event.getPlayer()));
+        PixelBuy.get().execute(() -> loadUser(event.getPlayer()));
     }
 
     @EventHandler
@@ -97,7 +96,7 @@ public class Database implements Listener, Executor {
                 loadUsers();
             }
         } else {
-            execute(() -> {
+            PixelBuy.get().execute(() -> {
                 loadOnlineUsers();
                 if (userLoadAll) {
                     loadUsers();
@@ -194,7 +193,7 @@ public class Database implements Listener, Executor {
             return cachedUser;
         }
         cached.put(uniqueId, new StoreUser(uniqueId, username, 0.0f));
-        execute(() -> {
+        PixelBuy.get().execute(() -> {
             StoreUser user = client.getUser(uniqueId, username);
             if (user == null) {
                 user = new StoreUser(uniqueId, username, 0.0f);
@@ -294,7 +293,7 @@ public class Database implements Listener, Executor {
         return CompletableFuture.supplyAsync(() -> {
             saveData(user);
             return user;
-        }, this);
+        }, PixelBuy.get());
     }
 
     @NotNull
@@ -305,7 +304,7 @@ public class Database implements Listener, Executor {
         return CompletableFuture.supplyAsync(() -> {
             saveData(order);
             return order;
-        }, this);
+        }, PixelBuy.get());
     }
 
     public void sendProcess(@NotNull StoreUser user) {
@@ -322,7 +321,7 @@ public class Database implements Listener, Executor {
     }
 
     public void deleteDataAsync(@NotNull StoreOrder order, @Nullable Runnable runnable) {
-        execute(() -> {
+        PixelBuy.get().execute(() -> {
             deleteData(order);
             if (runnable != null) {
                 runnable.run();
@@ -337,14 +336,5 @@ public class Database implements Listener, Executor {
             stream = stream.limit(topLimit);
         }
         sorted = stream.map(Map.Entry::getKey).collect(Collectors.toList());
-    }
-
-    @Override
-    public void execute(@NotNull Runnable command) {
-        if (!Bukkit.isPrimaryThread()) {
-            command.run();
-        } else {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), command);
-        }
     }
 }

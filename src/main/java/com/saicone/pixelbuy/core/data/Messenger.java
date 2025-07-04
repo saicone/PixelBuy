@@ -63,7 +63,7 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
     public Messenger(@NotNull Plugin plugin, @NotNull Database database) {
         this.database = database;
         this.executor = new BukkitExecutor(plugin);
-        setExecutor(database);
+        setExecutor(PixelBuy.get());
     }
 
     public void onLoad() {
