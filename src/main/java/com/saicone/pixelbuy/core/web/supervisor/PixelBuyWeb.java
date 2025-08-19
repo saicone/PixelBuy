@@ -162,8 +162,8 @@ public class PixelBuyWeb extends WebSupervisor {
         }
 
         final List<Integer> orders = new ArrayList<>();
-        for (Order order : server.orders()) {
-            if (process(order.playerName(), order.items().stream().map(Item::key).collect(Collectors.toList()), () -> order.asStoreOrder(getId(), getGroup()))) {
+        for (Order order : server.pendingOrders()) {
+            if (process(order.playerName(), order.items().stream().map(Item::id).collect(Collectors.toList()), () -> order.asStoreOrder(getId(), getGroup()))) {
                 orders.add(order.id());
             }
         }
@@ -176,7 +176,7 @@ public class PixelBuyWeb extends WebSupervisor {
     }
 
     public void sendOrders(@NotNull List<Integer> orders) throws IOException {
-        final Error response = serverConnection.send(Error.class, new Processed(orders));
+        final Error response = serverConnection.send(Error.class, new Update(orders));
         if (response != null && response.isError()) {
             response.throwError(this::hideSecrets);
         }
@@ -215,12 +215,13 @@ public class PixelBuyWeb extends WebSupervisor {
 
     public static class Server extends Error {
 
-        private List<Order> orders = new ArrayList<>();
+        @SerializedName("pending_orders")
+        private List<Order> pendingOrders = new ArrayList<>();
         @SerializedName("next_check")
         private long nextCheck;
 
-        public List<Order> orders() {
-            return orders;
+        public List<Order> pendingOrders() {
+            return pendingOrders;
         }
 
         public long nextCheck() {
@@ -230,7 +231,7 @@ public class PixelBuyWeb extends WebSupervisor {
         @Override
         public String toString() {
             return "Server{" +
-                    "orders=" + orders +
+                    "orders=" + pendingOrders +
                     ", nextCheck=" + nextCheck +
                     '}';
         }
@@ -241,6 +242,7 @@ public class PixelBuyWeb extends WebSupervisor {
         private Integer id;
         private String date;
         private String player;
+        private String execution;
         private List<Item> items = new ArrayList<>();
 
         public Integer id() {
@@ -279,6 +281,9 @@ public class PixelBuyWeb extends WebSupervisor {
         public StoreOrder asStoreOrder(@NotNull String provider, @NotNull String group) {
             final StoreOrder order = new StoreOrder(provider, id, group);
             order.setBuyer(playerId());
+            if (execution != null) {
+                order.setExecution(StoreOrder.Execution.valueOf(execution.toUpperCase()));
+            }
             order.setDate(LocalDate.parse(date));
 
             for (Item item : items()) {
@@ -301,17 +306,17 @@ public class PixelBuyWeb extends WebSupervisor {
 
     public static class Item {
 
-        private Integer id;
-        private String key;
+        private Object product;
+        private String id;
         private Integer amount;
         private Double price;
 
-        public Integer id() {
-            return id;
+        public Object product() {
+            return product;
         }
 
-        public String key() {
-            return key;
+        public String id() {
+            return id;
         }
 
         public Integer amount() {
@@ -324,33 +329,34 @@ public class PixelBuyWeb extends WebSupervisor {
 
         @NotNull
         public StoreOrder.Item asStoreItem() {
-            return new StoreOrder.Item(key, price.floatValue()).amount(amount);
+            return new StoreOrder.Item(id, price.floatValue()).amount(amount);
         }
 
         @Override
         public String toString() {
             return "Item{" +
-                    "id=" + id +
-                    ", key='" + key + '\'' +
+                    "id=" + product +
+                    ", key='" + id + '\'' +
                     ", amount=" + amount +
                     ", price=" + price +
                     '}';
         }
     }
 
-    public static class Processed {
+    public static class Update {
 
-        private List<Integer> orders;
+        @SerializedName("processed_orders")
+        private List<Integer> processedOrders;
 
-        public Processed() {
+        public Update() {
         }
 
-        public Processed(List<Integer> orders) {
-            this.orders = orders;
+        public Update(List<Integer> processedOrders) {
+            this.processedOrders = processedOrders;
         }
 
-        public List<Integer> orders() {
-            return orders;
+        public List<Integer> processedOrders() {
+            return processedOrders;
         }
     }
 }
