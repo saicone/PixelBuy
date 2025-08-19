@@ -28,12 +28,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:1.1"),
-        @Dependency("com.saicone.delivery4j:broker-sql:1.1"),
-        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1",
+        @Dependency("com.saicone.delivery4j:delivery4j:1.1.2"),
+        @Dependency("com.saicone.delivery4j:broker-sql:1.1.2"),
+        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1.2",
                 relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1",
+        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1.2",
                 relocate = {
                         "redis.clients.jedis", "{package}.libs.jedis",
                         "com.google.gson", "{package}.libs.gson",
@@ -41,10 +41,10 @@ import java.util.concurrent.TimeUnit;
                         "org.json", "{package}.libs.json"
                 }
         ),
-        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1",
+        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1.2",
                 relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1",
+        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1.2",
                 transitive = false,
                 relocate = {"com.google.common", "{package}.libs.guava"}
         ),
