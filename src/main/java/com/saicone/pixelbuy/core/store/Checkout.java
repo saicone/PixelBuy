@@ -5,7 +5,6 @@ import com.saicone.pixelbuy.api.event.OrderProcessEvent;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.api.store.StoreUser;
-import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.util.Strings;
 import org.bukkit.Bukkit;
@@ -125,11 +124,11 @@ public class Checkout {
 
     public void process(@NotNull StoreUser user, @Nullable Consumer<StoreUser> consumer) {
         if (executionDelay > 0) {
-            Bukkit.getScheduler().runTaskLater(PixelBuy.get(), () -> execute(user, consumer), executionDelay);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(PixelBuy.get(), () -> execute(user, consumer), executionDelay);
         } else if (Bukkit.isPrimaryThread()) {
-            execute(user, consumer);
+            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> execute(user, consumer));
         } else {
-            Bukkit.getScheduler().runTask(PixelBuy.get(), () -> execute(user, consumer));
+            execute(user, consumer);
         }
     }
 
@@ -160,26 +159,23 @@ public class Checkout {
         }
 
         if (!orders.isEmpty()) {
-            Bukkit.getScheduler().runTaskAsynchronously(PixelBuy.get(), () -> {
-                if (!user.isLoaded()) {
-                    return;
-                }
-                final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
-                for (StoreOrder order : orders) {
-                    execute(player, user, order);
-                }
-                for (StoreOrder order : edited) {
-                    PixelBuy.get().getDatabase().saveData(order);
-                }
-                if (consumer != null) {
-                    consumer.accept(user);
-                }
-            });
+            if (!user.isLoaded()) {
+                return;
+            }
+            final OfflinePlayer player = Bukkit.getOfflinePlayer(user.getUniqueId());
+            for (StoreOrder order : orders) {
+                execute(player, user, order);
+            }
+            for (StoreOrder order : edited) {
+                PixelBuy.get().getDatabase().saveData(order);
+            }
+            if (consumer != null) {
+                consumer.accept(user);
+            }
         }
     }
 
     private synchronized void execute(@NotNull OfflinePlayer player, @NotNull StoreUser user, @NotNull StoreOrder order) {
-        final WebSupervisor web = store.getSupervisor(order.getProvider());
         boolean requireOnline = false;
         for (StoreOrder.Item orderItem : order.getItems(store.getGroup())) {
             if (orderItem.getState() != StoreOrder.State.PENDING) {

@@ -21,6 +21,7 @@ public class OrderProcessEvent extends Event implements Cancellable {
     }
 
     public OrderProcessEvent(@NotNull StoreUser user, @NotNull StoreOrder order) {
+        super(true);
         this.user = user;
         this.order = order;
         this.isCancelled = false;
