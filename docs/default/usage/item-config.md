@@ -164,6 +164,20 @@ material:
   id: custom_item
 ```
 
+### Nexo
+
+Get item from Nexo plugin.
+
+```yaml
+# Simple configuration
+material: 'nexo:custom_item'
+
+# Advanced configuration
+material:
+  provider: nexo
+  id: custom_item
+```
+
 ## Append
 
 Append some display information to item after building it, this is useful if you want an item from another plugin and also add some lines to item lore.

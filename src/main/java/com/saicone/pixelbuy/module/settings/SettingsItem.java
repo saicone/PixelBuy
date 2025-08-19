@@ -89,6 +89,9 @@ public class SettingsItem extends BukkitSettings {
                     case "itemsadder":
                         provided = CustomItems.fromItemsAdder(id);
                         break;
+                    case "nexo":
+                        provided = CustomItems.fromNexo(id);
+                        break;
                     default:
                         throw new IllegalArgumentException("The item provider '" + provider + "' doesn't exist");
                 }

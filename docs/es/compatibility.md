@@ -27,3 +27,7 @@ PixelBuy puede utilizar MMOItems para obtener items custom al utilizar una confi
 ## ItemsAdder
 
 PixelBuy puede utilizar ItemsAdder para obtener items custom al utilizar una configuración de material avanzada.
+
+## Nexo
+
+PixelBuy puede utilizar Nexo para obtener items custom al utilizar una configuración de material avanzada.

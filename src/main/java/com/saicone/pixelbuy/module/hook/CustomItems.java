@@ -1,6 +1,7 @@
 package com.saicone.pixelbuy.module.hook;
 
 import com.google.common.base.Suppliers;
+import fakeapi.FakeApi1;
 import dev.lone.itemsadder.api.CustomStack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -14,9 +15,14 @@ import java.util.function.Supplier;
 
 public class CustomItems {
 
+    private static final Supplier<Boolean> NEXO = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Nexo"));
     private static final Supplier<Boolean> ORAXEN = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Oraxen"));
     private static final Supplier<Boolean> MMOITEMS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("MMOItems"));
     private static final Supplier<Boolean> ITEMSADDER = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("ItemsAdder"));
+
+    public static boolean isNexoCompatible() {
+        return NEXO.get();
+    }
 
     public static boolean isOraxenCompatible() {
         return ORAXEN.get();
@@ -42,6 +48,8 @@ public class CustomItems {
     @Nullable
     public static ItemStack from(@NotNull String provider, @NotNull String material) {
         switch (provider.toLowerCase()) {
+            case "nexo":
+                return fromNexo(material);
             case "oraxen":
                 return fromOraxen(material);
             case "mmoitem":
@@ -53,6 +61,17 @@ public class CustomItems {
             default:
                 return null;
         }
+    }
+
+    @Nullable
+    public static ItemStack fromNexo(@NotNull String id) {
+        if (NEXO.get()) {
+            final var builder = FakeApi1.itemFromId(id);
+            if (builder != null) {
+                return builder.build();
+            }
+        }
+        return null;
     }
 
     @Nullable

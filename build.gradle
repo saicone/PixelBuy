@@ -20,7 +20,6 @@ repositories {
     maven { url 'https://jitpack.io' }
     maven { url 'https://nexus.phoenixdevt.fr/repository/maven-public/' }
     maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    maven { url 'https://repo.nexomc.com/releases' }
 }
 
 processResources {
@@ -32,9 +31,9 @@ processResources {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.21.5-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.21.8-R0.1-SNAPSHOT'
 
-    compileOnly 'com.nexomc:nexo:1.8.0'
+    compileOnly project(':fakeapi')
     compileOnly 'com.github.oraxen:oraxen:1.173.0'
     compileOnly('io.lumine:MythicLib-dist:1.6.2-SNAPSHOT') { transitive = false } // Required by MMOItems
     compileOnly('net.Indyuce:MMOItems-API:6.10-SNAPSHOT') { transitive = false }
@@ -79,6 +78,11 @@ jar {
 
 shadowJar {
     archiveClassifier.set('')
+    // Hook
+    // > Nexo - Not compatible with Java 11
+    relocate 'fakeapi.FakeApi1', 'com.nexomc.nexo.api.NexoItems'
+    relocate 'fakeapi.FakeItem1', 'com.nexomc.nexo.items.ItemBuilder'
+    // Libraries
     relocate 'com.saicone.ezlib', project.group + '.ezlib'
     relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
     relocate 'com.saicone.rtag', project.group + '.libs.rtag'
