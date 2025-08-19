@@ -32,6 +32,14 @@ URL: 'https://shop.mysite.com'
 * `group` - Es el grupo de servidor al que el supervisor está añadiendo las órdenes de compra encontradas.
 * `url` - Es el url de la tienda.
 
+### Declarar secretos
+
+En cualquier parte de la configuración donde se requiera una "clave secreta", "un secreto" o cualquier valor que se supone que sea privado, puede declararse de las siguientes maneras:
+
+* `<value>` - La forma simple, donde el `<value>` es solo el valor.
+* `file:<path>` - Para obtener el valor al leer el contenido de un archivo, donde el `<path>` es la ruta hacia el archivo.
+* `property:<key>` - Para obtener el valor desde una propiedad del sistema, donde el `<key>` es la key de la propiedad.
+
 ## PixelBuy
 
 El supervisor de PixelBuy obtiene información de un sitio web compatible con el esquema de la API de PixelBuy:

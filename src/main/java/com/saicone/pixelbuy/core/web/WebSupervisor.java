@@ -11,6 +11,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +96,15 @@ public abstract class WebSupervisor {
     protected String addSecret(@Nullable String secret) {
         if (secret == null) {
             return null;
+        }
+        if (secret.startsWith("file:")) {
+            try {
+                secret = String.join("", Files.readAllLines(Paths.get(secret.substring(5)))).trim();
+            } catch (IOException e) {
+                PixelBuy.logException(2, e);
+            }
+        } else if (secret.startsWith("property:")) {
+            secret = System.getProperty(secret.substring(9));
         }
         secrets.put(secret, "*".repeat(secret.length()));
         return secret;

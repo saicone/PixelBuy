@@ -89,8 +89,8 @@ public class WooMinecraftWeb extends WebSupervisor {
 
         this.metaKey = "_wmc_commands_" + password;
 
-        final String consumerKey = config.getRegex("(?i)woocommerce", "(?i)consumer-?key").asString();
-        final String consumerSecret = config.getRegex("(?i)woocommerce", "(?i)consumer-?secret").asString();
+        final String consumerKey = addSecret(config.getRegex("(?i)woocommerce", "(?i)consumer-?key").asString());
+        final String consumerSecret = addSecret(config.getRegex("(?i)woocommerce", "(?i)consumer-?secret").asString());
         if (consumerKey == null || consumerSecret == null) {
             this.orderConnection = null;
             this.productConnection = null;

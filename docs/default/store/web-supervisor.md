@@ -32,6 +32,14 @@ URL: 'https://shop.mysite.com'
 * `group` - Is the server associated with the name that the supervisor is looking for orders.
 * `url` - Is the store url.
 
+### Secret declaration
+
+In any part of the configuration where a "secret", "key" or any value that is supposed to be private, can be declared in the following ways:
+
+* `<value>` - The simple one, where `<value>` is just the value.
+* `file:<path>` - To get the value from a file content, where `<path>` is the file path.
+* `property:<key>` - To get the value from a system property, where `<key>` is the system property key.
+
 ## PixelBuy
 
 The PixelBuy web supervisor retrieves information from a site compatible with PixelBuy web API schema:
