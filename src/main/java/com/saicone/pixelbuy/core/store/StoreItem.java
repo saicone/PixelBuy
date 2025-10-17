@@ -54,9 +54,23 @@ public class StoreItem {
             for (String key : product.getKeys(false)) {
                 this.product.put(key, product.get(key));
             }
+            this.price = config.getIgnoreCase("price").asFloat(0.0f);
+        } else {
+            // backwards compatibility
+            final ConfigurationSection price = config.getConfigurationSection(settings -> settings.getIgnoreCase("price"));
+            if (price != null) {
+                for (String key : price.getKeys(false)) {
+                    if (key.equalsIgnoreCase("default")) {
+                        this.price = (float) price.getDouble(key, 0.0D);
+                    } else {
+                        this.product.put(key, price.get(key));
+                    }
+                }
+            } else {
+                this.price = config.getIgnoreCase("price").asFloat(0.0f);
+            }
         }
         this.categories = config.getRegex("(?i)categor(y|ies)").asCollection(new HashSet<>(), OptionalType::asString);
-        this.price = config.getIgnoreCase("price").asFloat(0.0f);
         final SettingsItem displayItem = config.getItem(settings -> settings.getRegex("(?i)display(-?item)?"));
         if (displayItem == null) {
             this.display = null;
