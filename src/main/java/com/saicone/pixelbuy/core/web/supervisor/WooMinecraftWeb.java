@@ -231,6 +231,15 @@ public class WooMinecraftWeb extends WebSupervisor {
         });
     }
 
+    @Override
+    public void markAsCompleted(@NotNull Integer... orderIds) throws IOException {
+        final List<String> orders = new ArrayList<>();
+        for (Integer orderId : orderIds) {
+            orders.add(String.valueOf(orderId));
+        }
+        sendOrders(orders);
+    }
+
     public void processOrders() throws IOException {
         if (serverConnection == null) {
             return;

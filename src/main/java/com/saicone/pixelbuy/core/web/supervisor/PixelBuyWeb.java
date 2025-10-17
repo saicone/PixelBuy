@@ -19,6 +19,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -141,6 +142,13 @@ public class PixelBuyWeb extends WebSupervisor {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void markAsCompleted(@NotNull Integer... orderIds) throws IOException {
+        final List<Integer> orders = new ArrayList<>();
+        Collections.addAll(orders, orderIds);
+        sendOrders(orders);
     }
 
     public long processOrders() throws IOException {

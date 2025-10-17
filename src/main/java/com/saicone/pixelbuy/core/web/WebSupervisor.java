@@ -63,6 +63,10 @@ public abstract class WebSupervisor {
     @NotNull
     public abstract Optional<StoreOrder> lookupOrder(int orderId, @Nullable String player);
 
+    public void markAsCompleted(@NotNull Integer... orderIds) throws IOException {
+        // empty default method
+    }
+
     public boolean process(@NotNull String name, @NotNull List<String> items, @NotNull Supplier<StoreOrder> supplier) {
         boolean result = true;
         final Player player = Bukkit.getPlayer(name);

@@ -14,6 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -277,9 +278,14 @@ public class OrderCommand extends PixelCommand {
                 if (optional.isPresent()) {
                     final StoreOrder sOrder = optional.get();
                     if (run) {
-                        if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
-                            final String name = PlayerProvider.getName(sOrder.getBuyer());
-                            sendLang(sender, "Give.Done", sOrder.getKey(), name == null ? sOrder.getBuyer() : name);
+                        try {
+                            if (PixelBuy.get().getStore().getCheckout().process(sOrder)) {
+                                final String name = PlayerProvider.getName(sOrder.getBuyer());
+                                sendLang(sender, "Give.Done", sOrder.getKey(), name == null ? sOrder.getBuyer() : name);
+                                supervisor.markAsCompleted(sOrder.getId());
+                            }
+                        } catch (IOException e) {
+                            PixelBuy.logException(2, e, "Cannot execute lookup result");
                         }
                     } else {
                         displayOrder(sender, sOrder);
