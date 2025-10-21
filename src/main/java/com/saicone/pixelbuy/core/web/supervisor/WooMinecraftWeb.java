@@ -2,17 +2,21 @@ package com.saicone.pixelbuy.core.web.supervisor;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.Strictness;
 import com.google.gson.annotations.SerializedName;
 import com.saicone.pixelbuy.PixelBuy;
 import com.saicone.pixelbuy.api.store.StoreOrder;
 import com.saicone.pixelbuy.core.store.StoreItem;
+import com.saicone.pixelbuy.core.web.ContentSerializer;
 import com.saicone.pixelbuy.core.web.WebConnection;
 import com.saicone.pixelbuy.core.web.WebSupervisor;
 import com.saicone.pixelbuy.core.web.WebType;
 import com.saicone.pixelbuy.core.web.connection.RestConnection;
 import com.saicone.pixelbuy.core.web.object.WooCommerceOrder;
 import com.saicone.pixelbuy.core.web.object.WordpressError;
+import com.saicone.pixelbuy.core.web.object.adapter.OffsetDateTimeAdapter;
 import com.saicone.pixelbuy.module.hook.PlayerProvider;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import org.bukkit.Bukkit;
@@ -22,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +48,13 @@ public class WooMinecraftWeb extends WebSupervisor {
     private static final String CONSUMER_KEY = "consumer_key";
     private static final String CONSUMER_SECRET = "consumer_secret";
     private static final String PLAYER_KEY = "player_id";
+
+    private static final ContentSerializer CONTENT_SERIALIZER = ContentSerializer.gson(new GsonBuilder()
+            .setStrictness(Strictness.LENIENT)
+            .serializeNulls()
+            .registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter())
+            .create()
+    );
 
     // WooMinecraft
     private WebConnection serverConnection;
@@ -100,18 +111,18 @@ public class WooMinecraftWeb extends WebSupervisor {
 
             switch (RestConnection.Type.of(config.getRegex("(?i)woocommerce", "(?i)auth(entication)?(-?(method|type)?)").asString()).orElse(RestConnection.Type.PARAMS)) {
                 case PARAMS:
-                    this.orderConnection = RestConnection.params(orderUrl,
+                    this.orderConnection = RestConnection.params(CONTENT_SERIALIZER, orderUrl,
                             CONSUMER_KEY, consumerKey,
                             CONSUMER_SECRET, consumerSecret
                     );
-                    this.productConnection = RestConnection.params(productUrl,
+                    this.productConnection = RestConnection.params(CONTENT_SERIALIZER, productUrl,
                             CONSUMER_KEY, consumerKey,
                             CONSUMER_SECRET, consumerSecret
                     );
                     break;
                 case BASIC:
-                    this.orderConnection = RestConnection.basic(orderUrl, consumerKey + ":" + consumerSecret);
-                    this.productConnection = RestConnection.basic(productUrl, consumerKey + ":" + consumerSecret);
+                    this.orderConnection = RestConnection.basic(CONTENT_SERIALIZER, orderUrl, consumerKey + ":" + consumerSecret);
+                    this.productConnection = RestConnection.basic(CONTENT_SERIALIZER, productUrl, consumerKey + ":" + consumerSecret);
                     break;
                 default:
                     break;
@@ -159,8 +170,9 @@ public class WooMinecraftWeb extends WebSupervisor {
         }
         try {
             return Optional.ofNullable(this.orderConnection.fetch(WooCommerceOrder.class, KEY, orderId));
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot get order " + orderId + " from site connection", e);
+        } catch (Throwable t) {
+            PixelBuy.logException(2, t, "Cannot get order " + orderId + " from site connection");
+            return Optional.empty();
         }
     }
 
@@ -174,8 +186,8 @@ public class WooMinecraftWeb extends WebSupervisor {
                 return 0.0f;
             }
             return json.get("price").getAsFloat();
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot get product " + product + " from site connection", e);
+        } catch (Throwable t) {
+            throw new RuntimeException("Cannot get product " + product + " from site connection", t);
         }
     }
 
@@ -365,7 +377,7 @@ public class WooMinecraftWeb extends WebSupervisor {
             final StoreOrder order = new StoreOrder(web.getId(), id, web.getGroup());
             order.setBuyer(PlayerProvider.getUniqueId(player));
             if (wOrder != null) {
-                order.setDate(LocalDate.parse(wOrder.dateCreated()));
+                order.setDate(wOrder.dateCreated().toLocalDate());
             }
 
             for (String item : items()) {
