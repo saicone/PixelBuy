@@ -1,6 +1,6 @@
 package com.saicone.pixelbuy.module.data.delivery;
 
-import com.saicone.delivery4j.util.DelayedExecutor;
+import com.saicone.delivery4j.util.TaskExecutor;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
 
-public class BukkitExecutor implements DelayedExecutor<BukkitTask> {
+public class BukkitExecutor implements TaskExecutor<BukkitTask> {
 
     private final Plugin plugin;
 

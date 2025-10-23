@@ -5,7 +5,7 @@ import com.saicone.delivery4j.Broker;
 import com.saicone.delivery4j.broker.HikariBroker;
 import com.saicone.delivery4j.broker.RabbitMQBroker;
 import com.saicone.delivery4j.broker.RedisBroker;
-import com.saicone.delivery4j.util.DelayedExecutor;
+import com.saicone.delivery4j.util.TaskExecutor;
 import com.saicone.ezlib.Dependencies;
 import com.saicone.ezlib.Dependency;
 import com.saicone.pixelbuy.PixelBuy;
@@ -28,12 +28,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:1.1.2"),
-        @Dependency("com.saicone.delivery4j:broker-sql:1.1.2"),
-        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1.2",
+        @Dependency("com.saicone.delivery4j:delivery4j:1.1.4"),
+        @Dependency("com.saicone.delivery4j:broker-sql:1.1.4"),
+        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1.4",
                 relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1.2",
+        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1.4",
                 relocate = {
                         "redis.clients.jedis", "{package}.libs.jedis",
                         "com.google.gson", "{package}.libs.gson",
@@ -41,10 +41,10 @@ import java.util.concurrent.TimeUnit;
                         "org.json", "{package}.libs.json"
                 }
         ),
-        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1.2",
+        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1.4",
                 relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
         ),
-        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1.2",
+        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1.4",
                 transitive = false,
                 relocate = {"com.google.common", "{package}.libs.guava"}
         ),
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 public class Messenger extends AbstractMessenger implements Broker.Logger {
 
     private final Database database;
-    private final DelayedExecutor<?> executor;
+    private final TaskExecutor<?> executor;
 
     private String channel = "pixelbuy:main";
 
@@ -63,10 +63,10 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
     public Messenger(@NotNull Plugin plugin, @NotNull Database database) {
         this.database = database;
         this.executor = new BukkitExecutor(plugin);
-        setExecutor(PixelBuy.get());
     }
 
     public void onLoad() {
+        setExecutor(PixelBuy.get());
         close();
         if (PixelBuy.settings().getIgnoreCase("messenger", "enabled").asBoolean(false)) {
             final String channel = PixelBuy.settings().getIgnoreCase("messenger", "channel").asString("pixelbuy:main");
