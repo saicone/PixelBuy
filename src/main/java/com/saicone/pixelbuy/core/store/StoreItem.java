@@ -5,6 +5,7 @@ import com.saicone.pixelbuy.api.PixelBuyAPI;
 import com.saicone.pixelbuy.api.store.StoreAction;
 import com.saicone.pixelbuy.api.store.StoreClient;
 import com.saicone.pixelbuy.api.store.StoreOrder;
+import com.saicone.pixelbuy.core.store.action.ItemAction;
 import com.saicone.pixelbuy.module.settings.BukkitSettings;
 import com.saicone.pixelbuy.module.settings.SettingsItem;
 import com.saicone.pixelbuy.util.OptionalType;
@@ -102,6 +103,13 @@ public class StoreItem {
         this.onRefund = PixelBuyAPI.buildActions(config.getIgnoreCase("onRefund").getValue());
         if (this.onRefund.isEmpty()) {
             this.onRefund = null;
+        }
+
+        for (StoreAction action : this.onBuy) {
+            if (action instanceof ItemAction) {
+                this.online = true;
+                break;
+            }
         }
     }
 
