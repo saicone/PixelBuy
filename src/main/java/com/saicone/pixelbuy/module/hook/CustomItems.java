@@ -3,7 +3,7 @@ package com.saicone.pixelbuy.module.hook;
 import com.bgsoftware.wildtools.api.WildToolsAPI;
 import com.bgsoftware.wildtools.api.objects.tools.Tool;
 import com.google.common.base.Suppliers;
-import fakeapi.FakeApi1;
+import com.nexomc.nexo.api.NexoItems;
 import dev.lone.itemsadder.api.CustomStack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -86,7 +86,7 @@ public class CustomItems {
     @Nullable
     public static ItemStack fromNexo(@NotNull String id) {
         if (NEXO.get()) {
-            final var builder = FakeApi1.itemFromId(id);
+            final var builder = NexoItems.itemFromId(id);
             if (builder != null) {
                 return builder.build();
             }

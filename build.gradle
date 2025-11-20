@@ -13,15 +13,16 @@ idea {
 
 repositories {
     mavenCentral()
-    maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url 'https://central.sonatype.com/repository/maven-snapshots' }
-    maven { url 'https://oss.sonatype.org/content/repositories/central' }
-    maven { url 'https://repo.codemc.io/repository/nms/' }
-    maven { url 'https://jitpack.io' }
-    maven { url 'https://nexus.phoenixdevt.fr/repository/maven-public/' }
-    maven { url 'https://maven.devs.beer/' }
-    maven { url 'https://repo.bg-software.com/repository/api/' }
-    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/') }
+    maven { url = uri('https://central.sonatype.com/repository/maven-snapshots') }
+    maven { url = uri('https://oss.sonatype.org/content/repositories/central') }
+    maven { url = uri('https://repo.codemc.io/repository/nms/') }
+    maven { url = uri('https://jitpack.io') }
+    maven { url = uri('https://nexus.phoenixdevt.fr/repository/maven-public/') }
+    maven { url = uri('https://maven.devs.beer/') }
+    maven { url = uri('https://repo.bg-software.com/repository/api/') }
+    maven { url = uri('https://repo.extendedclip.com/content/repositories/placeholderapi/') }
+    maven { url = uri('https://repo.nexomc.com/releases') }
 }
 
 processResources {
@@ -32,10 +33,14 @@ processResources {
     }
 }
 
+configurations {
+    compileOnlyWith
+}
+
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.21.10-R0.1-SNAPSHOT'
 
-    compileOnly project(':fakeapi')
+    compileOnlyWith('com.nexomc:nexo:1.15.0') { transitive = false }
     compileOnly 'com.github.oraxen:oraxen:1.173.0'
     compileOnly('io.lumine:MythicLib-dist:1.7.1-SNAPSHOT') { transitive = false } // Required by MMOItems
     compileOnly('net.Indyuce:MMOItems-API:6.10.1-SNAPSHOT') { transitive = false }
@@ -70,8 +75,12 @@ compileJava {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    classpath += configurations.compileOnlyWith
+    options.release = 11
 }
 
 jar {
@@ -81,11 +90,7 @@ jar {
 
 shadowJar {
     archiveClassifier.set('')
-    // Hook
-    // > Nexo - Not compatible with Java 11
-    relocate 'fakeapi.FakeApi1', 'com.nexomc.nexo.api.NexoItems'
-    relocate 'fakeapi.FakeItem1', 'com.nexomc.nexo.items.ItemBuilder'
-    // Libraries
+
     relocate 'com.saicone.ezlib', project.group + '.ezlib'
     relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
     relocate 'com.saicone.rtag', project.group + '.libs.rtag'
