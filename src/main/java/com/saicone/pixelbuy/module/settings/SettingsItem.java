@@ -92,6 +92,9 @@ public class SettingsItem extends BukkitSettings {
                     case "nexo":
                         provided = CustomItems.fromNexo(id);
                         break;
+                    case "wildtools":
+                        provided = CustomItems.fromWildTools(id);
+                        break;
                     default:
                         throw new IllegalArgumentException("The item provider '" + provider + "' doesn't exist");
                 }

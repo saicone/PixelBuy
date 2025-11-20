@@ -178,6 +178,20 @@ material:
   id: custom_item
 ```
 
+### WildTools
+
+Obtener items del plugin WildTools.
+
+```yaml
+# Configuración simple
+material: 'wildtools:SuperPickaxe'
+
+# Configuración avanzada
+material:
+  provider: wildtools
+  id: SuperPickaxe
+```
+
 ## Agregados
 
 Agrega alguna información sobre como se mostrará el item luego de ensamblarlo, esto es útil si quieres hacer un item de otro plugin además de agregarle líneas al lore.

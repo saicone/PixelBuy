@@ -1,5 +1,7 @@
 package com.saicone.pixelbuy.module.hook;
 
+import com.bgsoftware.wildtools.api.WildToolsAPI;
+import com.bgsoftware.wildtools.api.objects.tools.Tool;
 import com.google.common.base.Suppliers;
 import fakeapi.FakeApi1;
 import dev.lone.itemsadder.api.CustomStack;
@@ -19,6 +21,7 @@ public class CustomItems {
     private static final Supplier<Boolean> ORAXEN = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Oraxen"));
     private static final Supplier<Boolean> MMOITEMS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("MMOItems"));
     private static final Supplier<Boolean> ITEMSADDER = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("ItemsAdder"));
+    private static final Supplier<Boolean> WILDTOOLS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("WildTools"));
 
     public static boolean isNexoCompatible() {
         return NEXO.get();
@@ -34,6 +37,10 @@ public class CustomItems {
 
     public static boolean isItemsAdderCompatible() {
         return ITEMSADDER.get();
+    }
+
+    public static boolean isWildToolsCompatible() {
+        return WILDTOOLS.get();
     }
 
     @Nullable
@@ -58,6 +65,8 @@ public class CustomItems {
                 return fromMMOItems(split[0], split[1]);
             case "itemsadder":
                 return fromItemsAdder(material);
+            case "wildtools":
+                return fromWildTools(material);
             default:
                 return null;
         }
@@ -97,6 +106,15 @@ public class CustomItems {
             if (stack != null) {
                 return stack.getItemStack();
             }
+        }
+        return null;
+    }
+
+    @Nullable
+    public static ItemStack fromWildTools(@NotNull String name) {
+        if (WILDTOOLS.get()) {
+            final Tool tool = WildToolsAPI.getTool(name);
+            return tool.getItemStack();
         }
         return null;
     }
