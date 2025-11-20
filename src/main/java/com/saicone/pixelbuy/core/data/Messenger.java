@@ -88,6 +88,9 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
             final Broker broker = loadBroker();
             broker.setExecutor(this.executor);
             start(broker);
+        } else {
+            clear();
+            setBroker(null);
         }
     }
 

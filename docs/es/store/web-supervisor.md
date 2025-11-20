@@ -1,6 +1,6 @@
 ---
 sidebar_position: 2
-title: Supervisor web.
+title: Supervisor web
 description: Como configurar los supervisores web en PixelBuy.
 ---
 

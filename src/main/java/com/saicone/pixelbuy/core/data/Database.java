@@ -108,8 +108,14 @@ public class Database implements Listener {
     }
 
     public void onDisable() {
+        onDisable(true);
+    }
+
+    private void onDisable(boolean msg) {
         if (client != null) {
-            messenger.onDisable();
+            if (msg) {
+                messenger.onDisable();
+            }
             Bukkit.getOnlinePlayers().forEach(player -> {
                 final StoreUser user = getCached(player.getUniqueId());
                 if (user != null) {
@@ -123,7 +129,7 @@ public class Database implements Listener {
     }
 
     public void onReload() {
-        onDisable();
+        onDisable(false);
         onLoad();
     }
 
