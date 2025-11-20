@@ -8,7 +8,6 @@ import dev.lone.itemsadder.api.CustomStack;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import net.Indyuce.mmoitems.MMOItems;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,11 +16,23 @@ import java.util.function.Supplier;
 
 public class CustomItems {
 
-    private static final Supplier<Boolean> NEXO = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Nexo"));
-    private static final Supplier<Boolean> ORAXEN = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("Oraxen"));
-    private static final Supplier<Boolean> MMOITEMS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("MMOItems"));
-    private static final Supplier<Boolean> ITEMSADDER = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("ItemsAdder"));
-    private static final Supplier<Boolean> WILDTOOLS = Suppliers.memoize(() -> Bukkit.getPluginManager().isPluginEnabled("WildTools"));
+    private static final Supplier<Boolean> NEXO = check("com.nexomc.nexo.api.NexoItems");
+    private static final Supplier<Boolean> ORAXEN = check("io.th0rgal.oraxen.api.OraxenItems");
+    private static final Supplier<Boolean> MMOITEMS = check("net.Indyuce.mmoitems.MMOItems");
+    private static final Supplier<Boolean> ITEMSADDER = check("dev.lone.itemsadder.api.CustomStack");
+    private static final Supplier<Boolean> WILDTOOLS = check("com.bgsoftware.wildtools.api.WildToolsAPI");
+
+    @NotNull
+    private static Supplier<Boolean> check(@NotNull String name) {
+        return Suppliers.memoize(() -> {
+           try {
+               Class.forName(name);
+               return true;
+           } catch (Throwable t) {
+               return false;
+           }
+        });
+    }
 
     public static boolean isNexoCompatible() {
         return NEXO.get();
