@@ -22,11 +22,20 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
-@Dependencies({
-        @Dependency(value = "com.github.cryptomorin:XSeries:13.5.1", relocate = {"com.cryptomorin.xseries", "{package}.libs.xseries"}),
-        @Dependency(value = "com.saicone.rtag:rtag-item:1.5.13", relocate = {"com.saicone.rtag", "{package}.libs.rtag"}),
-        @Dependency(value = "com.saicone.nbt:nbt:1.0.2", relocate = {"com.saicone.nbt", "{package}.libs.nbt"}),
-        @Dependency(value = "com.google.guava:guava:33.5.0-jre", relocate = {"com.google.common", "{package}.libs.guava"})
+@Dependencies(value = {
+        @Dependency("com.github.cryptomorin:XSeries:13.5.1"),
+        @Dependency("com.saicone.rtag:rtag-item:1.5.13"),
+        @Dependency("com.saicone.nbt:nbt:1.0.2"),
+        @Dependency("com.google.guava:guava:33.5.0-jre")
+}, relocations = {
+        "com.cryptomorin.xseries", "{package}.libs.xseries",
+        "com.saicone.rtag", "{package}.libs.rtag",
+        "com.saicone.nbt", "{package}.libs.nbt",
+        "com.google.common", "{package}.libs.guava",
+        // drivers
+        "org.mariadb.jdbc", "{package}.libs.mariadb",
+        "org.postgresql", "{package}.libs.postgresql",
+        "org.h2", "{package}.libs.h2",
 })
 public final class PixelBuy extends JavaPlugin implements Executor {
 

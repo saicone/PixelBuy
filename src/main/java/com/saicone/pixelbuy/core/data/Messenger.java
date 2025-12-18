@@ -30,27 +30,24 @@ import java.util.concurrent.TimeUnit;
 @Dependencies(value = {
         @Dependency("com.saicone.delivery4j:delivery4j:1.1.4"),
         @Dependency("com.saicone.delivery4j:broker-sql:1.1.4"),
-        @Dependency(value = "com.saicone.delivery4j:broker-sql-hikari:1.1.4",
-                relocate = {"com.zaxxer.hikari", "{package}.libs.hikari"}
-        ),
-        @Dependency(value = "com.saicone.delivery4j:broker-redis:1.1.4",
-                relocate = {
-                        "redis.clients.jedis", "{package}.libs.jedis",
-                        "com.google.gson", "{package}.libs.gson",
-                        "org.apache.commons.pool2", "{package}.libs.commons.pool2",
-                        "org.json", "{package}.libs.json"
-                }
-        ),
-        @Dependency(value = "com.saicone.delivery4j:broker-rabbitmq:1.1.4",
-                relocate = {"com.rabbitmq", "{package}.libs.rabbitmq"}
-        ),
-        @Dependency(value = "com.saicone.delivery4j:extension-guava:1.1.4",
-                transitive = false,
-                relocate = {"com.google.common", "{package}.libs.guava"}
-        ),
+        @Dependency("com.saicone.delivery4j:broker-sql-hikari:1.1.4"),
+        @Dependency("com.saicone.delivery4j:broker-redis:1.1.4"),
+        @Dependency("com.saicone.delivery4j:broker-rabbitmq:1.1.4"),
+        @Dependency("com.saicone.delivery4j:extension-guava:1.1.4"),
         @Dependency("org.slf4j:slf4j-nop:1.7.36")
-}, relocations = {"com.saicone.delivery4j", "{package}.libs.delivery4j", "org.slf4j", "{package}.libs.slf4j"}
-)
+}, relocations = {
+        "com.saicone.delivery4j", "{package}.libs.delivery4j",
+        "org.slf4j", "{package}.libs.slf4j",
+        // hikari
+        "com.zaxxer.hikari", "{package}.libs.hikari",
+        // redis
+        "redis.clients.jedis", "{package}.libs.jedis",
+        "com.google.gson", "{package}.libs.gson",
+        "org.apache.commons.pool2", "{package}.libs.commons.pool2",
+        "org.json", "{package}.libs.json",
+        // rabbitmq
+        "com.rabbitmq", "{package}.libs.rabbitmq",
+})
 public class Messenger extends AbstractMessenger implements Broker.Logger {
 
     private final Database database;

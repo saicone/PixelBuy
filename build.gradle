@@ -91,6 +91,7 @@ jar {
 shadowJar {
     archiveClassifier.set('')
 
+    // implementation
     relocate 'com.saicone.ezlib', project.group + '.ezlib'
     relocate 'com.cryptomorin.xseries', project.group + '.libs.xseries'
     relocate 'com.saicone.rtag', project.group + '.libs.rtag'
@@ -101,5 +102,11 @@ shadowJar {
     relocate 'com.google.gson', project.group + '.libs.gson'
     relocate 'com.saicone.delivery4j', project.group + '.libs.delivery4j'
     relocate 'com.saicone.nbt', project.group + '.libs.nbt'
+
+    // drivers
+    relocate 'org.mariadb.jdbc', project.group + '.libs.mariadb'
+    relocate 'org.postgresql', project.group + '.libs.postgresql'
+    relocate 'org.h2', project.group + '.libs.h2'
+
     minimize()
 }
