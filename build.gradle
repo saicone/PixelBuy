@@ -38,15 +38,15 @@ configurations {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.21.10-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT'
 
-    compileOnlyWith('com.nexomc:nexo:1.15.0') { transitive = false }
+    compileOnlyWith('com.nexomc:nexo:1.17.0') { transitive = false }
     compileOnly 'com.github.oraxen:oraxen:1.173.0'
     compileOnly('io.lumine:MythicLib-dist:1.7.1-SNAPSHOT') { transitive = false } // Required by MMOItems
     compileOnly('net.Indyuce:MMOItems-API:6.10.1-SNAPSHOT') { transitive = false }
     compileOnly('dev.lone:api-itemsadder:4.0.10') { transitive = false }
     compileOnly 'com.bgsoftware:WildToolsAPI:2025.2'
-    compileOnly 'me.clip:placeholderapi:2.11.6'
+    compileOnly 'me.clip:placeholderapi:2.11.7'
     compileOnly 'net.luckperms:api:5.4'
 
     // Library loader
@@ -56,14 +56,14 @@ dependencies {
     annotationProcessor 'com.saicone.ezlib:annotations:1.3.2'
 
     // Implementation
-    compileOnly 'com.github.cryptomorin:XSeries:13.5.1'
-    compileOnly 'com.saicone.rtag:rtag:1.5.13'
-    compileOnly 'com.saicone.rtag:rtag-item:1.5.13'
-    compileOnly 'com.saicone.nbt:nbt:1.0.2'
-    compileOnly 'com.saicone.delivery4j:delivery4j:1.1.4'
-    compileOnly 'com.saicone.delivery4j:broker-sql-hikari:1.1.4'
-    compileOnly 'com.saicone.delivery4j:broker-redis:1.1.4'
-    compileOnly 'com.saicone.delivery4j:broker-rabbitmq:1.1.4'
+    compileOnly 'com.github.cryptomorin:XSeries:13.6.0'
+    compileOnly 'com.saicone.rtag:rtag:1.5.14'
+    compileOnly 'com.saicone.rtag:rtag-item:1.5.14'
+    compileOnly 'com.saicone.nbt:nbt:1.0.3'
+    compileOnly 'com.saicone.delivery4j:delivery4j:1.1.5'
+    compileOnly 'com.saicone.delivery4j:broker-sql-hikari:1.1.5'
+    compileOnly 'com.saicone.delivery4j:broker-redis:1.1.5'
+    compileOnly 'com.saicone.delivery4j:broker-rabbitmq:1.1.5'
 
     compileOnly 'org.jetbrains:annotations:26.0.2'
 

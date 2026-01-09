@@ -23,9 +23,9 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 
 @Dependencies(value = {
-        @Dependency("com.github.cryptomorin:XSeries:13.5.1"),
-        @Dependency("com.saicone.rtag:rtag-item:1.5.13"),
-        @Dependency("com.saicone.nbt:nbt:1.0.2"),
+        @Dependency("com.github.cryptomorin:XSeries:13.6.0"),
+        @Dependency("com.saicone.rtag:rtag-item:1.5.14"),
+        @Dependency("com.saicone.nbt:nbt:1.0.3"),
         @Dependency("com.google.guava:guava:33.5.0-jre")
 }, relocations = {
         "com.cryptomorin.xseries", "{package}.libs.xseries",

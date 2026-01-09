@@ -5,6 +5,7 @@ import com.saicone.delivery4j.Broker;
 import com.saicone.delivery4j.broker.HikariBroker;
 import com.saicone.delivery4j.broker.RabbitMQBroker;
 import com.saicone.delivery4j.broker.RedisBroker;
+import com.saicone.delivery4j.util.LogFilter;
 import com.saicone.delivery4j.util.TaskExecutor;
 import com.saicone.ezlib.Dependencies;
 import com.saicone.ezlib.Dependency;
@@ -18,6 +19,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import redis.clients.jedis.RedisClient;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,12 +30,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:1.1.4"),
-        @Dependency("com.saicone.delivery4j:broker-sql:1.1.4"),
-        @Dependency("com.saicone.delivery4j:broker-sql-hikari:1.1.4"),
-        @Dependency("com.saicone.delivery4j:broker-redis:1.1.4"),
-        @Dependency("com.saicone.delivery4j:broker-rabbitmq:1.1.4"),
-        @Dependency("com.saicone.delivery4j:extension-guava:1.1.4"),
+        @Dependency("com.saicone.delivery4j:delivery4j:1.1.5"),
+        @Dependency("com.saicone.delivery4j:broker-sql:1.1.5"),
+        @Dependency("com.saicone.delivery4j:broker-sql-hikari:1.1.5"),
+        @Dependency("com.saicone.delivery4j:broker-redis:1.1.5"),
+        @Dependency("com.saicone.delivery4j:broker-rabbitmq:1.1.5"),
+        @Dependency("com.saicone.delivery4j:extension-guava:1.1.5"),
         @Dependency("org.slf4j:slf4j-nop:1.7.36")
 }, relocations = {
         "com.saicone.delivery4j", "{package}.libs.delivery4j",
@@ -48,7 +50,7 @@ import java.util.concurrent.TimeUnit;
         // rabbitmq
         "com.rabbitmq", "{package}.libs.rabbitmq",
 })
-public class Messenger extends AbstractMessenger implements Broker.Logger {
+public class Messenger extends AbstractMessenger {
 
     private final Database database;
     private final TaskExecutor<?> executor;
@@ -83,6 +85,7 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
                 }).cache(true);
             }
             final Broker broker = loadBroker();
+            broker.setLogger(LogFilter.valueOf(PixelBuy.get().getLogger(), () -> PixelBuy.get().getLang().getLogLevel()));
             broker.setExecutor(this.executor);
             start(broker);
         } else {
@@ -157,7 +160,7 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
             final boolean ssl = config.getIgnoreCase("ssl").asBoolean(false);
             return RedisBroker.of(host, port, password, database, ssl);
         } else {
-            return RedisBroker.of(url);
+            return new RedisBroker(RedisClient.create(url));
         }
     }
 
@@ -176,16 +179,6 @@ public class Messenger extends AbstractMessenger implements Broker.Logger {
         } else {
             return RabbitMQBroker.of(url, exchange);
         }
-    }
-
-    @Override
-    public void log(int level, @NotNull String msg) {
-        PixelBuy.log(level, msg);
-    }
-
-    @Override
-    public void log(int level, @NotNull String msg, @NotNull Throwable throwable) {
-        PixelBuy.logException(level, throwable, msg);
     }
 
     @NotNull
