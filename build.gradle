@@ -1,7 +1,32 @@
+import java.time.LocalDate
+import java.time.ZoneOffset
+
 plugins {
     id 'java'
     id 'idea'
     id 'com.gradleup.shadow' version '9.3.1'
+}
+
+def resolveCommitHash = {
+    def githubSha = System.getenv('GITHUB_SHA')
+    if (githubSha && githubSha.trim()) {
+        return githubSha.trim().take(7)
+    }
+    try {
+        def process = ['git', 'rev-parse', '--short', 'HEAD'].execute(null, rootDir)
+        process.waitFor()
+        def hash = process.in.text.trim()
+        return hash ? hash : 'local'
+    } catch (Exception ignored) {
+        return 'local'
+    }
+}
+
+def now = LocalDate.now(ZoneOffset.UTC)
+def dynamicVersion = "${now.year}.${now.monthValue}.${now.dayOfMonth}-${resolveCommitHash()}"
+
+allprojects {
+    version = dynamicVersion
 }
 
 idea {
