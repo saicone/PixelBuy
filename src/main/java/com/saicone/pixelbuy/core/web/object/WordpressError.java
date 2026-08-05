@@ -25,7 +25,7 @@ public class WordpressError implements WordpressResponse {
 
     @Override
     public boolean isError() {
-        return code != null;
+        return code != null || message != null;
     }
 
     @Override
@@ -34,7 +34,21 @@ public class WordpressError implements WordpressResponse {
         if (filtered != null) {
             filtered = filter.apply(filtered);
         }
-        throw new IOException("[" + code + (data != null ? "/" + data.status() : "") + "]: " + filtered);
+        final StringBuilder exception = new StringBuilder();
+        if (code != null) {
+            exception.append("[").append(code);
+            if (data != null) {
+                exception.append("/").append(data.status());
+            }
+            exception.append("]");
+        }
+        if (filtered != null) {
+            if (exception.length() > 0) {
+                exception.append(": ");
+            }
+            exception.append(filtered);
+        }
+        throw new IOException(exception.toString());
     }
 
     public static class Data {
