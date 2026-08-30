@@ -23,13 +23,11 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 
 @Dependencies(value = {
-        @Dependency("com.github.cryptomorin:XSeries:13.6.0"),
-        @Dependency("com.saicone.rtag:rtag-item:1.5.14"),
-        @Dependency("com.saicone.nbt:nbt:1.0.3"),
-        @Dependency("com.google.guava:guava:33.5.0-jre")
+        @Dependency("com.github.cryptomorin:XSeries:13.7.1"),
+        @Dependency("com.saicone:nbt:1.0.4"),
+        @Dependency("com.google.guava:guava:33.7.1-jre")
 }, relocations = {
         "com.cryptomorin.xseries", "{package}.libs.xseries",
-        "com.saicone.rtag", "{package}.libs.rtag",
         "com.saicone.nbt", "{package}.libs.nbt",
         "com.google.common", "{package}.libs.guava",
         // drivers
@@ -75,7 +73,7 @@ public final class PixelBuy extends JavaPlugin implements Executor {
     public PixelBuy() {
         final Ezlib ezlib = new Ezlib();
         ezlib.init();
-        ezlib.dependency("com.google.code.gson:gson:2.11.0")
+        ezlib.dependency("com.google.code.gson:gson:2.14.0")
              .relocations(Map.of("com{}google{}gson".replace("{}", "."), "com.saicone.pixelbuy.libs.gson"))
              .parent(true)
              .load();

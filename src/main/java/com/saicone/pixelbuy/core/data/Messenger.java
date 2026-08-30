@@ -3,8 +3,9 @@ package com.saicone.pixelbuy.core.data;
 import com.saicone.delivery4j.AbstractMessenger;
 import com.saicone.delivery4j.Broker;
 import com.saicone.delivery4j.broker.HikariBroker;
+import com.saicone.delivery4j.broker.JedisBroker;
 import com.saicone.delivery4j.broker.RabbitMQBroker;
-import com.saicone.delivery4j.broker.RedisBroker;
+import com.saicone.delivery4j.util.DataIdentifier;
 import com.saicone.delivery4j.util.LogFilter;
 import com.saicone.delivery4j.util.TaskExecutor;
 import com.saicone.ezlib.Dependencies;
@@ -30,13 +31,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Dependencies(value = {
-        @Dependency("com.saicone.delivery4j:delivery4j:1.1.5"),
-        @Dependency("com.saicone.delivery4j:broker-sql:1.1.5"),
-        @Dependency("com.saicone.delivery4j:broker-sql-hikari:1.1.5"),
-        @Dependency("com.saicone.delivery4j:broker-redis:1.1.5"),
-        @Dependency("com.saicone.delivery4j:broker-rabbitmq:1.1.5"),
-        @Dependency("com.saicone.delivery4j:extension-guava:1.1.5"),
-        @Dependency("org.slf4j:slf4j-nop:1.7.36")
+        @Dependency("com.saicone:delivery4j:1.1.6"),
+        @Dependency("com.saicone:delivery4j-broker-sql:1.1.6"),
+        @Dependency("com.saicone:delivery4j-broker-sql-hikari:1.1.6"),
+        @Dependency("com.saicone:delivery4j-broker-redis-jedis:1.1.6"),
+        @Dependency("com.saicone:delivery4j-broker-rabbitmq:1.1.6"),
+        @Dependency("org.slf4j:slf4j-nop:2.0.17")
 }, relocations = {
         "com.saicone.delivery4j", "{package}.libs.delivery4j",
         "org.slf4j", "{package}.libs.slf4j",
@@ -82,7 +82,7 @@ public class Messenger extends AbstractMessenger {
                     } else {
                         process(lines);
                     }
-                }).cache(true);
+                }).identifier(DataIdentifier.bit32());
             }
             final Broker broker = loadBroker();
             broker.setLogger(LogFilter.valueOf(PixelBuy.get().getLogger(), () -> PixelBuy.get().getLang().getLogLevel()));
@@ -158,9 +158,9 @@ public class Messenger extends AbstractMessenger {
             final String password = config.getIgnoreCase("password").asString("password");
             final int database = config.getIgnoreCase("database").asInt(0);
             final boolean ssl = config.getIgnoreCase("ssl").asBoolean(false);
-            return RedisBroker.of(host, port, password, database, ssl);
+            return JedisBroker.simple(host + ":" + port, password, database, ssl);
         } else {
-            return new RedisBroker(RedisClient.create(url));
+            return new JedisBroker(RedisClient.create(url));
         }
     }
 
