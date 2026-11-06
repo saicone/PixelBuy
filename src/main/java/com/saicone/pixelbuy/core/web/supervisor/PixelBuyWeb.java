@@ -62,8 +62,9 @@ public class PixelBuyWeb extends WebSupervisor {
             return;
         }
 
-        final String serverUrl = config.getRegex("(?i)format", "(?i)server(-?url)?").asString(SERVER_FORMAT).replace(URL, url);
-        final String orderUrl = config.getRegex("(?i)format", "(?i)order(-?url)?").asString(ORDER_FORMAT).replace(URL, url);
+        final String base = url.replaceAll("/+$", "");
+        final String serverUrl = config.getRegex("(?i)format", "(?i)server(-?url)?").asString(SERVER_FORMAT).replace(URL, base).replace(KEY, getGroup());
+        final String orderUrl = config.getRegex("(?i)format", "(?i)order(-?url)?").asString(ORDER_FORMAT).replace(URL, base);
 
         final String property = config.getRegex("(?i)rest(-?api)?", "(?i)property").asString(PROPERTY);
         final String secret = addSecret(config.getRegex("(?i)rest(-?api)?", "(?i)secret(-?key)?").asString(""));
@@ -133,8 +134,11 @@ public class PixelBuyWeb extends WebSupervisor {
         if (cached != null) {
             return Optional.of(cached);
         }
+        if (orderConnection == null) {
+            return Optional.empty();
+        }
         try {
-            return Optional.ofNullable(orderConnection.fetch(Order.class)).map(order -> {
+            return Optional.ofNullable(orderConnection.fetch(Order.class, KEY, orderId)).map(order -> {
                 final StoreOrder storeOrder = order.asStoreOrder(getId(), getGroup());
                 cachedOrders.put(orderId, storeOrder);
                 return storeOrder;
