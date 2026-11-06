@@ -76,6 +76,14 @@ public class PlayerProvider {
         return cached;
     }
 
+    /**
+     * Remembers a known name and UUID pair, so players that never joined can still be resolved.
+     */
+    public static void cache(@NotNull UUID uniqueId, @NotNull String name) {
+        ID_CACHE.put(name, uniqueId);
+        NAME_CACHE.put(uniqueId, name);
+    }
+
     @Nullable
     public static String getName(@NotNull UUID uniqueId) {
         String cached = NAME_CACHE.getIfPresent(uniqueId);

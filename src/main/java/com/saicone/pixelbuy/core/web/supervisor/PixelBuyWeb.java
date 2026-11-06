@@ -279,7 +279,9 @@ public class PixelBuyWeb extends WebSupervisor {
 
         public UUID playerId() {
             if (player.contains(":")) {
-                return UUID.fromString(player.substring(0, player.indexOf(':')));
+                final UUID uniqueId = UUID.fromString(player.substring(0, player.indexOf(':')));
+                PlayerProvider.cache(uniqueId, playerName());
+                return uniqueId;
             } else {
                 return PlayerProvider.getUniqueId(player);
             }
