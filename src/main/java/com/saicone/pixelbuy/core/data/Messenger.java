@@ -181,6 +181,17 @@ public class Messenger extends AbstractMessenger {
         }
     }
 
+    /**
+     * Sends the message only when the messenger is enabled, so single-server setups don't blow up on every save.
+     */
+    @Override
+    public @NotNull CompletableFuture<Void> send(@NotNull String channel, Object... args) {
+        if (!isEnabled()) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return super.send(channel, args);
+    }
+
     @NotNull
     public CompletableFuture<Long> ping() {
         final Long key = System.currentTimeMillis();
